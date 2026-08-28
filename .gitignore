@@ -1,0 +1,55 @@
+# 大文件（GitHub 限制 1MB）
+*.mp4
+*.mp3
+*.wav
+*.gif
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.pdf
+*.pptx
+*.docx
+*.xlsx
+*.zip
+*.tar.gz
+*.tgz
+
+# 依赖目录
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 构建产物
+dist/
+build/
+*.dll
+*.exe
+*.so
+*.dylib
+
+# 临时文件
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+
+# IDE
+.vscode/
+.idea/
+
+# 环境配置
+.env
+.env.local
+*.local
+
+# 特定大文件目录
+baoyu-slide-deck/slide-deck/
+video-creator/assets/media/
+video-generator/scripts/audio/
+video-generator/scripts/captures/
+video-generator/scripts/slides/
+gstack/lib/diagram-render/dist/
