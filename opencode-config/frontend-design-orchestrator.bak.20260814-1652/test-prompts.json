@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "帮我生成一个 B2B SaaS 后台仪表盘的设计规范文档（DESIGN.md），面向企业客户，风格干净专业",
+    "expected": "遵循 10 节 DESIGN.md 模板、Junior Designer 先确认假设再生成、引用 craft rules"
+  },
+  {
+    "id": 2,
+    "prompt": "帮我审查这个设计的合规性：它是一个电商首页，用了 Inter 字体、蓝紫渐变 Hero banner、emoji 做功能图标，卡片用了圆角+彩色左边框",
+    "expected": "识别 4 个 P0 AI-slop（渐变 hero/emoji 图标/圆角左框卡片/默认 Inter）、输出结构化 P0/P1 报告"
+  },
+  {
+    "id": 3,
+    "prompt": "做一个需要跨主题切换（浅色/深色）的设计系统规范，希望颜色在两种主题下都和谐、对比度可预测",
+    "expected": "引用 OKLCH 色彩空间方案、填充制 vs 阴影制深度模型、Apple 设计语言参考（iOS label 四级墨色/hairline）"
+  }
+]
