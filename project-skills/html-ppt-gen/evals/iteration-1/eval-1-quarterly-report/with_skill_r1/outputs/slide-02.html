@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q2 季度业务汇报 - 目录</title>
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+  }
+  .slide-content {
+    width: 960px;
+    height: 540px;
+    position: relative;
+    transform-origin: center center;
+  }
+  </style>
+  <script>
+  function scaleSlide() {
+    const slide = document.querySelector('.slide-content');
+    if (!slide) return;
+    const scale = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+    slide.style.width = '960px';
+    slide.style.height = '540px';
+    slide.style.transform = `scale(${scale})`;
+    slide.style.transformOrigin = 'center center';
+    slide.style.flexShrink = '0';
+  }
+  window.addEventListener('load', scaleSlide);
+  window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <div class="slide-content" style="background:#edf2f4;">
+
+    <!-- 左侧深色面板 -->
+    <div style="position:absolute; left:0; top:0; width:340px; height:540px; background:#2b2d42;">
+
+      <!-- 顶部标签 -->
+      <svg width="120" height="28" style="position:absolute; left:48px; top:72px;">
+        <rect width="120" height="28" rx="4" fill="#ef233c" opacity="0.15"/>
+        <text x="60" y="14" text-anchor="middle" dominant-baseline="central"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="12" font-weight="600" fill="#ef233c" letter-spacing="4">汇报大纲</text>
+      </svg>
+
+      <!-- 标题 -->
+      <h2 style="position:absolute; left:48px; top:120px; margin:0; padding:0;
+                 font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                 font-size:40px; font-weight:700; color:#ffffff; line-height:1.3;">
+        目录
+      </h2>
+
+      <!-- 装饰线 -->
+      <svg width="48" height="3" style="position:absolute; left:48px; top:200px;" aria-hidden="true">
+        <rect width="48" height="3" rx="1.5" fill="#ef233c"/>
+      </svg>
+
+      <!-- 左侧装饰元素 -->
+      <svg width="200" height="200" style="position:absolute; left:80px; bottom:40px; opacity:0.08;" aria-hidden="true">
+        <rect x="0" y="0" width="60" height="60" fill="#ffffff"/>
+        <rect x="70" y="0" width="60" height="60" fill="#ffffff"/>
+        <rect x="140" y="0" width="60" height="60" fill="#ffffff"/>
+        <rect x="0" y="70" width="60" height="60" fill="#ffffff"/>
+        <rect x="70" y="70" width="60" height="60" fill="#ffffff"/>
+        <rect x="140" y="70" width="60" height="60" fill="#ffffff"/>
+        <rect x="0" y="140" width="60" height="60" fill="#ffffff"/>
+        <rect x="70" y="140" width="60" height="60" fill="#ffffff"/>
+        <rect x="140" y="140" width="60" height="60" fill="#ffffff"/>
+      </svg>
+    </div>
+
+    <!-- 右侧目录条目 -->
+    <div style="position:absolute; left:400px; top:80px; width:500px;">
+
+      <!-- 条目 01 -->
+      <div style="display:flex; align-items:flex-start; margin-bottom:32px;">
+        <p style="margin:0 16px 0 0; padding:0;
+                  font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                  font-size:36px; font-weight:700; color:#ef233c; line-height:1;
+                  min-width:52px;">01</p>
+        <div>
+          <p style="margin:0 0 4px 0; padding:0;
+                    font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                    font-size:22px; font-weight:600; color:#2b2d42;">总体概览</p>
+          <p style="margin:0; padding:0;
+                    font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                    font-size:14px; font-weight:400; color:#8d99ae;">Q2 核心指标达成与趋势</p>
+        </div>
+      </div>
+
+      <!-- SVG 分隔线 -->
+      <svg width="500" height="1" style="margin-bottom:24px;" aria-hidden="true">
+        <rect width="500" height="1" fill="#8d99ae" opacity="0.2"/>
+      </svg>
+
+      <!-- 条目 02 -->
+      <div style="display:flex; align-items:flex-start; margin-bottom:32px;">
+        <p style="margin:0 16px 0 0; padding:0;
+                  font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                  font-size:36px; font-weight:700; color:#ef233c; line-height:1;
+                  min-width:52px;">02</p>
+        <div>
+          <p style="margin:0 0 4px 0; padding:0;
+                    font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                    font-size:22px; font-weight:600; color:#2b2d42;">区域分析</p>
+          <p style="margin:0; padding:0;
+                    font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                    font-size:14px; font-weight:400; color:#8d99ae;">各区域销售对比与差异分析</p>
+        </div>
+      </div>
+
+      <!-- SVG 分隔线 -->
+      <svg width="500" height="1" style="margin-bottom:24px;" aria-hidden="true">
+        <rect width="500" height="1" fill="#8d99ae" opacity="0.2"/>
+      </svg>
+
+      <!-- 条目 03 -->
+      <div style="display:flex; align-items:flex-start; margin-bottom:32px;">
+        <p style="margin:0 16px 0 0; padding:0;
+                  font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                  font-size:36px; font-weight:700; color:#ef233c; line-height:1;
+                  min-width:52px;">03</p>
+        <div>
+          <p style="margin:0 0 4px 0; padding:0;
+                    font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                    font-size:22px; font-weight:600; color:#2b2d42;">产品洞察</p>
+          <p style="margin:0; padding:0;
+                    font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                    font-size:14px; font-weight:400; color:#8d99ae;">明星产品表现与薄弱品类识别</p>
+        </div>
+      </div>
+
+      <!-- SVG 分隔线 -->
+      <svg width="500" height="1" style="margin-bottom:24px;" aria-hidden="true">
+        <rect width="500" height="1" fill="#8d99ae" opacity="0.2"/>
+      </svg>
+
+      <!-- 条目 04 -->
+      <div style="display:flex; align-items:flex-start;">
+        <p style="margin:0 16px 0 0; padding:0;
+                  font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                  font-size:36px; font-weight:700; color:#ef233c; line-height:1;
+                  min-width:52px;">04</p>
+        <div>
+          <p style="margin:0 0 4px 0; padding:0;
+                    font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                    font-size:22px; font-weight:600; color:#2b2d42;">下半年策略</p>
+          <p style="margin:0; padding:0;
+                    font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                    font-size:14px; font-weight:400; color:#8d99ae;">增长路径规划与关键行动计划</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 页码角标 (02) -->
+    <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+      <circle cx="18" cy="18" r="18" fill="#2b2d42"/>
+      <text x="18" y="18" text-anchor="middle" dominant-baseline="central"
+            font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+            font-size="14" font-weight="600" fill="#ffffff">2</text>
+    </svg>
+
+  </div>
+</body>
+</html>

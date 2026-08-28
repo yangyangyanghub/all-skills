@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cover — AI 时代多任务并行开发</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width: 960px; height: 540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26; overflow:hidden;">
+      <!-- 封面背景图 -->
+      <img src="imgs/cover-v2.png" style="position:absolute; top:0; left:0; width:960px; height:540px; object-fit:cover; opacity:0.3;" alt="cover">
+      <!-- 底部遮罩 -->
+      <svg width="960" height="280" style="position:absolute; bottom:0; left:0; pointer-events:none;" aria-hidden="true">
+        <rect width="960" height="280" fill="#1a1b26" fill-opacity="0.85"/>
+      </svg>
+      <!-- 左侧装饰线 -->
+      <svg width="4" height="180" style="position:absolute; left:60px; top:140px;" aria-hidden="true">
+        <rect width="4" height="180" fill="#7aa2f7"/>
+      </svg>
+      <!-- 主标题 -->
+      <p style="position:absolute; left:84px; top:150px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 40px; font-weight:700; color:#a9b1d6; line-height:1.3;">
+        AI 时代多任务并行开发
+      </p>
+      <!-- 副标题 -->
+      <p style="position:absolute; left:84px; top:218px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:22px; font-weight:400; color:#f7768e; line-height:1.5;">
+        看见你看不见的隐含依赖
+      </p>
+      <!-- 品牌线 -->
+      <p style="position:absolute; left:84px; top:270px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:14px; font-weight:400; color:#565f89; letter-spacing:2px;">
+        从地理信息到空间智能
+      </p>
+      <!-- 讲师信息 -->
+      <p style="position:absolute; left:84px; top:330px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:16px; font-weight:400; color:#9aa5ce;">
+        讲师：WY
+      </p>
+      <p style="position:absolute; left:84px; top:358px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:14px; font-weight:400; color:#565f89;">
+        2026-07-20 · 内部技术分享
+      </p>
+      <!-- 右侧装饰：节点图 -->
+      <svg width="160" height="160" style="position:absolute; right:80px; top:80px; opacity:0.2;" aria-hidden="true">
+        <circle cx="40" cy="40" r="8" fill="#7aa2f7"/>
+        <circle cx="120" cy="40" r="8" fill="#bb9af7"/>
+        <circle cx="80" cy="120" r="8" fill="#7aa2f7"/>
+        <line x1="48" y1="40" x2="112" y2="40" stroke="#7aa2f7" stroke-width="1.5"/>
+        <line x1="40" y1="48" x2="80" y2="112" stroke="#7aa2f7" stroke-width="1.5"/>
+        <line x1="120" y1="48" x2="80" y2="112" stroke="#f7768e" stroke-width="1.5" stroke-dasharray="4 3"/>
+      </svg>
+    </div>
+    <aside class="notes">
+各位，今天不讲 AI 有多强大。先问两个问题。
+
+**第一个问题：在座有多少人试过同时开 3 个以上 AI 窗口，让它们同时干不同的事？**
+
+（停顿，看举手）
+
+好，大半都试过。
+
+**第二个问题：有多少人最后发现——3 个窗口的成果拼不到一起，返工比自己写还慢？**
+
+（再停顿，看举手）
+
+好，几乎全举手了。
+
+**这就是今天要讲的事。**
+
+你们不是没试过并行，是试过但失败了，然后退回串行。然后心里想："AI 并行听着好听，实际没用。"
+
+今天我不跟你们讲"要拥抱并行"。我来讲一件事：**你上次并行失败，不是 AI 不行，是你没看见一个东西。**
+
+这个东西叫**隐含依赖**。它是并行的真正杀手，但它 invisible——你看不见，你团队里没人能看见，但从我们模型这边看，它清楚得很。
+
+这节课，就带你看见它。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

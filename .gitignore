@@ -1,0 +1,76 @@
+# Python virtual environments
+**/funasr-env/
+**/venv/
+**/.venv/
+**/env/
+**/.env/
+
+# Node.js
+**/node_modules/
+**/.npm/
+**/.yarn/
+**/dist/
+**/build/
+
+# Cache and temp
+**/.cache/
+**/.tmp/
+**/temp/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.DS_Store
+**/Thumbs.db
+
+# IDE
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+
+# Logs
+**/*.log
+
+# Package locks
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+
+# Binary/large files
+**/*.dll
+**/*.so
+**/*.dylib
+**/*.exe
+**/*.bin
+**/*.lib
+**/*.obj
+
+# Archives
+**/*.zip
+**/*.tar.gz
+**/*.rar
+**/*.7z
+**/*.whl
+
+# ML models
+**/*.pt
+**/*.pth
+**/*.onnx
+**/*.pb
+**/*.h5
+**/*.model
+
+# Databases
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+
+# Media (large)
+**/*.mp4
+**/*.mov
+**/*.avi
+**/*.mkv
+
+# Large data files (not needed for skill backup)
+**/security-bench-haiku-responses.json
+**/2026-half-year-report.pptx

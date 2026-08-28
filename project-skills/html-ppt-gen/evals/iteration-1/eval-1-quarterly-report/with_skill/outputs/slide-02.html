@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q2 季度业务汇报 - 目录</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+    }
+    .slide-content {
+      width: 960px;
+      height: 540px;
+      position: relative;
+      transform-origin: center center;
+    }
+  </style>
+  <script>
+    function scaleSlide() {
+      const slide = document.querySelector('.slide-content');
+      if (!slide) return;
+      const slideWidth = 960;
+      const slideHeight = 540;
+      const scaleX = window.innerWidth / slideWidth;
+      const scaleY = window.innerHeight / slideHeight;
+      const scale = Math.min(scaleX, scaleY);
+      slide.style.width = slideWidth + 'px';
+      slide.style.height = slideHeight + 'px';
+      slide.style.transform = `scale(${scale})`;
+      slide.style.transformOrigin = 'center center';
+      slide.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <!-- 目录页：Type 2 - Table of Contents -->
+  <div class="slide-content" style="background:#edf2f4;">
+
+    <!-- 顶部区域 -->
+    <div style="position:absolute; left:0; top:0; width:960px; height:8px; background:#2b2d42;"></div>
+
+    <!-- 页面标题 -->
+    <h2 style="position:absolute; left:60px; top:44px; margin:0;
+      font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+      font-size: 36px; font-weight: 700; color: #2b2d42;">
+      汇报目录
+    </h2>
+
+    <!-- 副标题 -->
+    <p style="position:absolute; left:60px; top:94px; margin:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 16px; font-weight: 400; color: #8d99ae;">
+      本次汇报涵盖四大核心板块
+    </p>
+
+    <!-- SVG 标题分隔线 -->
+    <svg style="position:absolute; left:60px; top:120px;" width="60" height="3" aria-hidden="true">
+      <rect width="60" height="3" rx="1.5" fill="#ef233c"/>
+    </svg>
+
+    <!-- 目录条目：左侧编号 + 右侧内容 -->
+    <!-- 条目 01 -->
+    <div style="position:absolute; left:60px; top:160px; width:840px;">
+      <p style="margin:0; font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+        font-size: 56px; font-weight: 700; color: #ef233c; line-height:1; display:inline-block; width:100px;">01</p>
+      <div style="display:inline-block; vertical-align:top; margin-left:20px; width:700px;">
+        <p style="margin:0; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 22px; font-weight: 700; color: #2b2d42;">Q2 销售概览</p>
+        <p style="margin:4px 0 0 0; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 14px; font-weight: 400; color: #8d99ae;">总营收、目标达成率与同比增长核心指标</p>
+      </div>
+    </div>
+
+    <!-- 条目分隔线 -->
+    <svg style="position:absolute; left:60px; top:238px;" width="840" height="1" aria-hidden="true">
+      <rect width="840" height="1" fill="#8d99ae" opacity="0.25"/>
+    </svg>
+
+    <!-- 条目 02 -->
+    <div style="position:absolute; left:60px; top:252px; width:840px;">
+      <p style="margin:0; font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+        font-size: 56px; font-weight: 700; color: #ef233c; line-height:1; display:inline-block; width:100px;">02</p>
+      <div style="display:inline-block; vertical-align:top; margin-left:20px; width:700px;">
+        <p style="margin:0; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 22px; font-weight: 700; color: #2b2d42;">产品线表现分析</p>
+        <p style="margin:4px 0 0 0; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 14px; font-weight: 400; color: #8d99ae;">各产品线销售额、毛利率与市场份额对比</p>
+      </div>
+    </div>
+
+    <!-- 条目分隔线 -->
+    <svg style="position:absolute; left:60px; top:330px;" width="840" height="1" aria-hidden="true">
+      <rect width="840" height="1" fill="#8d99ae" opacity="0.25"/>
+    </svg>
+
+    <!-- 条目 03 -->
+    <div style="position:absolute; left:60px; top:344px; width:840px;">
+      <p style="margin:0; font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+        font-size: 56px; font-weight: 700; color: #ef233c; line-height:1; display:inline-block; width:100px;">03</p>
+      <div style="display:inline-block; vertical-align:top; margin-left:20px; width:700px;">
+        <p style="margin:0; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 22px; font-weight: 700; color: #2b2d42;">区域市场复盘</p>
+        <p style="margin:4px 0 0 0; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 14px; font-weight: 400; color: #8d99ae;">华东/华南/华北三大区域业绩对比与增长策略</p>
+      </div>
+    </div>
+
+    <!-- 条目分隔线 -->
+    <svg style="position:absolute; left:60px; top:422px;" width="840" height="1" aria-hidden="true">
+      <rect width="840" height="1" fill="#8d99ae" opacity="0.25"/>
+    </svg>
+
+    <!-- 条目 04 -->
+    <div style="position:absolute; left:60px; top:436px; width:840px;">
+      <p style="margin:0; font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+        font-size: 56px; font-weight: 700; color: #ef233c; line-height:1; display:inline-block; width:100px;">04</p>
+      <div style="display:inline-block; vertical-align:top; margin-left:20px; width:700px;">
+        <p style="margin:0; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 22px; font-weight: 700; color: #2b2d42;">下半年规划与行动项</p>
+        <p style="margin:4px 0 0 0; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 14px; font-weight: 400; color: #8d99ae;">Q3 销售目标、增长策略与资源需求</p>
+      </div>
+    </div>
+
+    <!-- 页码角标：SVG circle badge -->
+    <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+      <circle cx="18" cy="18" r="18" fill="#2b2d42"/>
+      <text x="18" y="18" text-anchor="middle" dominant-baseline="central"
+        font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="14" font-weight="600" fill="#edf2f4">02</text>
+    </svg>
+  </div>
+</body>
+</html>

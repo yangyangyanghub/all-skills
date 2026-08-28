@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q2 季度业务汇报 - 目录</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f1a2e;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+
+  .slide {
+    width: 1280px; height: 720px;
+    background: linear-gradient(135deg, #0a1628 0%, #14264b 40%, #1a365d 70%, #0f2440 100%);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    border-radius: 4px;
+    display: flex; align-items: center;
+  }
+
+  .deco-line {
+    position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, #ed8936 0%, #dd6b20 50%, #c05621 100%);
+  }
+  .deco-top {
+    position: absolute; top: -80px; right: -60px;
+    width: 350px; height: 350px;
+    border: 1px solid rgba(237,137,54,0.1);
+    border-radius: 50%;
+  }
+  .deco-bottom {
+    position: absolute; bottom: 40px; left: 60px;
+    width: 120px; height: 120px;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 15px 15px;
+  }
+
+  .left-col {
+    width: 380px;
+    padding-left: 100px;
+    position: relative; z-index: 1;
+  }
+  .left-col .label {
+    font-size: 13px; color: rgba(237,137,54,0.8);
+    letter-spacing: 5px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  .left-col h2 {
+    font-size: 42px; font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+  }
+  .left-col h2 .accent {
+    color: #f6ad55;
+  }
+  .left-col .divider {
+    width: 40px; height: 3px;
+    background: #ed8936;
+    margin-top: 28px;
+  }
+
+  .right-col {
+    flex: 1;
+    padding: 40px 80px 40px 40px;
+    position: relative; z-index: 1;
+  }
+
+  .toc-item {
+    display: flex; align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.3s;
+  }
+  .toc-item:last-child { border-bottom: none; }
+
+  .toc-num {
+    font-size: 36px; font-weight: 700;
+    color: rgba(237,137,54,0.5);
+    width: 80px;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .toc-content {
+    flex: 1;
+  }
+  .toc-content .toc-title {
+    font-size: 22px; font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 4px;
+  }
+  .toc-content .toc-desc {
+    font-size: 13px; color: rgba(255,255,255,0.4);
+    letter-spacing: 1px;
+  }
+  .toc-arrow {
+    color: rgba(237,137,54,0.3);
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .page-num {
+    position: absolute; bottom: 50px; right: 80px;
+    font-size: 12px; color: rgba(255,255,255,0.25);
+    letter-spacing: 2px;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="deco-line"></div>
+  <div class="deco-top"></div>
+  <div class="deco-bottom"></div>
+
+  <div class="left-col">
+    <div class="label">CONTENTS</div>
+    <h2>汇报<span class="accent">目录</span></h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="right-col">
+    <div class="toc-item">
+      <span class="toc-num">01</span>
+      <div class="toc-content">
+        <div class="toc-title">整体业绩概览</div>
+        <div class="toc-desc">Q2 总营收、同比增长、达成率总览</div>
+      </div>
+      <span class="toc-arrow">→</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">02</span>
+      <div class="toc-content">
+        <div class="toc-title">月度销售趋势</div>
+        <div class="toc-desc">4-6 月销售数据逐月对比与趋势分析</div>
+      </div>
+      <span class="toc-arrow">→</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">03</span>
+      <div class="toc-content">
+        <div class="toc-title">产品线销售分布</div>
+        <div class="toc-desc">各产品线收入占比与增长贡献度</div>
+      </div>
+      <span class="toc-arrow">→</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">04</span>
+      <div class="toc-content">
+        <div class="toc-title">区域市场表现</div>
+        <div class="toc-desc">华东 / 华南 / 华北 / 西南四大区域对比</div>
+      </div>
+      <span class="toc-arrow">→</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">05</span>
+      <div class="toc-content">
+        <div class="toc-title">Q3 展望与行动规划</div>
+        <div class="toc-desc">下季度目标、策略重点与资源配置</div>
+      </div>
+      <span class="toc-arrow">→</span>
+    </div>
+  </div>
+
+  <div class="page-num">02 / 08</div>
+</div>
+</body>
+</html>

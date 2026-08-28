@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICAP 学习方法诊断报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        /* ICAP 层级可视化 */
+        .icap-levels {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .icap-level {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .icap-level.passive {
+            background: #fee;
+            border: 2px solid #fcc;
+        }
+        
+        .icap-level.active {
+            background: #fff8e1;
+            border: 2px solid #ffe082;
+        }
+        
+        .icap-level.constructive {
+            background: #e8f5e9;
+            border: 2px solid #a5d6a7;
+        }
+        
+        .icap-level.interactive {
+            background: #e3f2fd;
+            border: 2px solid #90caf9;
+        }
+        
+        .icap-level.current {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .icap-level.current::after {
+            content: "← 你在这里";
+            display: block;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .icap-level .letter {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .icap-level.passive .letter { color: #e57373; }
+        .icap-level.active .letter { color: #ffb74d; }
+        .icap-level.constructive .letter { color: #81c784; }
+        .icap-level.interactive .letter { color: #64b5f6; }
+        
+        .icap-level .name {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .icap-level .desc {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* 升级路径 */
+        .upgrade-path {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+        }
+        
+        .upgrade-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-left: 20px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .upgrade-step:last-child {
+            margin-bottom: 0;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .step-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* 行动清单 */
+        .action-list {
+            list-style: none;
+        }
+        
+        .action-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .action-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .action-check {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .action-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* 预期效果 */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #667eea;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -25px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+        
+        .timeline-time {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* 引用 */
+        .quote {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .quote-author {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #999;
+            font-style: normal;
+        }
+        
+        /* 页脚 */
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 ICAP 学习方法诊断报告</h1>
+            <p>基于认知参与框架的学习升级方案</p>
+        </div>
+        
+        <div class="content">
+            <!-- 用户画像 -->
+            <div class="section">
+                <h2 class="section-title">📋 用户画像</h2>
+                <p style="font-size: 14px; color: #666; line-height: 1.8;">
+                    <strong>身份</strong>：[用户身份]<br>
+                    <strong>学习方式</strong>：[当前学习方式]<br>
+                    <strong>核心困惑</strong>：[困惑描述]
+                </p>
+            </div>
+            
+            <!-- ICAP 层级诊断 -->
+            <div class="section">
+                <h2 class="section-title">🔍 ICAP 层级诊断</h2>
+                
+                <div class="icap-levels">
+                    <div class="icap-level passive">
+                        <div class="letter">P</div>
+                        <div class="name">被动</div>
+                        <div class="desc">只是接收信息</div>
+                    </div>
+                    <div class="icap-level active current">
+                        <div class="letter">A</div>
+                        <div class="name">主动</div>
+                        <div class="desc">有动作但不生成新信息</div>
+                    </div>
+                    <div class="icap-level constructive">
+                        <div class="letter">C</div>
+                        <div class="name">建构</div>
+                        <div class="desc">生成新信息</div>
+                    </div>
+                    <div class="icap-level interactive">
+                        <div class="letter">I</div>
+                        <div class="name">互动</div>
+                        <div class="desc">实质性建构对话</div>
+                    </div>
+                </div>
+                
+                <div class="quote">
+                    "学习不是信息的搬运，而是认知结构的重建。"
+                    <div class="quote-author">— ICAP 框架核心理念</div>
+                </div>
+                
+                <p style="font-size: 14px; color: #666; line-height: 1.8;">
+                    <strong>诊断结论</strong>：你当前的学习行为主要处于 <strong>A（主动）层级</strong>。
+                    你有物理动作（记笔记、画重点），但没有生成超出原材料的新信息。
+                    这解释了为什么你"感觉学了很多，但用的时候想不起来"。
+                </p>
+            </div>
+            
+            <!-- 升级路径 -->
+            <div class="section">
+                <h2 class="section-title">🚀 升级路径</h2>
+                
+                <div class="upgrade-path">
+                    <div class="upgrade-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">A → C：从"抄写"到"自我解释"</div>
+                            <div class="step-desc">
+                                看完一段内容后，合上书，用自己的话解释核心观点。
+                                不是复述原文，而是用你自己的语言重新组织。
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="upgrade-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">C 层级深化：画思维导图</div>
+                            <div class="step-desc">
+                                用 3-5 个节点画出知识结构的思维导图。
+                                重点不是"好看"，而是理清概念之间的关系。
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="upgrade-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">C → I：找人讨论（可选）</div>
+                            <div class="step-desc">
+                                找同事/朋友讨论你学到的内容。
+                                如果对方能听懂并能提出有价值的问题，说明你真懂了。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 行动清单 -->
+            <div class="section">
+                <h2 class="section-title">✅ 本周行动清单</h2>
+                
+                <ul class="action-list">
+                    <li class="action-item">
+                        <div class="action-check"></div>
+                        <div class="action-text">
+                            <strong>每天</strong>：听完课/看完文章后，用 2 分钟写 100 字总结（用自己的话）
+                        </div>
+                    </li>
+                    <li class="action-item">
+                        <div class="action-check"></div>
+                        <div class="action-text">
+                            <strong>每周</strong>：画 1 张思维导图，整理本周学到的核心概念
+                        </div>
+                    </li>
+                    <li class="action-item">
+                        <div class="action-check"></div>
+                        <div class="action-text">
+                            <strong>每周</strong>：找 1 个人讨论你学到的内容，接受质疑
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 预期效果 -->
+            <div class="section">
+                <h2 class="section-title">📈 预期效果</h2>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-time">1 周后</div>
+                        <div class="timeline-desc">能复述听课/阅读内容的核心观点，不再"学了就忘"</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">2 周后</div>
+                        <div class="timeline-desc">写方案/做汇报时，能引用学到的框架和方法</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">1 月后</div>
+                        <div class="timeline-desc">老板/同事评价"你的方案有深度了"</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>本报告基于 ICAP 认知参与框架（Chi & Wylie, 2014）生成</p>
+            <p>由 <a href="#">ICAP学习方法诊断教练</a> Skill 提供</p>
+        </div>
+    </div>
+</body>
+</html>

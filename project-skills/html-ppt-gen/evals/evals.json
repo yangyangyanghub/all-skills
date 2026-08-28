@@ -1,0 +1,26 @@
+{
+  "skill_name": "html-ppt-gen",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "simple-3-slide",
+      "prompt": "Create a simple 3-slide presentation about 'AI in Healthcare'. Include:\n- Slide 1: Cover with title and subtitle\n- Slide 2: One content page with 3 key benefits of AI in healthcare\n- Slide 3: Summary with key takeaways\n\nUse a modern color palette suitable for healthcare topic. Generate all necessary images.",
+      "expected_output": "A 3-slide HTML presentation with cover, content, and summary slides. Each slide should be a valid HTML file at 960×540px using Times New Roman font, with proper page number badges (except cover), and appropriate images generated.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "eval_name": "full-structure-5-slide",
+      "prompt": "Create a 5-slide presentation about 'Remote Work Trends 2026'. Structure:\n- Slide 1: Cover\n- Slide 2: Table of Contents (3 sections)\n- Slide 3: Section Divider for Section 1\n- Slide 4: Content page with data visualization (bar chart showing remote work adoption rates)\n- Slide 5: Summary with next steps\n\nChoose a professional color palette suitable for business presentation.",
+      "expected_output": "A 5-slide HTML presentation following the complete structure with TOC and section divider. Should include SVG bar chart for data visualization. All slides properly formatted with page badges.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "eval_name": "multi-section-complex",
+      "prompt": "Create an 8-slide presentation about 'Sustainable Urban Development'. Include:\n- Cover slide\n- TOC (4 sections)\n- Section 1 Divider + Content (comparison: traditional vs sustainable cities)\n- Section 2 Divider + Content (timeline: urban sustainability milestones 2020-2030)\n- Section 3 Content (image showcase with 2-3 key features)\n- Summary\n\nUse an eco-friendly color palette. Ensure variety in content layouts across slides.",
+      "expected_output": "An 8-slide presentation demonstrating multiple content subtypes (comparison, timeline, image showcase). Should show layout variety, proper section dividers, and consistent design system throughout.",
+      "files": []
+    }
+  ]
+}

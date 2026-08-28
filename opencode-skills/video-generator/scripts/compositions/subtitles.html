@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html style="background:transparent">
+<head><meta charset="UTF-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+[data-composition-id="subtitles"]{width:1080px;height:1440px;overflow:hidden;position:relative;pointer-events:none;font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+[data-composition-id="subtitles"] .sub{position:absolute;bottom:200px;left:0;right:0;text-align:center;padding:0 60px;opacity:0}
+[data-composition-id="subtitles"] .sub-text{display:inline-block;background:rgba(0,0,0,.75);color:#fff;font-size:26px;font-weight:500;padding:16px 32px;border-radius:12px;letter-spacing:.04em;line-height:1.5;max-width:950px}
+</style></head><body style="background:transparent">
+<div data-composition-id="subtitles">
+<div class="sub clip" data-start="4.0" data-duration="5.776"><span class="sub-text">深圳新一代人工智能创业创新大赛正式启动。2026 新一代人工智能（深圳）创业创新大赛面向海内外 AI 创业者开放，集结投资机构、高校科研机构、产业平台与科技企业评审资源</span></div>
+<div class="sub clip" data-start="9.776" data-duration="7.384"><span class="sub-text">Nex-AGI 开源 Nex-N2：基于 Qwen3.5 后训练的智能体模型。Nex-AGI 发布 Nex-N2-Pro 与 Nex-N2-mini，主打“智能体思维”，在复杂任务、终端智能体任务和浏览检索任务上表现突出</span></div>
+<div class="sub clip" data-start="17.16" data-duration="6.64"><span class="sub-text">世界科学智能大赛复赛开启，科研智能体同台竞技。第四届世界科学智能大赛吸引近 1.8 万名选手，AI4S 智能体 CNS 挑战赛检验 AI 自主科研能力</span></div>
+<div class="sub clip" data-start="23.8" data-duration="6.544"><span class="sub-text">openJiuwen 发布多智能体流网络，解锁 Agent Swarm 新潜力。MANGO 框架将多智能体系统结构、任务分解与路径选择联合优化，试图提升复杂任务协作的稳定性与效率</span></div>
+<div class="sub clip" data-start="30.344" data-duration="6.184"><span class="sub-text">阿里 RTPurboV2：原生 Transformer 再次崛起。RTPurboV2 通过稀疏注意力和混合架构优化长序列推理，在百步训练中实现 10 倍稀疏注意</span></div>
+<div class="sub clip" data-start="36.528" data-duration="6.52"><span class="sub-text">Remote Sensing：ATLAS 2.0 激光雷达反演算法。MDPI Remote Sensing 发布基于随机取向椭球体模型的非球形粒子微物理参数反演研究，涉及 3β + 2α + 3δ 激光雷达观测</span></div>
+<div class="sub clip" data-start="43.048" data-duration="6.808"><span class="sub-text">NASA Earth Observatory：Digging Back in Time in the UAE。NASA Earth Observatory 发布阿联酋考古与地球观测相关内容，适合遥感、地貌与历史环境研究方向跟踪</span></div>
+<div class="sub clip" data-start="49.856" data-duration="5.8"><span class="sub-text">AI 视频工具开始面向普通商家卖货场景。阿虚同学关注一类更接地气的 AI 视频工具：不是炫技生成，而是帮助普通人快速制作商品视频、降低商业内容生产门槛</span></div>
+<div class="sub clip" data-start="55.656" data-duration="6.688"><span class="sub-text">高德发布 ABot-Earth0.5：以 3D 原生驱动场景生成。高德从 2D 蒸馏模式转向 3D 原生驱动，强调高一致性场景生成能力</span></div>
+<div class="sub clip" data-start="62.344" data-duration="5.44"><span class="sub-text">文远知行 WRD 3.0 亮相高通峰会。文远知行携 L2++ 一段式端到端方案 WRD 3.0 参展，高通点赞广汽埃安 N60 智驾大赛表现</span></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script>
+var p="[data-composition-id=\"subtitles\"] ";
+var tl=gsap.timeline({paused:true});
+document.querySelectorAll(p+".sub.clip").forEach(function(el){
+  var s=parseFloat(el.dataset.start);
+  var d=parseFloat(el.dataset.duration);
+  tl.to(el,{opacity:1,duration:.3},s);
+  tl.to(el,{opacity:0,duration:.3},s+d-.3);
+});
+window.__timelines=window.__timelines||{};
+window.__timelines["subtitles"]=tl;
+</script>
+</body></html>

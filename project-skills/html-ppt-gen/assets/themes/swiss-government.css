@@ -1,0 +1,181 @@
+/* swiss-government.css
+   Unified light government / pre-sales report style. No gradients. No shadows. */
+
+:root {
+  --deck-bg: #edf2f4;
+  --deck-fg: #2b2d42;
+  --deck-muted: #8d99ae;
+  --deck-accent: #ef233c;
+  --deck-danger: #d90429;
+  --deck-line: rgba(43, 45, 66, 0.2);
+  --deck-soft: rgba(141, 153, 174, 0.14);
+  --deck-paper: #f7fafb;
+}
+
+.slide-content {
+  background: var(--deck-bg);
+}
+
+.slide-content::before {
+  content: "";
+  position: absolute;
+  inset: 28px 34px;
+  border: 1px solid var(--deck-line);
+  pointer-events: none;
+}
+
+.slide-content::after {
+  content: "";
+  position: absolute;
+  left: 34px;
+  top: 28px;
+  width: 112px;
+  height: 4px;
+  background: var(--deck-accent);
+}
+
+.sg-cover {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 36px;
+  padding-top: 70px;
+}
+
+.sg-cover h1 {
+  max-width: 520px;
+  font-size: 68px;
+}
+
+.sg-cover .summary {
+  align-self: end;
+  padding: 24px 0 6px 26px;
+  border-left: 1px solid var(--deck-line);
+}
+
+.sg-header {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 28px;
+  align-items: start;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--deck-line);
+}
+
+.sg-header h2 {
+  max-width: 650px;
+}
+
+.sg-section {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 48px;
+  align-items: end;
+  height: 100%;
+}
+
+.sg-section .section-number {
+  color: var(--deck-accent);
+  font-family: var(--font-heading);
+  font-size: 120px;
+  font-weight: 820;
+  letter-spacing: -0.08em;
+  line-height: 0.8;
+}
+
+.sg-panel {
+  padding: 18px 20px;
+  border: 1px solid var(--deck-line);
+  background: rgba(247, 250, 251, 0.5);
+}
+
+.sg-panel h3 {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--deck-line);
+}
+
+.sg-panel p,
+.sg-panel li {
+  color: rgba(43, 45, 66, 0.82);
+  font-size: 15px;
+}
+
+.sg-metric-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--deck-line);
+  border-left: 1px solid var(--deck-line);
+}
+
+.sg-metric {
+  min-height: 132px;
+  padding: 18px;
+  border-right: 1px solid var(--deck-line);
+  border-bottom: 1px solid var(--deck-line);
+}
+
+.sg-metric strong {
+  display: block;
+  margin-bottom: 18px;
+  color: var(--deck-accent);
+  font-family: var(--font-heading);
+  font-size: 46px;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.sg-timeline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--deck-line);
+  border-left: 1px solid var(--deck-line);
+}
+
+.sg-step {
+  min-height: 190px;
+  padding: 18px;
+  border-right: 1px solid var(--deck-line);
+  border-bottom: 1px solid var(--deck-line);
+}
+
+.sg-step .index {
+  color: var(--deck-accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sg-architecture {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.sg-layer {
+  min-height: 210px;
+  padding: 18px;
+  border: 1px solid var(--deck-line);
+  background: rgba(247, 250, 251, 0.42);
+}
+
+.sg-layer ul {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding-left: 18px;
+}
+
+.sg-footer-note {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  bottom: 44px;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--deck-line);
+  color: var(--deck-muted);
+  font-size: 12px;
+}

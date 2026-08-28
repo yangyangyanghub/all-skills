@@ -1,0 +1,15 @@
+/* ========================================
+   corporate-clean.css
+   商务正式 · 深蓝灰色调
+   ======================================== */
+
+:root {
+  --bg-primary: #edf2f4;
+  --bg-secondary: #d9e2ec;
+  --text-primary: #2b2d42;
+  --text-secondary: #3d405b;
+  --text-muted: #8d99ae;
+  --accent: #ef233c;
+  --accent-alt: #d90429;
+  --border-color: #c5cfd8;
+}

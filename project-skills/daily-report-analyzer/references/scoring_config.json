@@ -1,0 +1,68 @@
+{
+  "weights": {
+    "completeness": 0.20,
+    "content_quality": 0.25,
+    "ai_application": 0.20,
+    "timeliness": 0.15,
+    "workload": 0.10,
+    "planning": 0.10
+  },
+  "weight_explanation": {
+    "completeness": "完整度：工作内容+复盘+计划是否完整填写",
+    "content_quality": "内容质量：是否详细描述工作内容，杜绝流水账，有感悟，有想法",
+    "ai_application": "AI工具应用：是否使用AI工具提高效率（权重提高）",
+    "timeliness": "及时性：提交时间是否在工作时间内",
+    "workload": "工作量：工作内容丰富程度",
+    "planning": "计划性：是否填写明日计划和需协调事项"
+  },
+  "lazy_report_detection": {
+    "rules": [
+      "工作内容少于10字",
+      "只写项目名没有具体工作描述",
+      "没有动词（完成、进行、开展等）",
+      "多行内容缺少具体描述"
+    ],
+    "examples": {
+      "good": "完成用户模块接口开发，编写了5个API，覆盖增删改查功能，并通过了单元测试",
+      "bad": "用户模块开发"
+    }
+  },
+  "ai_keywords": [
+    "ai", "AI", "豆包", "deepseek", "DeepSeek", "kimi", "Kimi",
+    "chatgpt", "ChatGPT", "文心", "通义", "讯飞", "智谱",
+    "建筑学长", "灵感渲染", "AI工具", "ai填写", "用ai",
+    "copilot", "Copilot", "cursor", "Cursor"
+  ],
+  "ai_scoring_rules": {
+    "description": "AI工具应用评分标准（要体现解决了什么具体问题）",
+    "rules": {
+      "5分_优秀": {
+        "condition": "明确使用AI解决具体问题，有详细描述",
+        "examples": [
+          "使用AI协助生产管理系统curd常用接口开发工作",
+          "利用豆包梳理加固手册中关于剪力墙开洞难点条续",
+          "用AI辅助开发XX接口"
+        ]
+      },
+      "4分_良好": {
+        "condition": "使用AI，有应用场景但不够具体",
+        "examples": [
+          "查询相关规范标准号",
+          "灵感渲染处理相应的效果图",
+          "豆包、DeepSeek查找规范"
+        ]
+      },
+      "3分_一般": {
+        "condition": "只提到AI工具名，没有具体用途",
+        "examples": ["AI豆包应用", "建筑学长灵感"]
+      },
+      "2分_诚实": {
+        "condition": "诚实填写未使用",
+        "examples": ["无", "暂无", "今日未使用"]
+      },
+      "1分_未填": {
+        "condition": "未填写或null"
+      }
+    }
+  }
+}

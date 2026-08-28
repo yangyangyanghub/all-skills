@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Compiled output
+dist/
+
+# Temporary files
+*.tmp
+*.temp
+temp_*.html
+temp_*.png
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Lock files (optional - some prefer to keep)
+# package-lock.json

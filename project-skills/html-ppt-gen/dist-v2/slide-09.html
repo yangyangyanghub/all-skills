@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块三续 — 契约消除红虚线</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width: 960px; height: 540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        契约消除红虚线 → 真独立 → 可并行
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:82px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#7aa2f7"/>
+      </svg>
+
+      <!-- 左侧：任务图（红虚线消失后） -->
+      <svg width="400" height="340" viewBox="0 0 400 340" style="position:absolute; left:40px; top:110px;">
+        <!-- 节点 A -->
+        <rect x="20" y="20" width="140" height="50" rx="8" fill="#24283b" stroke="#7aa2f7" stroke-width="2"/>
+        <text x="90" y="50" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#a9b1d6">A 前端签名板</text>
+        
+        <!-- 节点 B -->
+        <rect x="200" y="20" width="140" height="50" rx="8" fill="#24283b" stroke="#bb9af7" stroke-width="2"/>
+        <text x="270" y="50" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#a9b1d6">B 扫码签名页</text>
+        
+        <!-- 节点 C -->
+        <rect x="110" y="140" width="160" height="50" rx="8" fill="#24283b" stroke="#7aa2f7" stroke-width="2"/>
+        <text x="190" y="170" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#a9b1d6">C 后端存储接口</text>
+
+        <!-- 节点 D -->
+        <rect x="140" y="260" width="100" height="40" rx="8" fill="#24283b" stroke="#9aa5ce" stroke-width="2"/>
+        <text x="190" y="284" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#a9b1d6">D 联调</text>
+
+        <!-- 实线边：A→D, B→D, C→D -->
+        <line x1="90" y1="70" x2="170" y2="260" stroke="#7aa2f7" stroke-width="1.5"/>
+        <line x1="270" y1="70" x2="210" y2="260" stroke="#7aa2f7" stroke-width="1.5"/>
+        <line x1="190" y1="190" x2="190" y2="260" stroke="#7aa2f7" stroke-width="1.5"/>
+
+        <!-- 红虚线已消失 - 用绿色勾选标记表示 -->
+        <svg x="155" y="85" width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#9ece6a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 8 12 22 6 16"/>
+        </svg>
+        <text x="190" y="105" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#9ece6a">契约已定</text>
+
+        <!-- 标注 -->
+        <text x="20" y="325" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9ece6a">红虚线消失 → 真独立 → A/B/C 可并行</text>
+      </svg>
+
+      <!-- 右侧：共享契约模板 -->
+      <svg width="440" height="340" viewBox="0 0 440 340" style="position:absolute; right:40px; top:110px;">
+        <rect width="440" height="340" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="440" height="4" rx="2" fill="#9ece6a"/>
+        <text x="20" y="32" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#9ece6a">共享契约模板</text>
+        <text x="200" y="32" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">签名图数据结构</text>
+        <line x1="20" y1="46" x2="420" y2="46" stroke="#3b4261" stroke-width="1"/>
+        
+        <text x="20" y="74" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">字段名：</text>
+        <text x="90" y="74" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#a9b1d6">signatureImage（驼峰）</text>
+        
+        <text x="20" y="102" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">数据格式：</text>
+        <text x="104" y="102" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#a9b1d6">PNG</text>
+        
+        <text x="20" y="130" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">传输方式：</text>
+        <text x="104" y="130" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#a9b1d6">base64 编码</text>
+        
+        <text x="20" y="158" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">命名规范：</text>
+        <text x="104" y="158" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#a9b1d6">组件 PascalCase</text>
+        <text x="104" y="178" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#a9b1d6">接口 kebab-case</text>
+        
+        <line x1="20" y1="198" x2="420" y2="198" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="224" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">适用任务：</text>
+        <text x="104" y="224" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#7aa2f7">A</text>
+        <text x="120" y="224" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">（前端签名板）</text>
+        <text x="104" y="246" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#bb9af7">B</text>
+        <text x="120" y="246" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">（扫码签名页）</text>
+        <text x="104" y="268" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#7aa2f7">C</text>
+        <text x="120" y="268" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">（后端存储接口）</text>
+
+        <text x="20" y="310" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">A/B/C 开工前都带上这份契约 → 红虚线消失</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#bb9af7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">9</text>
+      </svg>
+    </div>
+    <aside class="notes">
+**那怎么让 A/B/C 变真独立？** 答案是：**先约定契约，消除红虚线。**
+
+A、B、C 开工前，先共享一份"**签名图契约**"：
+- 字段名统一叫 `signatureImage`
+- 格式统一 PNG
+- 命名统一驼峰
+
+契约定好后，**红虚线消失**，A、B、C 变成真独立，可以并行。D 仍然是实线依赖，等三者完成。
+
+这就是任务图的价值：**它让你在开工前就看见红虚线，而不是在联调时才发现。**
+
+消除隐含依赖**不是**把任务书写得更细，**而是**在派活前先约定任务之间的共享契约。
+
+现在请大家看自己手上的一个功能，试着画一张任务图。不用画全，画 3-5 个节点，标出你能想到的红虚线。给 4 分钟。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

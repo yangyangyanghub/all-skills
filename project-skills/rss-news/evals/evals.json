@@ -1,0 +1,23 @@
+{
+  "skill_name": "rss-news",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "收集今天（2026-03-10）的新闻",
+      "expected_output": "成功从 RSS 源收集新闻，生成 raw_news.json 文件",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "为 2026-03-10 的新闻评分并分类",
+      "expected_output": "成功评分和分类，生成 news.md 文件",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "收集昨天的新闻，然后评分",
+      "expected_output": "完成完整工作流程，输出 news.md",
+      "files": []
+    }
+  ]
+}

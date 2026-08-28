@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "帮我做一份 Q2 季度业务汇报演示文稿，8 页左右，主题是销售数据总结",
+    "expected": "完整 deck（封面/TOC/内容/总结），主题+布局选择正确，960×540，verify 通过"
+  },
+  {
+    "id": 2,
+    "prompt": "我要在技术分享会上讲 AI Agent 的话题，需要演讲者模式的逐字稿，12 页",
+    "expected": "presenter-mode-reveal 模板、每页 150-300 字 <aside class=\"notes\">、口语化"
+  },
+  {
+    "id": 3,
+    "prompt": "帮我做一个小红书 3:4 竖版图文，主题是 5 个职场效率 AI 工具推荐",
+    "expected": "xhs-post 模板、9 页固定结构、3:4 比例"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "name": "html-ppt-gen",
+  "version": "1.0.0",
+  "description": "Generate professional HTML presentations with automated tooling",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "generate-image": "node dist/generate_image.js",
+    "screenshot": "node dist/screenshot_html.js",
+    "verify": "node dist/verify_layout.js",
+    "deploy": "node dist/deploy_presentation.js",
+    "generate-image:dev": "bun scripts/generate_image.ts",
+    "screenshot:dev": "bun scripts/screenshot_html.ts",
+    "verify:dev": "bun scripts/verify_layout.ts",
+    "deploy:dev": "bun scripts/deploy_presentation.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "presentation",
+    "html",
+    "slides",
+    "ppt",
+    "powerpoint"
+  ],
+  "license": "MIT"
+}

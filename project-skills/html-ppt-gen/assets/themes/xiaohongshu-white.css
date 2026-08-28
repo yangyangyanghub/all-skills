@@ -1,0 +1,15 @@
+/* ========================================
+   xiaohongshu-white.css
+   小红书风格 · 白底柔和
+   ======================================== */
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #fff5f5;
+  --text-primary: #333333;
+  --text-secondary: #555555;
+  --text-muted: #b0b0b0;
+  --accent: #ff6b81;
+  --accent-alt: #a18cd1;
+  --border-color: #f0e0e0;
+}

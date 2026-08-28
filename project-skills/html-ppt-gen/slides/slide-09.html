@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>收束·登顶 — 并行编排图</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width:960px; height:540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        收束·登顶：画出你的并行编排图
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:76px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#7aa2f7"/>
+      </svg>
+
+      <p style="position:absolute; left:60px; top:96px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:14px; font-weight:400; color:#9aa5ce;">
+        3 分钟练习：用四步画出你本周任务的并行编排图
+      </p>
+
+      <!-- 四步流程 -->
+      <!-- Step 1 -->
+      <svg width="200" height="240" viewBox="0 0 200 240" style="position:absolute; left:60px; top:130px;">
+        <rect width="200" height="240" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="200" height="4" rx="2" fill="#7aa2f7"/>
+        <svg x="16" y="18" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+          <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="700" fill="#1a1b26">1</text>
+        </svg>
+        <text x="60" y="42" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#a9b1d6">列任务</text>
+        <line x1="16" y1="62" x2="184" y2="62" stroke="#3b4261" stroke-width="1"/>
+        <text x="16" y="86" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">列出本周要推进的</text>
+        <text x="16" y="106" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">所有任务</text>
+        <text x="16" y="140" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">不管大小，先全写下来</text>
+        <text x="16" y="160" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">看到全貌才能编排</text>
+        <!-- 列表图标 -->
+        <svg x="16" y="180" width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#7aa2f7" stroke-width="1.5">
+          <line x1="8" y1="8" x2="32" y2="8"/><line x1="8" y1="18" x2="32" y2="18"/><line x1="8" y1="28" x2="24" y2="28"/>
+        </svg>
+      </svg>
+
+      <!-- Step 2 -->
+      <svg width="200" height="240" viewBox="0 0 200 240" style="position:absolute; left:275px; top:130px;">
+        <rect width="200" height="240" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="200" height="4" rx="2" fill="#bb9af7"/>
+        <svg x="16" y="18" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="18" fill="#bb9af7"/>
+          <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="700" fill="#1a1b26">2</text>
+        </svg>
+        <text x="60" y="42" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#a9b1d6">标依赖</text>
+        <line x1="16" y1="62" x2="184" y2="62" stroke="#3b4261" stroke-width="1"/>
+        <text x="16" y="86" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">标出哪些是独立的</text>
+        <text x="16" y="106" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">（可并行）、哪些有依赖</text>
+        <text x="16" y="140" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">独立的 → 并行</text>
+        <text x="16" y="160" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">有依赖的 → 排序</text>
+        <!-- 连线图标 -->
+        <svg x="16" y="180" width="50" height="40" viewBox="0 0 50 40" fill="none" stroke-width="1.5">
+          <circle cx="10" cy="10" r="5" stroke="#7aa2f7"/><circle cx="40" cy="10" r="5" stroke="#7aa2f7"/><circle cx="25" cy="32" r="5" stroke="#bb9af7"/>
+          <line x1="14" y1="13" x2="22" y2="28" stroke="#3b4261"/><line x1="36" y1="13" x2="28" y2="28" stroke="#3b4261"/>
+        </svg>
+      </svg>
+
+      <!-- Step 3 -->
+      <svg width="200" height="240" viewBox="0 0 200 240" style="position:absolute; left:490px; top:130px;">
+        <rect width="200" height="240" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="200" height="4" rx="2" fill="#7aa2f7"/>
+        <svg x="16" y="18" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+          <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="700" fill="#1a1b26">3</text>
+        </svg>
+        <text x="60" y="42" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#a9b1d6">写任务书</text>
+        <line x1="16" y1="62" x2="184" y2="62" stroke="#3b4261" stroke-width="1"/>
+        <text x="16" y="86" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">独立的那些，各写一句</text>
+        <text x="16" y="106" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">话任务书，准备派给 AI</text>
+        <text x="16" y="140" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">目标 + 边界 + 参照</text>
+        <text x="16" y="160" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">三要素就够</text>
+        <!-- 文档图标 -->
+        <svg x="16" y="180" width="36" height="40" viewBox="0 0 36 40" fill="none" stroke="#7aa2f7" stroke-width="1.5">
+          <path d="M4 4 L24 4 L32 12 L32 36 L4 36 Z"/>
+          <line x1="10" y1="18" x2="26" y2="18"/><line x1="10" y1="26" x2="22" y2="26"/>
+        </svg>
+      </svg>
+
+      <!-- Step 4 -->
+      <svg width="200" height="240" viewBox="0 0 200 240" style="position:absolute; left:705px; top:130px;">
+        <rect width="200" height="240" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="200" height="4" rx="2" fill="#bb9af7"/>
+        <svg x="16" y="18" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="18" fill="#bb9af7"/>
+          <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="700" fill="#1a1b26">4</text>
+        </svg>
+        <text x="60" y="42" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#a9b1d6">写验收</text>
+        <line x1="16" y1="62" x2="184" y2="62" stroke="#3b4261" stroke-width="1"/>
+        <text x="16" y="86" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">给每条线写一条</text>
+        <text x="16" y="106" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">验收标准</text>
+        <text x="16" y="140" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">什么算做完？</text>
+        <text x="16" y="160" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">一眼能判断对错</text>
+        <!-- 勾选图标 -->
+        <svg x="16" y="180" width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#bb9af7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="26 8 14 24 8 18"/>
+        </svg>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">9</text>
+      </svg>
+    </div>
+    <aside class="notes">
+我们回到开场那道题。现在你再看手上的三条项目线，还会"一个做完再做下一个"吗？
+
+请每个人花 **3 分钟**，画一张自己本周任务的**并行编排图**：
+
+**第一步：列任务。** 列出本周要推进的所有任务。不管大小，先全写下来。看到全貌才能编排。
+
+**第二步：标依赖。** 标出哪些是**独立的**（可以并行）、哪些**有依赖**（必须排序）。
+
+**第三步：写任务书。** 独立的那些，各写一句话任务书，准备派给 AI 并行推进。目标 + 边界 + 参照，三要素就够。
+
+**第四步：写验收。** 给每条线写一条验收标准。什么算做完？一眼能判断对错。
+
+（给 3 分钟，收 2-3 位学员的图，现场点评）
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

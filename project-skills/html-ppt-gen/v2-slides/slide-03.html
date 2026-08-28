@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>开场 — 你们试过，但失败了</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width: 960px; height: 540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        开场：你们试过，但失败了
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:82px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#f7768e"/>
+      </svg>
+
+      <!-- 问题一 -->
+      <svg width="400" height="160" viewBox="0 0 400 160" style="position:absolute; left:60px; top:120px;">
+        <rect width="400" height="160" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="400" height="4" rx="2" fill="#7aa2f7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#7aa2f7">问题一</text>
+        <text x="20" y="68" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" fill="#a9b1d6">谁试过同时开 3 个以上 AI 窗口？</text>
+        <text x="20" y="100" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">让它们同时干不同的事</text>
+        <!-- 举手图标 -->
+        <svg x="320" y="50" width="60" height="80" viewBox="0 0 60 80" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round">
+          <path d="M30 70 L30 40 M30 40 L20 25 M30 40 L40 25 M30 40 L15 35 M30 40 L45 35"/>
+        </svg>
+      </svg>
+
+      <!-- 问题二 -->
+      <svg width="400" height="160" viewBox="0 0 400 160" style="position:absolute; left:500px; top:120px;">
+        <rect width="400" height="160" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="400" height="4" rx="2" fill="#f7768e"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#f7768e">问题二</text>
+        <text x="20" y="68" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" fill="#a9b1d6">谁最后发现成果拼不到一起？</text>
+        <text x="20" y="100" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">返工比自己写还慢</text>
+        <!-- 警告图标 -->
+        <svg x="330" y="50" width="50" height="50" viewBox="0 0 50 50" fill="none" stroke="#f7768e" stroke-width="2" stroke-linecap="round">
+          <path d="M25 5 L45 40 L5 40 Z"/>
+          <line x1="25" y1="18" x2="25" y2="28"/>
+          <circle cx="25" cy="34" r="1.5" fill="#f7768e"/>
+        </svg>
+      </svg>
+
+      <!-- 结论 -->
+      <svg width="840" height="120" viewBox="0 0 840 120" style="position:absolute; left:60px; top:320px;">
+        <rect width="840" height="120" rx="8" fill="#24283b" fill-opacity="0.6"/>
+        <text x="420" y="36" text-anchor="middle" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#a9b1d6">你不是没试过并行，是试过但失败了</text>
+        <text x="420" y="68" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" fill="#9aa5ce">失败根因：你没看见一个东西——</text>
+        <text x="420" y="98" text-anchor="middle" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="20" font-weight="700" fill="#f7768e">隐含依赖</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#f7768e"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">3</text>
+      </svg>
+    </div>
+    <aside class="notes">
+各位，今天不讲 AI 有多强大。先问两个问题。
+
+**第一个问题：在座有多少人试过同时开 3 个以上 AI 窗口，让它们同时干不同的事？**
+
+（停顿，看举手）
+
+好，大半都试过。
+
+**第二个问题：有多少人最后发现——3 个窗口的成果拼不到一起，返工比自己写还慢？**
+
+（再停顿，看举手）
+
+好，几乎全举手了。
+
+**这就是今天要讲的事。**
+
+你们不是没试过并行，是试过但失败了，然后退回串行。然后心里想："AI 并行听着好听，实际没用。"
+
+今天我不跟你们讲"要拥抱并行"。我来讲一件事：**你上次并行失败，不是 AI 不行，是你没看见一个东西。**
+
+这个东西叫**隐含依赖**。它是并行的真正杀手，但它 invisible——你看不见，你团队里没人能看见，但从我们模型这边看，它清楚得很。
+
+这节课，就带你看见它。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOC — 课程路线</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width: 960px; height: 540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:40px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        课程路线
+      </p>
+      <!-- 装饰线 -->
+      <svg width="60" height="3" style="position:absolute; left:60px; top:86px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#7aa2f7"/>
+      </svg>
+
+      <!-- 模块 01 -->
+      <svg width="40" height="40" viewBox="0 0 40 40" style="position:absolute; left:60px; top:110px;">
+        <circle cx="20" cy="20" r="20" fill="#24283b"/>
+        <text x="20" y="20" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#7aa2f7">01</text>
+      </svg>
+      <p style="position:absolute; left:112px; top:114px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:17px; font-weight:600; color:#a9b1d6;">假并行失败</p>
+      <p style="position:absolute; left:112px; top:138px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:13px; font-weight:400; color:#565f89;">多窗口 AI 返工调查，暴露失败经验</p>
+
+      <!-- 模块 02 -->
+      <svg width="40" height="40" viewBox="0 0 40 40" style="position:absolute; left:60px; top:175px;">
+        <circle cx="20" cy="20" r="20" fill="#24283b"/>
+        <text x="20" y="20" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#f7768e">02</text>
+      </svg>
+      <p style="position:absolute; left:112px; top:179px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:17px; font-weight:600; color:#a9b1d6;">隐含依赖</p>
+      <p style="position:absolute; left:112px; top:203px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:13px; font-weight:400; color:#565f89;">电子签章拆解：看似独立，实则假独立</p>
+
+      <!-- 模块 03 -->
+      <svg width="40" height="40" viewBox="0 0 40 40" style="position:absolute; left:60px; top:240px;">
+        <circle cx="20" cy="20" r="20" fill="#24283b"/>
+        <text x="20" y="20" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#7aa2f7">03</text>
+      </svg>
+      <p style="position:absolute; left:112px; top:244px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:17px; font-weight:600; color:#a9b1d6;">任务图模型</p>
+      <p style="position:absolute; left:112px; top:268px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:13px; font-weight:400; color:#565f89;">节点 + 实线边 + 红虚线，构图/派活/合龙</p>
+
+      <!-- 模块 04 -->
+      <svg width="40" height="40" viewBox="0 0 40 40" style="position:absolute; left:60px; top:305px;">
+        <circle cx="20" cy="20" r="20" fill="#24283b"/>
+        <text x="20" y="20" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#bb9af7">04</text>
+      </svg>
+      <p style="position:absolute; left:112px; top:309px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:17px; font-weight:600; color:#a9b1d6;">画任务图</p>
+      <p style="position:absolute; left:112px; top:333px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:13px; font-weight:400; color:#565f89;">电子签章任务图实例 + 契约消除红虚线</p>
+
+      <!-- 模块 05 -->
+      <svg width="40" height="40" viewBox="0 0 40 40" style="position:absolute; left:60px; top:370px;">
+        <circle cx="20" cy="20" r="20" fill="#24283b"/>
+        <text x="20" y="20" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#7aa2f7">05</text>
+      </svg>
+      <p style="position:absolute; left:112px; top:374px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:17px; font-weight:600; color:#a9b1d6;">契约与成本</p>
+      <p style="position:absolute; left:112px; top:398px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:13px; font-weight:400; color:#565f89;">共享契约 + 真实成本账 + 三种不该并行</p>
+
+      <!-- 模块 06 -->
+      <svg width="40" height="40" viewBox="0 0 40 40" style="position:absolute; left:60px; top:435px;">
+        <circle cx="20" cy="20" r="20" fill="#24283b"/>
+        <text x="20" y="20" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#bb9af7">06</text>
+      </svg>
+      <p style="position:absolute; left:112px; top:439px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:17px; font-weight:600; color:#a9b1d6;">迁移行动</p>
+      <p style="position:absolute; left:112px; top:463px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:13px; font-weight:400; color:#565f89;">画你的任务图 + 24 小时行动承诺</p>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">2</text>
+      </svg>
+    </div>
+    <aside class="notes">
+今天这 60 分钟，我们分**六步走**。
+
+**第一步**，先做个调查——谁试过多窗口 AI 并行，最后返工了？暴露"假并行"的失败经验。
+
+**第二步**，拿电子签章的真实例子，拆解给你看——看似独立的三个子任务，为什么拼不到一起？找出**隐含依赖**。
+
+**第三步**，给出一个新模型：**任务图**。节点 + 实线边（显性依赖）+ 红虚线（隐含依赖）。三件事：构图、派活、合龙。
+
+**第四步**，现场画电子签章的任务图，标红虚线，然后用**共享契约**消除红虚线。
+
+**第五步**，讲真话——真实成本是多少，什么时候**不该并行**。
+
+**第六步**，回到你自己本周的任务，画一张任务图，24 小时内行动。
+
+核心就一句话：**看见你看不见的隐含依赖**。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

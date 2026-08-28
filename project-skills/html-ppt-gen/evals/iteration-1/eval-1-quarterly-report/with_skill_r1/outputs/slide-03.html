@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q2 季度业务汇报 - Q2 销售核心指标达成</title>
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+  }
+  .slide-content {
+    width: 960px;
+    height: 540px;
+    position: relative;
+    transform-origin: center center;
+  }
+  </style>
+  <script>
+  function scaleSlide() {
+    const slide = document.querySelector('.slide-content');
+    if (!slide) return;
+    const scale = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+    slide.style.width = '960px';
+    slide.style.height = '540px';
+    slide.style.transform = `scale(${scale})`;
+    slide.style.transformOrigin = 'center center';
+    slide.style.flexShrink = '0';
+  }
+  window.addEventListener('load', scaleSlide);
+  window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <div class="slide-content" style="background:#edf2f4;">
+
+    <!-- 顶部标题区 -->
+    <div style="position:absolute; left:60px; top:48px;">
+
+      <!-- 章节标签 -->
+      <svg width="100" height="24" style="display:block; margin-bottom:10px;">
+        <rect width="100" height="24" rx="4" fill="#ef233c" opacity="0.12"/>
+        <text x="50" y="12" text-anchor="middle" dominant-baseline="central"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="11" font-weight="600" fill="#ef233c" letter-spacing="3">第一部分</text>
+      </svg>
+
+      <h2 style="margin:0; padding:0;
+                 font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                 font-size:36px; font-weight:700; color:#2b2d42;">
+        Q2 销售核心指标达成
+      </h2>
+
+      <p style="margin:6px 0 0 0; padding:0;
+                font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                font-size:14px; font-weight:400; color:#8d99ae;">
+        2026年4月 — 6月 | 数据来源：CRM系统
+      </p>
+    </div>
+
+    <!-- 三列 KPI 指标卡片区 -->
+    <div style="position:absolute; left:60px; top:176px; width:840px; height:100px; display:flex;">
+
+      <!-- KPI 1: 总营收 -->
+      <div style="width:260px; height:100px; background:#ffffff; margin-right:20px; position:relative;">
+        <p style="position:absolute; left:20px; top:16px; margin:0;
+                  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                  font-size:13px; font-weight:400; color:#8d99ae;">总营收</p>
+        <p style="position:absolute; left:20px; top:36px; margin:0;
+                  font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                  font-size:34px; font-weight:700; color:#2b2d42;">
+          8,562<span style="font-size:18px; font-weight:400;"> 万</span>
+        </p>
+        <p style="position:absolute; left:20px; bottom:14px; margin:0;
+                  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                  font-size:12px; font-weight:400; color:#2b2d42;">
+          完成率 <span style="color:#ef233c; font-weight:600;">112%</span> | 超目标
+        </p>
+        <!-- KPI 底部色条 -->
+        <svg width="260" height="4" style="position:absolute; left:0; bottom:0;">
+          <rect width="260" height="4" fill="#ef233c"/>
+        </svg>
+      </div>
+
+      <!-- KPI 2: 同比增长 -->
+      <div style="width:260px; height:100px; background:#ffffff; margin-right:20px; position:relative;">
+        <p style="position:absolute; left:20px; top:16px; margin:0;
+                  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                  font-size:13px; font-weight:400; color:#8d99ae;">同比增长</p>
+        <p style="position:absolute; left:20px; top:36px; margin:0;
+                  font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                  font-size:34px; font-weight:700; color:#2b2d42;">
+          +18.6<span style="font-size:18px; font-weight:400;">%</span>
+        </p>
+        <p style="position:absolute; left:20px; bottom:14px; margin:0;
+                  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                  font-size:12px; font-weight:400; color:#2b2d42;">
+          较去年同期增长 <span style="font-weight:600;">1,342万</span>
+        </p>
+        <!-- KPI 底部色条 -->
+        <svg width="260" height="4" style="position:absolute; left:0; bottom:0;">
+          <rect width="260" height="4" fill="#2b2d42"/>
+        </svg>
+      </div>
+
+      <!-- KPI 3: 新增客户 -->
+      <div style="width:260px; height:100px; background:#ffffff; position:relative;">
+        <p style="position:absolute; left:20px; top:16px; margin:0;
+                  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                  font-size:13px; font-weight:400; color:#8d99ae;">新增客户</p>
+        <p style="position:absolute; left:20px; top:36px; margin:0;
+                  font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                  font-size:34px; font-weight:700; color:#2b2d42;">
+          247<span style="font-size:18px; font-weight:400;"> 家</span>
+        </p>
+        <p style="position:absolute; left:20px; bottom:14px; margin:0;
+                  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                  font-size:12px; font-weight:400; color:#2b2d42;">
+          季度目标 <span style="font-weight:600;">200</span> | 超额达成
+        </p>
+        <!-- KPI 底部色条 -->
+        <svg width="260" height="4" style="position:absolute; left:0; bottom:0;">
+          <rect width="260" height="4" fill="#8d99ae"/>
+        </svg>
+      </div>
+
+    </div>
+
+    <!-- 月度销售柱状图 (SVG) -->
+    <div style="position:absolute; left:60px; top:312px; width:840px;">
+
+      <!-- 图表标题 -->
+      <p style="margin:0 0 14px 0; padding:0;
+                font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                font-size:14px; font-weight:600; color:#2b2d42;">
+        月度营收趋势 (万元)
+      </p>
+
+      <!-- 柱状图 SVG -->
+      <svg width="840" height="170" viewBox="0 0 840 170" aria-label="月度营收趋势柱状图">
+
+        <!-- Y 轴网格线 -->
+        <line x1="60" y1="20" x2="780" y2="20" stroke="#8d99ae" stroke-width="1" opacity="0.15"/>
+        <line x1="60" y1="55" x2="780" y2="55" stroke="#8d99ae" stroke-width="1" opacity="0.15"/>
+        <line x1="60" y1="90" x2="780" y2="90" stroke="#8d99ae" stroke-width="1" opacity="0.15"/>
+        <line x1="60" y1="125" x2="780" y2="125" stroke="#8d99ae" stroke-width="1" opacity="0.15"/>
+
+        <!-- Y 轴标签 -->
+        <text x="50" y="25" text-anchor="end"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="11" font-weight="400" fill="#8d99ae">3,000</text>
+        <text x="50" y="60" text-anchor="end"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="11" font-weight="400" fill="#8d99ae">2,250</text>
+        <text x="50" y="95" text-anchor="end"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="11" font-weight="400" fill="#8d99ae">1,500</text>
+        <text x="50" y="130" text-anchor="end"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="11" font-weight="400" fill="#8d99ae">750</text>
+
+        <!-- 底部基线 -->
+        <line x1="60" y1="150" x2="780" y2="150" stroke="#8d99ae" stroke-width="1" opacity="0.4"/>
+
+        <!-- 柱状图: 4月 = 2,542万 → 高度 127 (150-127=23) -->
+        <rect x="110" y="23" width="100" height="127" fill="#2b2d42" opacity="0.85"/>
+        <text x="160" y="14" text-anchor="middle"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="12" font-weight="600" fill="#2b2d42">2,542</text>
+        <text x="160" y="165" text-anchor="middle"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="12" font-weight="400" fill="#8d99ae">4月</text>
+
+        <!-- 柱状图: 5月 = 2,831万 → 高度 142 (150-142=8) -->
+        <rect x="250" y="8" width="100" height="142" fill="#2b2d42" opacity="0.85"/>
+        <text x="300" y="14" text-anchor="middle"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="12" font-weight="600" fill="#2b2d42">2,831</text>
+        <text x="300" y="165" text-anchor="middle"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="12" font-weight="400" fill="#8d99ae">5月</text>
+
+        <!-- 柱状图: 6月 = 3,189万 → 高度 160 (150-160=-10, clip) min cap -->
+        <rect x="390" y="0" width="100" height="150" fill="#ef233c"/>
+        <text x="440" y="14" text-anchor="middle"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="12" font-weight="700" fill="#ef233c">3,189</text>
+        <text x="440" y="165" text-anchor="middle"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="12" font-weight="400" fill="#8d99ae">6月</text>
+
+        <!-- 增长箭头 (4月→6月) -->
+        <line x1="210" y1="72" x2="380" y2="8" stroke="#ef233c" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <polygon points="380,8 372,2 372,14" fill="#ef233c"/>
+
+        <!-- 增长标注 -->
+        <text x="295" y="35" text-anchor="middle"
+              font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+              font-size="11" font-weight="600" fill="#ef233c">+25.4%</text>
+
+      </svg>
+
+    </div>
+
+    <!-- 页码角标 (03) -->
+    <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+      <circle cx="18" cy="18" r="18" fill="#2b2d42"/>
+      <text x="18" y="18" text-anchor="middle" dominant-baseline="central"
+            font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+            font-size="14" font-weight="600" fill="#ffffff">3</text>
+    </svg>
+
+  </div>
+</body>
+</html>

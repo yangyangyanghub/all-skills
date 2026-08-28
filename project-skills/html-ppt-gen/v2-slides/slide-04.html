@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块一 — 电子签章拆解</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width: 960px; height: 540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        模块一：你以为独立，其实不是
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:82px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#7aa2f7"/>
+      </svg>
+
+      <p style="position:absolute; left:60px; top:100px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:14px; font-weight:400; color:#9aa5ce;">
+        电子签章功能拆解：看似三个独立子任务
+      </p>
+
+      <!-- 三个子任务卡片 -->
+      <!-- A -->
+      <svg width="260" height="200" viewBox="0 0 260 200" style="position:absolute; left:60px; top:140px;">
+        <rect width="260" height="200" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#7aa2f7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#7aa2f7">A</text>
+        <text x="44" y="36" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="600" fill="#a9b1d6">前端签名板</text>
+        <line x1="20" y1="50" x2="240" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="76" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">鼠标绘制签名</text>
+        <text x="20" y="100" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">清空、生成图片</text>
+        <text x="20" y="130" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">边界：签名组件文件</text>
+        <text x="20" y="156" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">验收：能画、能清、能导出</text>
+        <text x="20" y="184" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#7aa2f7">看似独立 ✓</text>
+      </svg>
+
+      <!-- B -->
+      <svg width="260" height="200" viewBox="0 0 260 200" style="position:absolute; left:340px; top:140px;">
+        <rect width="260" height="200" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#bb9af7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#bb9af7">B</text>
+        <text x="44" y="36" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="600" fill="#a9b1d6">扫码签名页</text>
+        <line x1="20" y1="50" x2="240" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="76" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">生成二维码</text>
+        <text x="20" y="100" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">移动端签名页</text>
+        <text x="20" y="130" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">边界：新增扫码模块</text>
+        <text x="20" y="156" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">验收：扫码能打开、能提交</text>
+        <text x="20" y="184" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#bb9af7">看似独立 ✓</text>
+      </svg>
+
+      <!-- C -->
+      <svg width="260" height="200" viewBox="0 0 260 200" style="position:absolute; left:620px; top:140px;">
+        <rect width="260" height="200" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#7aa2f7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#7aa2f7">C</text>
+        <text x="44" y="36" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="600" fill="#a9b1d6">后端存储接口</text>
+        <line x1="20" y1="50" x2="240" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="76" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">接收签名图</text>
+        <text x="20" y="100" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">存储、返回签章 ID</text>
+        <text x="20" y="130" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">边界：后端接口层</text>
+        <text x="20" y="156" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">验收：能收能存能返回</text>
+        <text x="20" y="184" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#7aa2f7">看似独立 ✓</text>
+      </svg>
+
+      <!-- 底部提问 -->
+      <svg width="840" height="50" viewBox="0 0 840 50" style="position:absolute; left:60px; top:370px;">
+        <rect width="840" height="50" rx="6" fill="#24283b" fill-opacity="0.6"/>
+        <text x="420" y="30" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" fill="#9aa5ce">三个完全独立，开三个 AI 窗口同时干，对吧？</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">4</text>
+      </svg>
+    </div>
+    <aside class="notes">
+回到我们手上的**电子签章功能**。武洋在盯这个，要支持**鼠标签名**和**手机扫码签名**。
+
+传统串行做法：一个人从头写到尾，前端签名板 → 扫码逻辑 → 后端接口 → 联调。好几天。
+
+有人想并行，这么拆：
+
+**子任务 A**：前端签名板组件——鼠标绘制、清空、生成图片。
+
+**子任务 B**：手机扫码签名页——生成二维码、扫码后的移动端签名页。
+
+**子任务 C**：后端签章存储接口——接收签名图、存储、返回签章 ID。
+
+看起来三个**完全独立**，开三个 AI 窗口同时干，对吧？
+
+**结果是什么？三个 AI 都交付了，但拼不到一起。**
+
+为什么？因为有三条**隐含依赖**，你没看见。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

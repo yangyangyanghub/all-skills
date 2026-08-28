@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块四续 — 三种不该并行</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width: 960px; height: 540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        三种不该并行的情况
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:82px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#bb9af7"/>
+      </svg>
+
+      <p style="position:absolute; left:60px; top:100px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:14px; font-weight:400; color:#9aa5ce;">
+        并行是工具，不是信仰
+      </p>
+
+      <!-- 情况一 -->
+      <svg width="260" height="260" viewBox="0 0 260 260" style="position:absolute; left:60px; top:140px;">
+        <rect width="260" height="260" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#f7768e"/>
+        <svg x="20" y="20" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="18" fill="#f7768e"/>
+          <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="700" fill="#1a1b26">1</text>
+        </svg>
+        <text x="66" y="44" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#a9b1d6">强依赖任务</text>
+        <line x1="20" y1="62" x2="240" y2="62" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="88" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">B 必须看 A 的产出</text>
+        <text x="20" y="112" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">才能动手</text>
+        <text x="20" y="146" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">强行并行只会返工</text>
+        <text x="20" y="170" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">串行更快</text>
+        <!-- 锁链图标 -->
+        <svg x="20" y="200" width="40" height="30" viewBox="0 0 40 30" fill="none" stroke="#f7768e" stroke-width="2" stroke-linecap="round">
+          <path d="M8 15 L16 15 M24 15 L32 15"/>
+          <rect x="14" y="8" width="12" height="14" rx="3"/>
+        </svg>
+      </svg>
+
+      <!-- 情况二 -->
+      <svg width="260" height="260" viewBox="0 0 260 260" style="position:absolute; left:340px; top:140px;">
+        <rect width="260" height="260" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#f7768e"/>
+        <svg x="20" y="20" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="18" fill="#f7768e"/>
+          <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="700" fill="#1a1b26">2</text>
+        </svg>
+        <text x="66" y="44" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#a9b1d6">小任务</text>
+        <line x1="20" y1="62" x2="240" y2="62" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="88" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">30 分钟能写完的功能</text>
+        <text x="20" y="116" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">拆解+构图+派活+验收</text>
+        <text x="20" y="146" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">管理成本超过收益</text>
+        <text x="20" y="170" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">直接写</text>
+        <!-- 小时钟图标 -->
+        <svg x="20" y="200" width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#f7768e" stroke-width="2">
+          <circle cx="15" cy="15" r="12"/>
+          <line x1="15" y1="15" x2="15" y2="8"/>
+          <line x1="15" y1="15" x2="20" y2="15"/>
+        </svg>
+      </svg>
+
+      <!-- 情况三 -->
+      <svg width="260" height="260" viewBox="0 0 260 260" style="position:absolute; left:620px; top:140px;">
+        <rect width="260" height="260" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#f7768e"/>
+        <svg x="20" y="20" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="18" fill="#f7768e"/>
+          <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="700" fill="#1a1b26">3</text>
+        </svg>
+        <text x="66" y="44" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#a9b1d6">探索未知</text>
+        <line x1="20" y1="62" x2="240" y2="62" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="88" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">需求还不清楚</text>
+        <text x="20" y="112" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">技术方案还在试</text>
+        <text x="20" y="146" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">并行会让多个 AI</text>
+        <text x="20" y="170" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">都往错的方向跑</text>
+        <text x="20" y="200" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">先串行探路</text>
+        <!-- 问号图标 -->
+        <svg x="20" y="218" width="24" height="30" viewBox="0 0 24 30" fill="none" stroke="#f7768e" stroke-width="2" stroke-linecap="round">
+          <path d="M8 10 L8 6 L16 6 L16 14 L12 14 L12 18"/>
+          <circle cx="12" cy="24" r="1.5" fill="#f7768e"/>
+        </svg>
+      </svg>
+
+      <!-- 底部金句 -->
+      <svg width="840" height="40" viewBox="0 0 840 40" style="position:absolute; left:60px; top:430px;">
+        <rect width="840" height="40" rx="6" fill="#24283b" fill-opacity="0.5"/>
+        <text x="420" y="25" text-anchor="middle" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="15" font-weight:600" fill="#a9b1d6">该串行就串行，别为了并行而并行</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#bb9af7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">11</text>
+      </svg>
+    </div>
+    <aside class="notes">
+并行是工具，不是信仰。**三种情况别并行**：
+
+**第一，任务之间有强依赖。** B 必须看 A 的产出才能动手。这种串行更快，强行并行只会返工。
+
+**第二，任务很小。** 一个 30 分钟能写完的小功能，拆解+构图+派活+验收的成本超过收益。直接写。
+
+**第三，你在探索未知。** 需求还不清楚、技术方案还在试，这时候并行会让多个 AI 都往错的方向跑。先串行探路，需求清楚后再并行。
+
+**该串行就串行，别为了并行而并行。**
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

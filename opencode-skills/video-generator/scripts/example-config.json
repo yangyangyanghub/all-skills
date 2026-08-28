@@ -1,0 +1,31 @@
+{
+  "brand": {
+    "title": "系统演示",
+    "subtitle": "操作指南",
+    "accentColor": "#3b82f6",
+    "bgColor": "#0f172a"
+  },
+  "timing": {
+    "introDuration": 4,
+    "chapterDuration": 2,
+    "outroDuration": 5,
+    "minStepDuration": 5,
+    "stepPadding": 1
+  },
+  "steps": [
+    {
+      "url": "/login",
+      "description": "登录页面",
+      "ttsText": "首先是登录页面，输入账号密码完成登录。",
+      "chapterId": "01",
+      "chapterTitle": "系统登录"
+    },
+    {
+      "url": "/dashboard",
+      "description": "工作台首页",
+      "ttsText": "登录后进入工作台，展示关键数据概览。",
+      "chapterId": "02",
+      "chapterTitle": "功能演示"
+    }
+  ]
+}

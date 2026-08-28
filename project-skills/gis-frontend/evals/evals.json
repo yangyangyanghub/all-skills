@@ -1,0 +1,33 @@
+{
+  "skill_name": "gis-frontend",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "基础地图集成 - 原生 HTML",
+      "prompt": "帮我做一个地图页面，显示北京五环内的地图，添加 5 个地铁站的标注（西直门、东直门、西二旗、天通苑、宋家庄），点击标注显示站名。用原生 HTML+JS 实现。",
+      "expected_output": "完整的 HTML 文件，包含 Leaflet 地图初始化、底图加载、5 个地铁站点标注（使用真实坐标）、点击弹窗功能。代码可直接在浏览器运行。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "eval_name": "轨迹展示 - Vue 组件",
+      "prompt": "我用的是 Vue3 + Vite 项目，需要一个地图组件来展示快递员的配送轨迹。轨迹数据是一个坐标数组，要求用红色线条绘制轨迹，并且地图自动缩放到合适的视图以显示整条轨迹。",
+      "expected_output": "Vue3 组件代码，包含：地图初始化、轨迹绘制函数、fitBounds 自动缩放。需要正确处理 Leaflet 图标路径问题，有完整的模板、脚本和样式。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "eval_name": "测量工具 - 测距功能",
+      "prompt": "如何在 Leaflet 地图上实现测距功能？用户点击地图添加点，实时显示累加距离（米）。需要一个可以即插即用的实现方案。",
+      "expected_output": "完整的测距功能实现，包括：点击添加点、绘制虚线段、计算并显示每段距离和总距离、停止测量功能。最好封装成 Vue composable 或纯函数。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "eval_name": "GeoJSON 区域展示",
+      "prompt": "我有一个 GeoJSON 文件，里面是各个省份的边界数据。如何在 Leaflet 中加载并显示这些区域？要求：不同省份用不同颜色填充，点击省份显示名称和面积。",
+      "expected_output": "GeoJSON 加载代码，包含：fetch 加载外部 GeoJSON、自定义样式函数（按省份设置颜色）、onEachFeature 绑定弹窗（显示属性信息）。",
+      "files": ["examples/sample-provinces.geojson"]
+    }
+  ]
+}

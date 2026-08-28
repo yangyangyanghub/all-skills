@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>结尾页 - 感谢阅读</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+.slide-content {
+  width: 720px;
+  height: 960px;
+  position: relative;
+  transform-origin: center center;
+}
+</style>
+<script>
+function scaleSlide() {
+  var slide = document.querySelector('.slide-content');
+  if (!slide) return;
+  var slideWidth = 720;
+  var slideHeight = 960;
+  var scaleX = window.innerWidth / slideWidth;
+  var scaleY = window.innerHeight / slideHeight;
+  var scale = Math.min(scaleX, scaleY);
+  slide.style.width = slideWidth + 'px';
+  slide.style.height = slideHeight + 'px';
+  slide.style.transform = 'scale(' + scale + ')';
+  slide.style.transformOrigin = 'center center';
+  slide.style.flexShrink = '0';
+}
+window.addEventListener('load', scaleSlide);
+window.addEventListener('resize', scaleSlide);
+</script>
+</head>
+<body>
+
+<div class="slide-content" style="background:#ffffff;">
+
+  <!-- 顶部装饰条 -->
+  <svg width="720" height="8" style="position:absolute;top:0;left:0;" aria-hidden="true">
+    <rect width="720" height="8" fill="#ff9f1c"/>
+  </svg>
+
+  <!-- 背景装饰圆点 -->
+  <svg width="100%" height="100%" style="position:absolute;top:0;left:0;opacity:0.05;pointer-events:none;" aria-hidden="true">
+    <defs>
+      <pattern id="dots-ending" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+        <circle cx="25" cy="25" r="2.5" fill="#2ec4b6"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#dots-ending)"/>
+  </svg>
+
+  <!-- 顶部装饰区域 - 薄荷绿大色块 -->
+  <div style="position:absolute;left:0;top:0;width:720px;height:280px;background:#cbf3f0;display:flex;align-items:flex-end;justify-content:center;">
+    <!-- 五个圆形装饰 - 代表5个工具 -->
+    <div style="position:absolute;left:120px;top:60px;">
+      <svg width="480" height="160" viewBox="0 0 480 160" aria-hidden="true">
+        <circle cx="40" cy="100" r="24" fill="#ff9f1c" opacity="0.3"/>
+        <circle cx="130" cy="60" r="28" fill="#2ec4b6" opacity="0.35"/>
+        <circle cx="240" cy="40" r="32" fill="#ff9f1c" opacity="0.4"/>
+        <circle cx="350" cy="60" r="28" fill="#2ec4b6" opacity="0.35"/>
+        <circle cx="440" cy="100" r="24" fill="#ff9f1c" opacity="0.3"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 分隔区 - 白色到内容过渡 -->
+  <svg width="720" height="40" style="position:absolute;left:0;top:280px;" aria-hidden="true">
+    <rect width="720" height="40" fill="#ffffff"/>
+  </svg>
+
+  <!-- 主图标 - 星星 -->
+  <div style="position:absolute;left:310px;top:340px;width:100px;height:100px;background:#ff9f1c;border-radius:24px;display:flex;align-items:center;justify-content:center;">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  </div>
+
+  <!-- 感谢标题 -->
+  <h2 style="position:absolute;left:60px;top:480px;width:600px;margin:0;
+             font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+             font-size:44px;font-weight:800;color:#2b2b2b;text-align:center;">
+    感谢阅读
+  </h2>
+
+  <!-- 分隔线 -->
+  <svg width="80" height="3" aria-hidden="true" style="position:absolute;left:320px;top:550px;">
+    <rect width="80" height="3" rx="1.5" fill="#2ec4b6"/>
+  </svg>
+
+  <!-- CTA 区域 -->
+  <p style="position:absolute;left:60px;top:590px;width:600px;margin:0;
+            font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+            font-size:20px;font-weight:400;color:#666666;text-align:center;line-height:1.8;">
+    收藏这篇，效率翻倍
+  </p>
+
+  <!-- CTA 卡片 1 -->
+  <div style="position:absolute;left:110px;top:660px;width:500px;height:56px;background:#ff9f1c;border-radius:28px;display:flex;align-items:center;justify-content:center;">
+    <p style="margin:0;font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+              font-size:18px;font-weight:600;color:#ffffff;">
+      立即试用，开启高效工作模式
+    </p>
+  </div>
+
+  <!-- CTA 卡片 2 -->
+  <div style="position:absolute;left:110px;top:736px;width:500px;height:56px;background:#cbf3f0;border-radius:28px;display:flex;align-items:center;justify-content:center;">
+    <p style="margin:0;font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+              font-size:18px;font-weight:600;color:#2ec4b6;">
+      分享给同事，团队效率一起提升
+    </p>
+  </div>
+
+  <!-- 底部品牌信息 -->
+  <p style="position:absolute;left:60px;top:860px;width:600px;margin:0;
+            font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+            font-size:13px;font-weight:400;color:#bbbbbb;text-align:center;">
+    关注我，获取更多 AI 效率工具推荐
+  </p>
+
+  <!-- 页脚角标 -->
+  <svg width="40" height="40" viewBox="0 0 40 40" style="position:absolute;right:40px;bottom:28px;">
+    <rect width="40" height="40" rx="10" fill="#2ec4b6"/>
+    <text x="20" y="20" text-anchor="middle" dominant-baseline="central"
+          font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif"
+          font-size="15" font-weight="600" fill="#ffffff">03</text>
+  </svg>
+
+</div>
+
+</body>
+</html>

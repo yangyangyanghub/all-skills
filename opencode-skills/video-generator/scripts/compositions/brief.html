@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1440px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#0a0e27;color:#fff}
+.slide{width:1080px;height:1440px;position:absolute;top:0;left:0;display:flex;flex-direction:column;background:linear-gradient(180deg, #0a0e27 0%, #111638 50%, #0d1230 100%);opacity:0;transition:opacity 0.4s ease-in-out}
+.slide.active{opacity:1;z-index:10}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.glow{position:absolute;top:-100px;right:-100px;width:500px;height:500px;border-radius:50%;pointer-events:none}
+.top-area{height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 60px 16px;gap:12px;position:relative;z-index:2}
+.date-line{font-size:22px;font-weight:400;color:rgba(255,255,255,0.4);letter-spacing:0.08em}
+.cat-row{display:flex;align-items:center;gap:12px}
+.badge{display:inline-block;font-size:13px;font-weight:600;padding:5px 16px;border-radius:14px;border:1px solid;letter-spacing:0.04em}
+.divider{width:40px;height:2px;background:#818cf8;border-radius:2px;opacity:0.5}
+.list-area{flex:1;display:flex;flex-direction:column;justify-content:center;padding:8px 60px 10px;position:relative;z-index:2}
+.list-item{display:flex;align-items:flex-start;gap:14px;padding:12px 18px;margin-bottom:5px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);animation:fadeInUp 0.45s ease-out both;opacity:0}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.item-num{font-size:18px;font-weight:800;min-width:32px;text-align:center;padding-top:2px;flex-shrink:0}
+.item-body{flex:1;min-width:0}
+.item-title{font-size:22px;font-weight:700;line-height:1.3;color:#fff;margin-bottom:3px}
+.item-summary{font-size:15px;line-height:1.4;color:rgba(255,255,255,0.6)}
+.kw{color:#22d3ee;font-weight:600}
+.kw-num{color:#4ade80;font-weight:700}
+.bottom-area{height:80px;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;padding-bottom:20px}
+.page-dots{display:flex;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.15);transition:background 0.3s}
+.dot.active{box-shadow:0 0 6px currentColor}
+</style></head><body>
+<div id="brief-root" data-composition-id="brief" data-width="1080" data-height="1440">
+<div class="slide" id="slide-0">  <div class="grid-bg"></div>  <div class="glow" style="background:radial-gradient(circle,#818cf808 0%,transparent 60%)"></div>  <div class="top-area">    <div class="date-line">2026年6月8日</div>    <div class="cat-row">      <span class="badge" style="background:#818cf822;border-color:#818cf844;color:#818cf8">AI 与智能化</span>    </div>    <div class="divider"></div>  </div>  <div class="list-area"><div class="list-item" style="animation-delay:0.00s">  <div class="item-num" style="color:#818cf8">01</div>  <div class="item-body">    <div class="item-title">深圳新一代人工智能创业创新大赛正式启动</div>    <div class="item-summary">2026 新一代人工智能（深圳）创业创新大赛面向海内外 AI 创业者开放，集结投资机构、高校科研机构、产业平台与科技企业评审资源。</div>  </div></div><div class="list-item" style="animation-delay:0.08s">  <div class="item-num" style="color:#818cf8">02</div>  <div class="item-body">    <div class="item-title"><span class="kw">Nex-AGI</span> 开源 Nex-N2：基于 <span class="kw">Qwen</span>3.5 后训练的智能体模型</div>    <div class="item-summary"><span class="kw">Nex-AGI</span> 发布 Nex-N2-Pro 与 Nex-N2-mini，主打“智能体思维”，在复杂任务、终端智能体任务和浏览检索任务上表现突出。</div>  </div></div><div class="list-item" style="animation-delay:0.16s">  <div class="item-num" style="color:#818cf8">03</div>  <div class="item-body">    <div class="item-title">世界科学智能大赛复赛开启，科研智能体同台竞技</div>    <div class="item-summary">第四届世界科学智能大赛吸引近 <span class="kw-num">1.8万</span>名选手，<span class="kw">AI4S</span> 智能体 CNS 挑战赛检验 AI 自主科研能力。</div>  </div></div><div class="list-item" style="animation-delay:0.24s">  <div class="item-num" style="color:#818cf8">04</div>  <div class="item-body">    <div class="item-title">openJiuwen 发布多智能体流网络，解锁 <span class="kw">Agent Swarm</span> 新潜力</div>    <div class="item-summary"><span class="kw">MANGO</span> 框架将多智能体系统结构、任务分解与路径选择联合优化，试图提升复杂任务协作的稳定性与效率。</div>  </div></div><div class="list-item" style="animation-delay:0.32s">  <div class="item-num" style="color:#818cf8">05</div>  <div class="item-body">    <div class="item-title"><span class="kw">阿里</span> <span class="kw">RTPurboV2</span>：原生 Transformer 再次崛起</div>    <div class="item-summary"><span class="kw">RTPurboV2</span> 通过稀疏注意力和混合架构优化长序列推理，在百步训练中实现 10 倍稀疏注意。</div>  </div></div></div>  <div class="bottom-area">    <div class="page-dots"><span class="dot active" style="background:#818cf8"></span><span class="dot"></span></div>  </div></div>
+<div class="slide" id="slide-1">  <div class="grid-bg"></div>  <div class="glow" style="background:radial-gradient(circle,#34d39908 0%,transparent 60%)"></div>  <div class="top-area">    <div class="date-line">2026年6月8日</div>    <div class="cat-row">      <span class="badge" style="background:#34d39922;border-color:#34d39944;color:#34d399">遥感、产品与行业动态</span>    </div>    <div class="divider"></div>  </div>  <div class="list-area"><div class="list-item" style="animation-delay:0.00s">  <div class="item-num" style="color:#34d399">01</div>  <div class="item-body">    <div class="item-title">Remote Sensing：<span class="kw">ATLAS</span> 2.0 激光雷达反演算法</div>    <div class="item-summary"><span class="kw">MDPI</span> Remote Sensing 发布基于随机取向椭球体模型的非球形粒子微物理参数反演研究，涉及 3β + 2α + 3δ 激光雷达观测。</div>  </div></div><div class="list-item" style="animation-delay:0.08s">  <div class="item-num" style="color:#34d399">02</div>  <div class="item-body">    <div class="item-title"><span class="kw">NASA</span> Earth Observatory：Digging Back in Time in the UAE</div>    <div class="item-summary"><span class="kw">NASA</span> Earth Observatory 发布阿联酋考古与地球观测相关内容，适合遥感、地貌与历史环境研究方向跟踪。</div>  </div></div><div class="list-item" style="animation-delay:0.16s">  <div class="item-num" style="color:#34d399">03</div>  <div class="item-body">    <div class="item-title">AI 视频工具开始面向普通商家卖货场景</div>    <div class="item-summary">阿虚同学关注一类更接地气的 AI 视频工具：不是炫技生成，而是帮助普通人快速制作商品视频、降低商业内容生产门槛。</div>  </div></div><div class="list-item" style="animation-delay:0.24s">  <div class="item-num" style="color:#34d399">04</div>  <div class="item-body">    <div class="item-title"><span class="kw">高德</span>发布 <span class="kw">ABot-Earth</span>0.5：以 3D 原生驱动场景生成</div>    <div class="item-summary"><span class="kw">高德</span>从 2D 蒸馏模式转向 3D 原生驱动，强调高一致性场景生成能力。</div>  </div></div><div class="list-item" style="animation-delay:0.32s">  <div class="item-num" style="color:#34d399">05</div>  <div class="item-body">    <div class="item-title"><span class="kw">文远知行</span> <span class="kw">WRD</span> 3.0 亮相高通峰会</div>    <div class="item-summary"><span class="kw">文远知行</span>携 L2++ 一段式端到端方案 <span class="kw">WRD</span> 3.0 参展，高通点赞广汽埃安 N60 智驾大赛表现。</div>  </div></div></div>  <div class="bottom-area">    <div class="page-dots"><span class="dot"></span><span class="dot active" style="background:#34d399"></span></div>  </div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script>
+(function(){
+var totalSlides = 2;
+var slideDur = 3.5;
+var fadeDur = 0.4;
+
+function showSlide(idx){
+  for(var i=0;i<totalSlides;i++){
+    var el = document.getElementById("slide-"+i);
+    if(!el) continue;
+    if(i===idx) el.classList.add("active");
+    else el.classList.remove("active");
+  }
+}
+
+var tl = gsap.timeline({paused:true});
+for(var i=0;i<totalSlides;i++){
+  (function(idx){
+    if(idx===0){
+      tl.call(function(){showSlide(0);}, [], ">", 0);
+    } else {
+      tl.call(function(){showSlide(idx);}, [], ">", 0);
+      tl.to({}, {duration: fadeDur}, ">");
+    }
+    if(idx < totalSlides - 1){
+      tl.to({}, {duration: slideDur - fadeDur}, ">");
+    }
+  })(i);
+}
+tl.to({}, {duration: slideDur}, ">");
+
+window.__timelines = window.__timelines || {};
+window.__timelines["brief"] = tl;
+})();
+</script>
+</body></html>

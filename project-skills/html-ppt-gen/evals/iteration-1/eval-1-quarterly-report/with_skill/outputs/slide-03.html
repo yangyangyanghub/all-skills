@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q2 季度业务汇报 - Q2 销售概览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+    }
+    .slide-content {
+      width: 960px;
+      height: 540px;
+      position: relative;
+      transform-origin: center center;
+    }
+  </style>
+  <script>
+    function scaleSlide() {
+      const slide = document.querySelector('.slide-content');
+      if (!slide) return;
+      const slideWidth = 960;
+      const slideHeight = 540;
+      const scaleX = window.innerWidth / slideWidth;
+      const scaleY = window.innerHeight / slideHeight;
+      const scale = Math.min(scaleX, scaleY);
+      slide.style.width = slideWidth + 'px';
+      slide.style.height = slideHeight + 'px';
+      slide.style.transform = `scale(${scale})`;
+      slide.style.transformOrigin = 'center center';
+      slide.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <!-- 内容页：Type 4c - Data Viz (KPI Grid + SVG Bar Chart) -->
+  <div class="slide-content" style="background:#edf2f4;">
+
+    <!-- 顶部色条 -->
+    <div style="position:absolute; left:0; top:0; width:960px; height:6px; background:#2b2d42;"></div>
+
+    <!-- 页面标题 -->
+    <h2 style="position:absolute; left:60px; top:36px; margin:0;
+      font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+      font-size: 34px; font-weight: 700; color: #2b2d42;">
+      Q2 销售概览
+    </h2>
+
+    <!-- 副标题 -->
+    <p style="position:absolute; left:60px; top:82px; margin:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 15px; font-weight: 400; color: #8d99ae;">
+      2026年4月–6月核心销售数据汇总
+    </p>
+
+    <!-- ====== KPI 卡片行 ====== -->
+    <!-- KPI 1: 总营收 -->
+    <div style="position:absolute; left:60px; top:130px; width:190px; height:110px; background:#2b2d42;">
+      <p style="margin:16px 0 0 20px; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 12px; font-weight: 500; color: #8d99ae;">总营收</p>
+      <p style="margin:10px 0 0 20px; font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+        font-size: 38px; font-weight: 700; color: #edf2f4; line-height:1;">8,520</p>
+      <p style="margin:4px 0 0 20px; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 12px; font-weight: 400; color: #ef233c;">万元 &nbsp;↑ 18.2%</p>
+    </div>
+
+    <!-- KPI 2: 目标达成率 -->
+    <div style="position:absolute; left:270px; top:130px; width:190px; height:110px; background:#ffffff;">
+      <p style="margin:16px 0 0 20px; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 12px; font-weight: 500; color: #8d99ae;">目标达成率</p>
+      <p style="margin:10px 0 0 20px; font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+        font-size: 38px; font-weight: 700; color: #2b2d42; line-height:1;">108%</p>
+      <!-- 进度条 -->
+      <svg style="position:absolute; left:20px; bottom:14px;" width="108" height="6" viewBox="0 0 150 6" aria-hidden="true">
+        <rect width="150" height="6" rx="3" fill="#edf2f4"/>
+        <rect width="162" height="6" rx="3" fill="#ef233c"/>
+      </svg>
+    </div>
+
+    <!-- KPI 3: 同比增长 -->
+    <div style="position:absolute; left:480px; top:130px; width:190px; height:110px; background:#ffffff;">
+      <p style="margin:16px 0 0 20px; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 12px; font-weight: 500; color: #8d99ae;">同比增长</p>
+      <p style="margin:10px 0 0 20px; font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+        font-size: 38px; font-weight: 700; color: #2b2d42; line-height:1;">+18<span style="font-size:20px;">.2%</span></p>
+      <!-- 箭头图标 SVG -->
+      <svg style="position:absolute; right:14px; bottom:14px;" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 5 L12 19 M5 12 L12 5 L19 12" stroke="#ef233c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+
+    <!-- KPI 4: 新增客户 -->
+    <div style="position:absolute; left:690px; top:130px; width:210px; height:110px; background:#ffffff;">
+      <p style="margin:16px 0 0 20px; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 12px; font-weight: 500; color: #8d99ae;">新增客户数</p>
+      <p style="margin:10px 0 0 20px; font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+        font-size: 38px; font-weight: 700; color: #2b2d42; line-height:1;">342</p>
+      <p style="margin:4px 0 0 20px; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 12px; font-weight: 400; color: #8d99ae;">月均 114 家</p>
+    </div>
+
+    <!-- ====== SVG 柱状图区域 ====== -->
+    <!-- 图表标题 -->
+    <p style="position:absolute; left:60px; top:268px; margin:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 14px; font-weight: 600; color: #2b2d42;">
+      月度销售趋势（万元）
+    </p>
+
+    <!-- 柱状图容器 -->
+    <div style="position:absolute; left:60px; top:294px; width:840px; height:190px;">
+
+      <!-- Y轴网格线 -->
+      <svg width="840" height="190" viewBox="0 0 840 190" xmlns="http://www.w3.org/2000/svg">
+        <!-- 水平网格线 -->
+        <line x1="0" y1="30" x2="840" y2="30" stroke="#8d99ae" stroke-width="0.5" opacity="0.3"/>
+        <line x1="0" y1="68" x2="840" y2="68" stroke="#8d99ae" stroke-width="0.5" opacity="0.3"/>
+        <line x1="0" y1="106" x2="840" y2="106" stroke="#8d99ae" stroke-width="0.5" opacity="0.3"/>
+        <line x1="0" y1="144" x2="840" y2="144" stroke="#8d99ae" stroke-width="0.5" opacity="0.3"/>
+        <line x1="0" y1="182" x2="840" y2="182" stroke="#8d99ae" stroke-width="0.5" opacity="0.3"/>
+
+        <!-- 4月柱子 (y=182 是基线, height向上) -->
+        <rect x="70" y="76" width="92" height="106" rx="4" fill="#2b2d42" opacity="0.85"/>
+        <!-- 5月 -->
+        <rect x="212" y="52" width="92" height="130" rx="4" fill="#2b2d42" opacity="0.85"/>
+        <!-- 6月 -->
+        <rect x="354" y="28" width="92" height="154" rx="4" fill="#ef233c" opacity="0.9"/>
+
+        <!-- Q1 平均虚线 -->
+        <line x1="10" y1="114" x2="540" y2="114" stroke="#8d99ae" stroke-width="1" stroke-dasharray="6 4" opacity="0.6"/>
+
+        <!-- Q2 各月标签 -->
+        <text x="116" y="14" text-anchor="middle"
+          font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+          font-size="13" font-weight="700" fill="#2b2d42">2,610</text>
+        <text x="258" y="14" text-anchor="middle"
+          font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+          font-size="13" font-weight="700" fill="#2b2d42">2,840</text>
+        <text x="400" y="14" text-anchor="middle"
+          font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+          font-size="13" font-weight="700" fill="#ef233c">3,070</text>
+
+        <!-- 月份标签 -->
+        <text x="116" y="178" text-anchor="middle"
+          font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+          font-size="12" font-weight="500" fill="#8d99ae">4月</text>
+        <text x="258" y="178" text-anchor="middle"
+          font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+          font-size="12" font-weight="500" fill="#8d99ae">5月</text>
+        <text x="400" y="178" text-anchor="middle"
+          font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+          font-size="12" font-weight="500" fill="#8d99ae">6月</text>
+
+        <!-- Q1均值标注 -->
+        <text x="550" y="111" text-anchor="start"
+          font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+          font-size="11" font-weight="400" fill="#8d99ae">Q1 月均 2,450</text>
+      </svg>
+    </div>
+
+    <!-- 数据要点 -->
+    <div style="position:absolute; left:580px; top:290px; width:320px;">
+      <p style="margin:0 0 12px 0; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 13px; font-weight: 600; color: #2b2d42;">关键发现</p>
+      <ul style="margin:0; padding:0 0 0 16px; list-style:none;">
+        <li style="margin-bottom:8px; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 13px; font-weight: 400; color: #2b2d42; line-height:1.6;">
+          <svg style="display:inline-block; vertical-align:middle; margin-right:6px;" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12" stroke="#ef233c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          6月营收突破 3,000 万，创单月新高
+        </li>
+        <li style="margin-bottom:8px; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 13px; font-weight: 400; color: #2b2d42; line-height:1.6;">
+          <svg style="display:inline-block; vertical-align:middle; margin-right:6px;" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12" stroke="#ef233c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          Q2 环比增长 25.3%，显著超越 Q1
+        </li>
+        <li style="margin-bottom:8px; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+          font-size: 13px; font-weight: 400; color: #2b2d42; line-height:1.6;">
+          <svg style="display:inline-block; vertical-align:middle; margin-right:6px;" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12" stroke="#ef233c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          目标达成率 108%，超额完成季度任务
+        </li>
+      </ul>
+    </div>
+
+    <!-- 数据来源 -->
+    <p style="position:absolute; left:60px; bottom:18px; margin:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 11px; font-weight: 400; color: #8d99ae;">
+      Source: ERP 销售系统 / 数据截止 2026-06-30
+    </p>
+
+    <!-- 页码角标：SVG circle badge -->
+    <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+      <circle cx="18" cy="18" r="18" fill="#2b2d42"/>
+      <text x="18" y="18" text-anchor="middle" dominant-baseline="central"
+        font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="14" font-weight="600" fill="#edf2f4">03</text>
+    </svg>
+  </div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+数据目录: E:\BaiduNetdiskDownload\制图Data\制图Data\Data2\城市关系强度图
+目录存在: True
+找到 2 个shp文件
+
+=== 市_点_p.shp ===
+  几何类型: 点(Point)
+  要素数: 9
+  CRS: EPSG:4499
+  字段: CLASS, NAME, PINYIN, GNID, XZNAME
+  [可标注字段: NAME]
+
+=== 市级行政区划_p.shp ===
+  几何类型: 面(Polygon)
+  要素数: 9
+  CRS: EPSG:4499
+  字段: Prefecture, Shape_Leng, Shape_Area, 地市, 蔬菜种, 瓜果种, 花卉苗, 食用菌, 其他作
+

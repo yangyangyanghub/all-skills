@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q2 季度业务汇报 - 封面</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f1a2e;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+
+  .slide {
+    width: 1280px; height: 720px;
+    background: linear-gradient(135deg, #0a1628 0%, #14264b 40%, #1a365d 70%, #0f2440 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex; flex-direction: column; justify-content: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    border-radius: 4px;
+  }
+
+  /* 装饰几何元素 */
+  .deco-top {
+    position: absolute; top: 0; right: 0;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle at 80% 20%, rgba(237,137,54,0.12) 0%, transparent 70%);
+  }
+  .deco-bottom {
+    position: absolute; bottom: 0; left: 0;
+    width: 500px; height: 300px;
+    background: radial-gradient(ellipse at 20% 80%, rgba(66,153,225,0.08) 0%, transparent 70%);
+  }
+  .deco-line {
+    position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, #ed8936 0%, #dd6b20 50%, #c05621 100%);
+  }
+  .deco-accent {
+    position: absolute; top: 80px; right: 100px;
+    width: 60px; height: 60px;
+    border: 2px solid rgba(237,137,54,0.3);
+    border-radius: 50%;
+  }
+  .deco-accent2 {
+    position: absolute; top: 180px; right: 70px;
+    width: 30px; height: 30px;
+    border: 2px solid rgba(66,153,225,0.3);
+    border-radius: 50%;
+  }
+  .deco-grid {
+    position: absolute; bottom: 40px; right: 60px;
+    width: 100px; height: 100px;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .content {
+    position: relative; z-index: 1;
+    padding-left: 100px;
+  }
+
+  .quarter-badge {
+    display: inline-block;
+    background: rgba(237,137,54,0.15);
+    border: 1px solid rgba(237,137,54,0.4);
+    color: #f6ad55;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 6px;
+    padding: 6px 24px;
+    border-radius: 2px;
+    margin-bottom: 36px;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 52px; font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  h1 .highlight {
+    color: #f6ad55;
+  }
+
+  .subtitle {
+    font-size: 20px; color: rgba(255,255,255,0.6);
+    font-weight: 400;
+    letter-spacing: 4px;
+    margin-bottom: 60px;
+  }
+
+  .meta {
+    display: flex; gap: 50px;
+    font-size: 14px; color: rgba(255,255,255,0.45);
+    letter-spacing: 1px;
+  }
+  .meta span {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .meta .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #ed8936;
+  }
+
+  .logo-area {
+    position: absolute; bottom: 50px; left: 100px;
+    font-size: 12px; color: rgba(255,255,255,0.3);
+    letter-spacing: 3px;
+  }
+
+  .page-num {
+    position: absolute; bottom: 50px; right: 80px;
+    font-size: 12px; color: rgba(255,255,255,0.25);
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="deco-top"></div>
+  <div class="deco-bottom"></div>
+  <div class="deco-line"></div>
+  <div class="deco-accent"></div>
+  <div class="deco-accent2"></div>
+  <div class="deco-grid"></div>
+
+  <div class="content">
+    <div class="quarter-badge">2026 · Q2</div>
+    <h1>季度<span class="highlight">销售数据</span><br>业务汇报</h1>
+    <p class="subtitle">Q2 QUARTERLY SALES REVIEW</p>
+    <div class="meta">
+      <span><span class="dot"></span>销售部</span>
+      <span><span class="dot"></span>2026年7月</span>
+      <span><span class="dot"></span>内部机密</span>
+    </div>
+  </div>
+
+  <div class="logo-area">CONFIDENTIAL · SALES DEPT</div>
+  <div class="page-num">01 / 08</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>金句总结</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width:960px; height:540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 左侧装饰线 -->
+      <svg width="4" height="300" style="position:absolute; left:80px; top:120px;" aria-hidden="true">
+        <rect width="4" height="300" fill="#7aa2f7"/>
+      </svg>
+
+      <!-- 核心金句 -->
+      <p style="position:absolute; left:110px; top:130px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6; line-height:1.6; max-width:720px;">
+        我们慢，不是因为写得不够快，
+      </p>
+      <p style="position:absolute; left:110px; top:180px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6; line-height:1.6; max-width:720px;">
+        而是因为一次只推一条线。
+      </p>
+
+      <!-- 分隔线 -->
+      <svg width="200" height="3" style="position:absolute; left:110px; top:240px;" aria-hidden="true">
+        <rect width="200" height="3" fill="#bb9af7"/>
+      </svg>
+
+      <!-- 副金句 -->
+      <p style="position:absolute; left:110px; top:270px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:18px; font-weight:400; color:#9aa5ce; line-height:1.6; max-width:720px;">
+        AI 时代，你的价值不在手速，
+      </p>
+      <p style="position:absolute; left:110px; top:302px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:18px; font-weight:400; color:#9aa5ce; line-height:1.6; max-width:720px;">
+        在于能不能同时指挥一群 AI ——
+      </p>
+
+      <!-- 三个关键词 -->
+      <svg width="120" height="44" viewBox="0 0 120 44" style="position:absolute; left:110px; top:350px;">
+        <rect width="120" height="44" rx="22" fill="#7aa2f7"/>
+        <text x="60" y="22" text-anchor="middle" dominant-baseline="central" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#1a1b26">拆得清</text>
+      </svg>
+      <svg width="120" height="44" viewBox="0 0 120 44" style="position:absolute; left:250px; top:350px;">
+        <rect width="120" height="44" rx="22" fill="#bb9af7"/>
+        <text x="60" y="22" text-anchor="middle" dominant-baseline="central" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#1a1b26">派得明</text>
+      </svg>
+      <svg width="120" height="44" viewBox="0 0 120 44" style="position:absolute; left:390px; top:350px;">
+        <rect width="120" height="44" rx="22" fill="#7aa2f7"/>
+        <text x="60" y="22" text-anchor="middle" dominant-baseline="central" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#1a1b26">收得严</text>
+      </svg>
+
+      <!-- 右侧装饰点阵 -->
+      <svg width="100" height="100" style="position:absolute; right:80px; top:100px; opacity:0.12;" aria-hidden="true">
+        <circle cx="10" cy="10" r="2" fill="#7aa2f7"/><circle cx="30" cy="10" r="2" fill="#7aa2f7"/><circle cx="50" cy="10" r="2" fill="#7aa2f7"/><circle cx="70" cy="10" r="2" fill="#7aa2f7"/><circle cx="90" cy="10" r="2" fill="#7aa2f7"/>
+        <circle cx="10" cy="30" r="2" fill="#bb9af7"/><circle cx="30" cy="30" r="2" fill="#bb9af7"/><circle cx="50" cy="30" r="2" fill="#bb9af7"/><circle cx="70" cy="30" r="2" fill="#bb9af7"/><circle cx="90" cy="30" r="2" fill="#bb9af7"/>
+        <circle cx="10" cy="50" r="2" fill="#7aa2f7"/><circle cx="30" cy="50" r="2" fill="#7aa2f7"/><circle cx="50" cy="50" r="2" fill="#7aa2f7"/><circle cx="70" cy="50" r="2" fill="#7aa2f7"/><circle cx="90" cy="50" r="2" fill="#7aa2f7"/>
+        <circle cx="10" cy="70" r="2" fill="#bb9af7"/><circle cx="30" cy="70" r="2" fill="#bb9af7"/><circle cx="50" cy="70" r="2" fill="#bb9af7"/><circle cx="70" cy="70" r="2" fill="#bb9af7"/><circle cx="90" cy="70" r="2" fill="#bb9af7"/>
+        <circle cx="10" cy="90" r="2" fill="#7aa2f7"/><circle cx="30" cy="90" r="2" fill="#7aa2f7"/><circle cx="50" cy="90" r="2" fill="#7aa2f7"/><circle cx="70" cy="90" r="2" fill="#7aa2f7"/><circle cx="90" cy="90" r="2" fill="#7aa2f7"/>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#bb9af7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">10</text>
+      </svg>
+    </div>
+    <aside class="notes">
+今天这一节，核心就**一句话**：
+
+**我们慢，不是因为写得不够快，而是因为一次只推一条线。**
+
+AI 时代，你的价值不在手速，在于能不能**同时指挥一群 AI** ——
+
+**拆得清、派得明、收得严。**
+
+不是让你写得更多，而是让**每条线都能同时往前走**。
+
+从地理信息到空间智能，我们的开发方式也该从"串行手工"升级到"并行编排"了。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

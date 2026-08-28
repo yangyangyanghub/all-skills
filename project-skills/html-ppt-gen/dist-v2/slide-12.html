@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>收束 — 画你的任务图</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width: 960px; height: 540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        收束：画你的任务图
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:82px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#7aa2f7"/>
+      </svg>
+
+      <p style="position:absolute; left:60px; top:100px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:14px; font-weight:400; color:#9aa5ce;">
+        4 分钟练习：画一张自己本周任务的任务图
+      </p>
+
+      <!-- 五步流程 -->
+      <!-- Step 1 -->
+      <svg width="160" height="220" viewBox="0 0 160 220" style="position:absolute; left:60px; top:140px;">
+        <rect width="160" height="220" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="160" height="4" rx="2" fill="#7aa2f7"/>
+        <svg x="12" y="14" width="30" height="30" viewBox="0 0 30 30">
+          <circle cx="15" cy="15" r="15" fill="#7aa2f7"/>
+          <text x="15" y="15" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#1a1b26">1</text>
+        </svg>
+        <text x="50" y="34" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#a9b1d6">列节点</text>
+        <line x1="12" y1="50" x2="148" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="12" y="74" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">列出本周任务</text>
+        <text x="12" y="94" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">画成节点</text>
+      </svg>
+
+      <!-- Step 2 -->
+      <svg width="160" height="220" viewBox="0 0 160 220" style="position:absolute; left:230px; top:140px;">
+        <rect width="160" height="220" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="160" height="4" rx="2" fill="#7aa2f7"/>
+        <svg x="12" y="14" width="30" height="30" viewBox="0 0 30 30">
+          <circle cx="15" cy="15" r="15" fill="#7aa2f7"/>
+          <text x="15" y="15" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#1a1b26">2</text>
+        </svg>
+        <text x="50" y="34" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#a9b1d6">标实线</text>
+        <line x1="12" y1="50" x2="148" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="12" y="74" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">标显性依赖</text>
+        <text x="12" y="94" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">（必须排序的）</text>
+      </svg>
+
+      <!-- Step 3 -->
+      <svg width="160" height="220" viewBox="0 0 160 220" style="position:absolute; left:400px; top:140px;">
+        <rect width="160" height="220" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="160" height="4" rx="2" fill="#f7768e"/>
+        <svg x="12" y="14" width="30" height="30" viewBox="0 0 30 30">
+          <circle cx="15" cy="15" r="15" fill="#f7768e"/>
+          <text x="15" y="15" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#1a1b26">3</text>
+        </svg>
+        <text x="50" y="34" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#a9b1d6">标红虚线</text>
+        <line x1="12" y1="50" x2="148" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="12" y="74" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#f7768e">标隐含依赖</text>
+        <text x="12" y="94" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">（共享数据/命名）</text>
+        <text x="12" y="120" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" font-weight="600" fill="#f7768e">最重要一步</text>
+      </svg>
+
+      <!-- Step 4 -->
+      <svg width="160" height="220" viewBox="0 0 160 220" style="position:absolute; left:570px; top:140px;">
+        <rect width="160" height="220" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="160" height="4" rx="2" fill="#7aa2f7"/>
+        <svg x="12" y="14" width="30" height="30" viewBox="0 0 30 30">
+          <circle cx="15" cy="15" r="15" fill="#7aa2f7"/>
+          <text x="15" y="15" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#1a1b26">4</text>
+        </svg>
+        <text x="50" y="34" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#a9b1d6">找无入边</text>
+        <line x1="12" y1="50" x2="148" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="12" y="74" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">无入边节点</text>
+        <text x="12" y="94" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">= 真独立，可并行</text>
+      </svg>
+
+      <!-- Step 5 -->
+      <svg width="160" height="220" viewBox="0 0 160 220" style="position:absolute; left:740px; top:140px;">
+        <rect width="160" height="220" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="160" height="4" rx="2" fill="#9ece6a"/>
+        <svg x="12" y="14" width="30" height="30" viewBox="0 0 30 30">
+          <circle cx="15" cy="15" r="15" fill="#9ece6a"/>
+          <text x="15" y="15" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#1a1b26">5</text>
+        </svg>
+        <text x="50" y="34" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#a9b1d6">定契约</text>
+        <line x1="12" y1="50" x2="148" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="12" y="74" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">有红虚线的</text>
+        <text x="12" y="94" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">先写共享契约</text>
+        <text x="12" y="120" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9ece6a">消除后再并行</text>
+      </svg>
+
+      <!-- 底部金句 -->
+      <svg width="840" height="50" viewBox="0 0 840 50" style="position:absolute; left:60px; top:390px;">
+        <rect width="840" height="50" rx="6" fill="#24283b" fill-opacity="0.6"/>
+        <text x="420" y="22" text-anchor="middle" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="15" font-weight="700" fill="#a9b1d6">并行失败不是 AI 不行，是你没看见隐含依赖</text>
+        <text x="420" y="42" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">真正的并行：先画任务图 → 找红虚线 → 定契约 → 再派活</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">12</text>
+      </svg>
+    </div>
+    <aside class="notes">
+回到开场。现在你再看手上的三条项目线，还会"同时开三个窗口让他们自己跑"吗？
+
+不会了。因为你知道了：**不画任务图、不找红虚线、不定契约就开跑，等于假并行，返工加倍。**
+
+请每个人花 **4 分钟**，画一张自己本周任务的**任务图**：
+
+**第一步：列节点。** 列出本周要推进的所有任务，画成节点。
+
+**第二步：标实线。** 标出哪些任务有显性依赖（必须排序）。
+
+**第三步：标红虚线。** 标出哪些任务之间有隐含依赖（共享数据、命名、格式、规范）。**这一步最重要。**
+
+**第四步：找无入边。** 找出"无入边"的节点——这些才是真独立，可以并行。
+
+**第五步：定契约。** 有红虚线的，先写一份共享契约，消除后再并行。
+
+今天这一节，核心就一句话：
+
+**并行失败，不是 AI 不行，是你没看见隐含依赖。真正的并行，是先画任务图、找红虚线、定契约，再派活。**
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

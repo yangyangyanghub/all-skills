@@ -1,0 +1,15 @@
+/* ========================================
+   aurora.css
+   极光 · 暗底清新
+   ======================================== */
+
+:root {
+  --bg-primary: #0f0f23;
+  --bg-secondary: #1a1a3e;
+  --text-primary: #e2e8f0;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --accent: #a78bfa;
+  --accent-alt: #34d399;
+  --border-color: #2d2d5e;
+}

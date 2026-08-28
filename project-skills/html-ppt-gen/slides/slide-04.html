@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块一 — 瓶颈到底是什么</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width:960px; height:540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        模块一：瓶颈到底是什么？
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:76px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#bb9af7"/>
+      </svg>
+
+      <!-- 左侧：串行算账 -->
+      <p style="position:absolute; left:60px; top:100px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:16px; font-weight:600; color:#7aa2f7;">串行开发</p>
+
+      <!-- 串行甘特图 SVG -->
+      <svg width="400" height="140" viewBox="0 0 400 140" style="position:absolute; left:60px; top:126px;">
+        <!-- 时间轴 -->
+        <line x1="40" y1="120" x2="390" y2="120" stroke="#3b4261" stroke-width="1"/>
+        <text x="40" y="136" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">Day 1</text>
+        <text x="157" y="136" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">Day 3</text>
+        <text x="274" y="136" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">Day 6</text>
+        <text x="365" y="136" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">Day 9</text>
+        <!-- A 线 -->
+        <text x="0" y="24" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">A 签章</text>
+        <rect x="40" y="10" width="110" height="24" rx="4" fill="#7aa2f7"/>
+        <text x="95" y="26" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#1a1b26">3 天</text>
+        <!-- 等待 -->
+        <rect x="150" y="10" width="230" height="24" rx="4" fill="#3b4261" fill-opacity="0.4"/>
+        <text x="265" y="26" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">等待中...</text>
+        <!-- B 线 -->
+        <text x="0" y="64" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">B 调查</text>
+        <rect x="40" y="50" width="110" height="24" rx="4" fill="#3b4261" fill-opacity="0.4"/>
+        <text x="95" y="66" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">等待中...</text>
+        <rect x="150" y="50" width="110" height="24" rx="4" fill="#bb9af7"/>
+        <text x="205" y="66" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#1a1b26">3 天</text>
+        <rect x="260" y="50" width="120" height="24" rx="4" fill="#3b4261" fill-opacity="0.4"/>
+        <text x="320" y="66" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">等待中...</text>
+        <!-- C 线 -->
+        <text x="0" y="104" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#9aa5ce">C 编译</text>
+        <rect x="40" y="90" width="220" height="24" rx="4" fill="#3b4261" fill-opacity="0.4"/>
+        <text x="150" y="106" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">等待中...</text>
+        <rect x="260" y="90" width="110" height="24" rx="4" fill="#7aa2f7"/>
+        <text x="315" y="106" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#1a1b26">3 天</text>
+      </svg>
+
+      <!-- 串行结论 -->
+      <p style="position:absolute; left:60px; top:280px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:14px; font-weight:400; color:#9aa5ce;">
+        3 + 3 + 3 = <span style="font-weight:700; color:#7aa2f7;">9 天</span>，大量时间在等待
+      </p>
+
+      <!-- 右侧：核心结论 -->
+      <svg width="400" height="200" viewBox="0 0 400 200" style="position:absolute; right:60px; top:100px;">
+        <rect width="400" height="200" rx="8" fill="#24283b"/>
+        <text x="30" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#bb9af7">瓶颈不是 AI 不够强</text>
+        <text x="30" y="68" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="20" font-weight="700" fill="#a9b1d6">是「人只有一个脑子」</text>
+        <line x1="30" y1="86" x2="370" y2="86" stroke="#3b4261" stroke-width="1"/>
+        <text x="30" y="112" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">你在等 A 的时候</text>
+        <text x="30" y="134" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">B 和 C 本可以在动</text>
+        <text x="30" y="170" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#7aa2f7">上周你有多少时间在「等」？</text>
+      </svg>
+
+      <!-- 底部金句 -->
+      <svg width="840" height="50" viewBox="0 0 840 50" style="position:absolute; left:60px; top:420px;">
+        <rect width="840" height="50" rx="6" fill="#24283b" fill-opacity="0.5"/>
+        <text x="420" y="30" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#a9b1d6">我们慢，不是因为写得不够快，而是因为一次只推一条线</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#bb9af7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">4</text>
+      </svg>
+    </div>
+    <aside class="notes">
+我们来**算笔账**。
+
+假设这三条线，每条线的"纯开发时间"是 3 天。串行做，是 **3+3+3 = 9 天**。这很直观。
+
+但真实情况没这么简单。每条线在开发过程中，都有大量**等待时间**：等接口联调、等数据、等测试反馈、等对方回消息。
+
+传统串行开发里，你在等 A 线的时候，B 线和 C 线是**停着的**——因为你只有一个脑子，你的注意力在 A 上。
+
+**这就是问题的根源：瓶颈不是 AI 不够强，是"人只有一个脑子"。**
+
+我问大家一个问题：上周你有多少时间是在"**等**"？等联调、等反馈、等数据到位？
+
+如果这些等待时间加起来有一两天，那意味着——**在你等 A 的时候，B 和 C 本可以在动**。
+
+**关键判断：我们慢，不是因为写得不够快，而是因为一次只推一条线，其他线全在等我。**
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

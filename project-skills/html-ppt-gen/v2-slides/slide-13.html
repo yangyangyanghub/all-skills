@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank You — 24 小时行动承诺</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width: 960px; height: 540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26; overflow:hidden;">
+      <!-- 背景装饰点阵 -->
+      <svg width="960" height="540" style="position:absolute; top:0; left:0; opacity:0.04; pointer-events:none;" aria-hidden="true">
+        <circle cx="80" cy="80" r="2" fill="#7aa2f7"/><circle cx="160" cy="80" r="2" fill="#7aa2f7"/><circle cx="240" cy="80" r="2" fill="#7aa2f7"/><circle cx="320" cy="80" r="2" fill="#7aa2f7"/><circle cx="400" cy="80" r="2" fill="#7aa2f7"/><circle cx="480" cy="80" r="2" fill="#7aa2f7"/><circle cx="560" cy="80" r="2" fill="#7aa2f7"/><circle cx="640" cy="80" r="2" fill="#7aa2f7"/><circle cx="720" cy="80" r="2" fill="#7aa2f7"/><circle cx="800" cy="80" r="2" fill="#7aa2f7"/><circle cx="880" cy="80" r="2" fill="#7aa2f7"/>
+        <circle cx="80" cy="160" r="2" fill="#bb9af7"/><circle cx="160" cy="160" r="2" fill="#bb9af7"/><circle cx="240" cy="160" r="2" fill="#bb9af7"/><circle cx="320" cy="160" r="2" fill="#bb9af7"/><circle cx="400" cy="160" r="2" fill="#bb9af7"/><circle cx="480" cy="160" r="2" fill="#bb9af7"/><circle cx="560" cy="160" r="2" fill="#bb9af7"/><circle cx="640" cy="160" r="2" fill="#bb9af7"/><circle cx="720" cy="160" r="2" fill="#bb9af7"/><circle cx="800" cy="160" r="2" fill="#bb9af7"/><circle cx="880" cy="160" r="2" fill="#bb9af7"/>
+        <circle cx="80" cy="240" r="2" fill="#7aa2f7"/><circle cx="160" cy="240" r="2" fill="#7aa2f7"/><circle cx="240" cy="240" r="2" fill="#7aa2f7"/><circle cx="320" cy="240" r="2" fill="#7aa2f7"/><circle cx="400" cy="240" r="2" fill="#7aa2f7"/><circle cx="480" cy="240" r="2" fill="#7aa2f7"/><circle cx="560" cy="240" r="2" fill="#7aa2f7"/><circle cx="640" cy="240" r="2" fill="#7aa2f7"/><circle cx="720" cy="240" r="2" fill="#7aa2f7"/><circle cx="800" cy="240" r="2" fill="#7aa2f7"/><circle cx="880" cy="240" r="2" fill="#7aa2f7"/>
+        <circle cx="80" cy="320" r="2" fill="#bb9af7"/><circle cx="160" cy="320" r="2" fill="#bb9af7"/><circle cx="240" cy="320" r="2" fill="#bb9af7"/><circle cx="320" cy="320" r="2" fill="#bb9af7"/><circle cx="400" cy="320" r="2" fill="#bb9af7"/><circle cx="480" cy="320" r="2" fill="#bb9af7"/><circle cx="560" cy="320" r="2" fill="#bb9af7"/><circle cx="640" cy="320" r="2" fill="#bb9af7"/><circle cx="720" cy="320" r="2" fill="#bb9af7"/><circle cx="800" cy="320" r="2" fill="#bb9af7"/><circle cx="880" cy="320" r="2" fill="#bb9af7"/>
+        <circle cx="80" cy="400" r="2" fill="#7aa2f7"/><circle cx="160" cy="400" r="2" fill="#7aa2f7"/><circle cx="240" cy="400" r="2" fill="#7aa2f7"/><circle cx="320" cy="400" r="2" fill="#7aa2f7"/><circle cx="400" cy="400" r="2" fill="#7aa2f7"/><circle cx="480" cy="400" r="2" fill="#7aa2f7"/><circle cx="560" cy="400" r="2" fill="#7aa2f7"/><circle cx="640" cy="400" r="2" fill="#7aa2f7"/><circle cx="720" cy="400" r="2" fill="#7aa2f7"/><circle cx="800" cy="400" r="2" fill="#7aa2f7"/><circle cx="880" cy="400" r="2" fill="#7aa2f7"/>
+        <circle cx="80" cy="480" r="2" fill="#bb9af7"/><circle cx="160" cy="480" r="2" fill="#bb9af7"/><circle cx="240" cy="480" r="2" fill="#bb9af7"/><circle cx="320" cy="480" r="2" fill="#bb9af7"/><circle cx="400" cy="480" r="2" fill="#bb9af7"/><circle cx="480" cy="480" r="2" fill="#bb9af7"/><circle cx="560" cy="480" r="2" fill="#bb9af7"/><circle cx="640" cy="480" r="2" fill="#bb9af7"/><circle cx="720" cy="480" r="2" fill="#bb9af7"/><circle cx="800" cy="480" r="2" fill="#bb9af7"/><circle cx="880" cy="480" r="2" fill="#bb9af7"/>
+      </svg>
+
+      <!-- 主标题 -->
+      <p style="position:absolute; left:340px; top:60px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 48px; font-weight:700; color:#a9b1d6;">
+        Thank You
+      </p>
+
+      <!-- 分隔线 -->
+      <svg width="120" height="3" style="position:absolute; left:420px; top:125px;" aria-hidden="true">
+        <rect width="120" height="3" fill="#7aa2f7"/>
+      </svg>
+
+      <!-- 24小时行动承诺 -->
+      <svg width="600" height="200" viewBox="0 0 600 200" style="position:absolute; left:180px; top:150px;">
+        <rect width="600" height="200" rx="12" fill="#24283b"/>
+        <rect x="0" y="0" width="600" height="4" rx="2" fill="#9ece6a"/>
+        <text x="300" y="36" text-anchor="middle" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#9ece6a">24 小时行动承诺</text>
+        <line x1="30" y1="50" x2="570" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="30" y="78" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">明天下午下班前，每个人做一件事：</text>
+        <text x="30" y="106" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#a9b1d6">1. 挑 1 个功能，画一张任务图（至少 3 节点、2 条红虚线）</text>
+        <text x="30" y="130" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#a9b1d6">2. 针对红虚线，写一份共享契约</text>
+        <text x="30" y="154" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#a9b1d6">3. 把任务图和契约发到群里</text>
+        <text x="30" y="184" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#9ece6a">第一个发的，洋哥请奶茶</text>
+      </svg>
+
+      <!-- 品牌线 -->
+      <svg width="960" height="30" style="position:absolute; left:0; top:380px;">
+        <text x="480" y="15" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="16" font-weight="400" fill="#9aa5ce" letter-spacing="3">从地理信息到空间智能</text>
+      </svg>
+      <svg width="960" height="24" style="position:absolute; left:0; top:408px;">
+        <text x="480" y="12" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="400" fill="#565f89">从假并行升级到真并行</text>
+      </svg>
+
+      <!-- 讲师信息 -->
+      <svg width="960" height="24" style="position:absolute; left:0; top:450px;">
+        <text x="480" y="12" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="400" fill="#565f89">讲师：WY · 2026-07-20</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">13</text>
+      </svg>
+    </div>
+    <aside class="notes">
+好，今天的分享就到这里。
+
+总结一下核心：**并行失败，不是 AI 不行，是你没看见隐含依赖。**
+
+真正的并行：**先画任务图 → 找红虚线 → 定契约 → 再派活。**
+
+培训完别当听完就完。**明天下午下班前**，每个人做一件事：
+
+1. 从自己本周任务里挑出 **1 个**功能，画一张任务图（至少 3 个节点、2 条红虚线）
+2. 针对红虚线，写一份共享契约
+3. 把任务图和契约发到群里
+
+**第一个发的，洋哥请奶茶。**
+
+**从地理信息到空间智能，从假并行升级到真并行。**
+
+谢谢大家！
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 技术分享 — 核心架构</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+.slide-content {
+  width: 960px;
+  height: 540px;
+  position: relative;
+  transform-origin: center center;
+}
+</style>
+</head>
+<body>
+<div class="slide-content" style="background:#1a1b26;">
+
+  <!-- 页面标题 -->
+  <h2 style="
+    position:absolute; left:60px; top:40px;
+    margin:0; padding:0;
+    font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+    font-size:36px; font-weight:700; color:#c0caf5;
+    letter-spacing:2px;
+  ">AI Agent 核心架构</h2>
+
+  <!-- 标题下方装饰线 -->
+  <svg width="80" height="3" style="position:absolute; left:60px; top:92px;" aria-hidden="true">
+    <rect width="80" height="3" rx="1.5" fill="#7aa2f7"/>
+  </svg>
+
+  <!-- 副标题 -->
+  <p style="
+    position:absolute; left:60px; top:106px;
+    margin:0; padding:0;
+    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-size:15px; font-weight:400; color:#565f89;
+  ">四大核心组件构成一个完整的智能体</p>
+
+  <!-- 四个架构卡片：2×2 网格 -->
+  <!-- 卡片 1：LLM 大脑 -->
+  <div style="
+    position:absolute; left:60px; top:148px;
+    width:396px; height:170px;
+    background:#24283b;
+  ">
+    <!-- 顶部色条 -->
+    <svg width="396" height="4" style="position:absolute; top:0; left:0;" aria-hidden="true">
+      <rect width="396" height="4" fill="#7aa2f7"/>
+    </svg>
+
+    <!-- 编号 -->
+    <p style="
+      position:absolute; left:20px; top:20px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:32px; font-weight:700; color:#7aa2f7; opacity:0.4;
+    ">01</p>
+
+    <!-- 标题 -->
+    <p style="
+      position:absolute; left:70px; top:22px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:20px; font-weight:700; color:#c0caf5;
+    ">LLM — 大脑</p>
+
+    <!-- 描述 -->
+    <p style="
+      position:absolute; left:20px; top:70px; right:20px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:14px; font-weight:400; color:#a9b1d6; line-height:1.7;
+    ">负责<strong style="color:#7aa2f7; font-weight:600;">理解任务</strong>、<strong style="color:#7aa2f7; font-weight:600;">拆解步骤</strong>和<strong style="color:#7aa2f7; font-weight:600;">生成计划</strong>。是整个 Agent 的推理核心，决定"下一步该做什么"。</p>
+
+    <!-- 底部关键词标签 -->
+    <svg width="72" height="22" style="position:absolute; left:20px; top:130px;">
+      <rect width="72" height="22" rx="4" fill="#7aa2f7" opacity="0.12"/>
+      <text x="36" y="11" text-anchor="middle" dominant-baseline="central"
+        font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="11" font-weight="600" fill="#7aa2f7">GPT-4</text>
+    </svg>
+    <svg width="56" height="22" style="position:absolute; left:100px; top:130px;">
+      <rect width="56" height="22" rx="4" fill="#7aa2f7" opacity="0.12"/>
+      <text x="28" y="11" text-anchor="middle" dominant-baseline="central"
+        font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="11" font-weight="600" fill="#7aa2f7">Claude</text>
+    </svg>
+  </div>
+
+  <!-- 卡片 2：Memory 记忆-->
+  <div style="
+    position:absolute; left:504px; top:148px;
+    width:396px; height:170px;
+    background:#24283b;
+  ">
+    <svg width="396" height="4" style="position:absolute; top:0; left:0;" aria-hidden="true">
+      <rect width="396" height="4" fill="#bb9af7"/>
+    </svg>
+
+    <p style="
+      position:absolute; left:20px; top:20px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:32px; font-weight:700; color:#bb9af7; opacity:0.4;
+    ">02</p>
+
+    <p style="
+      position:absolute; left:70px; top:22px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:20px; font-weight:700; color:#c0caf5;
+    ">Memory — 记忆</p>
+
+    <p style="
+      position:absolute; left:20px; top:70px; right:20px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:14px; font-weight:400; color:#a9b1d6; line-height:1.7;
+    ">分<strong style="color:#bb9af7; font-weight:600;">短期记忆</strong>（当前对话上下文）和<strong style="color:#bb9af7; font-weight:600;">长期记忆</strong>（向量数据库持久化），让 Agent 记得历史和用户偏好。</p>
+
+    <svg width="56" height="22" style="position:absolute; left:20px; top:130px;">
+      <rect width="56" height="22" rx="4" fill="#bb9af7" opacity="0.12"/>
+      <text x="28" y="11" text-anchor="middle" dominant-baseline="central"
+        font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="11" font-weight="600" fill="#bb9af7">向量DB</text>
+    </svg>
+    <svg width="72" height="22" style="position:absolute; left:84px; top:130px;">
+      <rect width="72" height="22" rx="4" fill="#bb9af7" opacity="0.12"/>
+      <text x="36" y="11" text-anchor="middle" dominant-baseline="central"
+        font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="11" font-weight="600" fill="#bb9af7">上下文窗口</text>
+    </svg>
+  </div>
+
+  <!-- 卡片 3：Tools 工具 -->
+  <div style="
+    position:absolute; left:60px; top:340px;
+    width:396px; height:150px;
+    background:#24283b;
+  ">
+    <svg width="396" height="4" style="position:absolute; top:0; left:0;" aria-hidden="true">
+      <rect width="396" height="4" fill="#ff9e64"/>
+    </svg>
+
+    <p style="
+      position:absolute; left:20px; top:20px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:32px; font-weight:700; color:#ff9e64; opacity:0.4;
+    ">03</p>
+
+    <p style="
+      position:absolute; left:70px; top:22px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:20px; font-weight:700; color:#c0caf5;
+    ">Tools — 工具</p>
+
+    <p style="
+      position:absolute; left:20px; top:60px; right:20px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:14px; font-weight:400; color:#a9b1d6; line-height:1.7;
+    ">Agent 的"手"——通过 <strong style="color:#ff9e64; font-weight:600;">Function Calling</strong> 调用外部 API、搜索、代码执行、文件操作等，将计划转化为实际行动。</p>
+  </div>
+
+  <!-- 卡片 4：Planning 规划 -->
+  <div style="
+    position:absolute; left:504px; top:340px;
+    width:396px; height:150px;
+    background:#24283b;
+  ">
+    <svg width="396" height="4" style="position:absolute; top:0; left:0;" aria-hidden="true">
+      <rect width="396" height="4" fill="#9ece6a"/>
+    </svg>
+
+    <p style="
+      position:absolute; left:20px; top:20px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:32px; font-weight:700; color:#9ece6a; opacity:0.4;
+    ">04</p>
+
+    <p style="
+      position:absolute; left:70px; top:22px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:20px; font-weight:700; color:#c0caf5;
+    ">Planning — 规划</p>
+
+    <p style="
+      position:absolute; left:20px; top:60px; right:20px; margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:14px; font-weight:400; color:#a9b1d6; line-height:1.7;
+    ">将复杂任务<strong style="color:#9ece6a; font-weight:600;">分解为子任务</strong>，处理错误和异常，<strong style="color:#9ece6a; font-weight:600;">自我反思与修正</strong>。如 ReAct、Plan-and-Execute 等模式。</p>
+  </div>
+
+  <!-- 页码角标 -->
+  <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+    <circle cx="18" cy="18" r="18" fill="#7aa2f7" opacity="0.3"/>
+    <text x="18" y="18" text-anchor="middle" dominant-baseline="central"
+      font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+      font-size="14" font-weight="600" fill="#7aa2f7">3</text>
+  </svg>
+
+  <!-- 演讲者模式：逐字稿 -->
+  <aside class="notes">
+    好，刚才说了三大能力。那架构长什么样？
+
+    看这页——**四个核心组件**，缺一不可。
+
+    **第一，LLM，大脑。** 负责理解任务、拆解步骤、生成计划。用 GPT-4、Claude 还是开源模型都行，但它是整个系统的核心。
+
+    **第二，Memory，记忆。** 分两块：**短期记忆**是当前对话上下文；**长期记忆**靠向量数据库持久化，让 Agent 记住你的偏好和历史。
+
+    **第三，Tools，工具。** 这是 Agent 的"手脚"。通过 **Function Calling** 调用 API、搜索引擎、代码执行器——光想不做就是聊天机器人。
+
+    **第四，Planning，规划。** 把复杂任务**分解**成子任务，边做边看，出错能**反思修正**。经典模式有 ReAct 和 Plan-and-Execute。
+
+    这四个形成闭环：大脑思考 → 记忆提供上下文 → 规划拆分 → 工具执行 → 结果反馈 → 继续下一轮。
+
+    架构清楚了，接下来——**怎么从零搭一个能跑起来的 Agent？**
+  </aside>
+
+</div>
+
+<script>
+function scaleSlide() {
+  const slide = document.querySelector('.slide-content');
+  if (!slide) return;
+  const slideWidth = 960;
+  const slideHeight = 540;
+  const scaleX = window.innerWidth / slideWidth;
+  const scaleY = window.innerHeight / slideHeight;
+  const scale = Math.min(scaleX, scaleY);
+  slide.style.width = slideWidth + 'px';
+  slide.style.height = slideHeight + 'px';
+  slide.style.transform = 'scale(' + scale + ')';
+  slide.style.transformOrigin = 'center center';
+  slide.style.flexShrink = '0';
+}
+window.addEventListener('load', scaleSlide);
+window.addEventListener('resize', scaleSlide);
+</script>
+</body>
+</html>

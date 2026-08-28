@@ -1,0 +1,27 @@
+[
+  {
+    "name": "离线转录测试",
+    "input": "转录这个音频文件 meeting.wav",
+    "expected_actions": [
+      "运行 transcribe.py -i meeting.wav -o transcript.json",
+      "运行 format_minutes.py -i transcript.json -o 会议纪要.md"
+    ]
+  },
+  {
+    "name": "实时转录测试",
+    "input": "开始实时转录会议",
+    "expected_actions": [
+      "运行 transcribe.py --realtime -o live.json",
+      "等待用户 Ctrl+C 停止",
+      "运行 format_minutes.py -i live.json -o 会议纪要.md"
+    ]
+  },
+  {
+    "name": "带参数转录测试",
+    "input": "用 SenseVoiceSmall 转录中文会议录音 meeting.wav，生成会议纪要",
+    "expected_actions": [
+      "运行 transcribe.py -i meeting.wav -m sensevoice -l zh -o transcript.json",
+      "运行 format_minutes.py -i transcript.json -t 会议纪要 -o 会议纪要.md"
+    ]
+  }
+]

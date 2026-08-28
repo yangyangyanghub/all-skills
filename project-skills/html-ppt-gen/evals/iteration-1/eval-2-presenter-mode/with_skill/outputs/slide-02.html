@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 技术分享 — 什么是 AI Agent</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+.slide-content {
+  width: 960px;
+  height: 540px;
+  position: relative;
+  transform-origin: center center;
+}
+</style>
+</head>
+<body>
+<div class="slide-content" style="background:#1a1b26;">
+
+  <!-- 页面标题 -->
+  <h2 style="
+    position:absolute; left:60px; top:40px;
+    margin:0; padding:0;
+    font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+    font-size:36px; font-weight:700; color:#c0caf5;
+    letter-spacing:2px;
+  ">什么是 AI Agent？</h2>
+
+  <!-- 标题下方装饰线 -->
+  <svg width="80" height="3" style="position:absolute; left:60px; top:92px;" aria-hidden="true">
+    <rect width="80" height="3" rx="1.5" fill="#7aa2f7"/>
+  </svg>
+
+  <!-- 左侧：定义卡片 -->
+  <div style="
+    position:absolute; left:60px; top:130px;
+    width:400px; height:180px;
+    background:#24283b; border-radius:0;
+    padding:0;
+  ">
+    <!-- 卡片标签 -->
+    <svg width="100" height="28" style="position:absolute; left:24px; top:-14px;">
+      <rect width="100" height="28" rx="4" fill="#7aa2f7"/>
+      <text x="50" y="14" text-anchor="middle" dominant-baseline="central"
+        font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="12" font-weight="700" fill="#1a1b26">定义</text>
+    </svg>
+
+    <p style="
+      position:absolute; left:24px; top:30px; right:24px;
+      margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:18px; font-weight:400; color:#c0caf5;
+      line-height:1.8;
+    ">
+      AI Agent 是一个<strong style="color:#7aa2f7; font-weight:700;">能自主感知环境</strong>、
+      <strong style="color:#7aa2f7; font-weight:700;">做出决策</strong>并
+      <strong style="color:#7aa2f7; font-weight:700;">执行行动</strong>的智能系统
+    </p>
+
+    <!-- 卡片内分隔线 -->
+    <svg width="352" height="1" style="position:absolute; left:24px; top:110px;" aria-hidden="true">
+      <rect width="352" height="1" fill="#414868"/>
+    </svg>
+
+    <p style="
+      position:absolute; left:24px; top:122px; right:24px;
+      margin:0; padding:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size:14px; font-weight:400; color:#a9b1d6;
+      line-height:1.6;
+    ">
+      感知 → 思考 → 行动 → 反馈 → 再行动
+    </p>
+  </div>
+
+  <!-- 右侧：三大特征 -->
+  <div style="
+    position:absolute; left:500px; top:130px;
+    width:400px; height:340px;
+  ">
+    <!-- 特征 1 -->
+    <div style="
+      position:absolute; width:400px; height:98px;
+      background:#24283b; border-left:4px solid #7aa2f7;
+    ">
+      <svg width="28" height="28" style="position:absolute; left:20px; top:18px;" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6 L12 12 L16 12"/>
+      </svg>
+      <p style="
+        position:absolute; left:60px; top:16px; margin:0; padding:0;
+        font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size:18px; font-weight:700; color:#c0caf5;
+      ">自主决策</p>
+      <p style="
+        position:absolute; left:60px; top:44px; right:24px; margin:0; padding:0;
+        font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size:14px; font-weight:400; color:#a9b1d6; line-height:1.5;
+      ">不需要人类逐步指令，Agent 自己决定下一步做什么</p>
+    </div>
+
+    <!-- 特征 2 -->
+    <div style="
+      position:absolute; top:116px; width:400px; height:98px;
+      background:#24283b; border-left:4px solid #bb9af7;
+    ">
+      <svg width="28" height="28" style="position:absolute; left:20px; top:18px;" viewBox="0 0 24 24" fill="none" stroke="#bb9af7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <line x1="8" y1="21" x2="16" y2="21"/>
+        <line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+      <p style="
+        position:absolute; left:60px; top:16px; margin:0; padding:0;
+        font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size:18px; font-weight:700; color:#c0caf5;
+      ">工具使用</p>
+      <p style="
+        position:absolute; left:60px; top:44px; right:24px; margin:0; padding:0;
+        font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size:14px; font-weight:400; color:#a9b1d6; line-height:1.5;
+      ">能调用外部 API、数据库、代码执行器等工具完成任务</p>
+    </div>
+
+    <!-- 特征 3 -->
+    <div style="
+      position:absolute; top:232px; width:400px; height:98px;
+      background:#24283b; border-left:4px solid #ff9e64;
+    ">
+      <svg width="28" height="28" style="position:absolute; left:20px; top:18px;" viewBox="0 0 24 24" fill="none" stroke="#ff9e64" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2 L15 9 L22 9 L16 14 L18 21 L12 17 L6 21 L8 14 L2 9 L9 9 Z"/>
+      </svg>
+      <p style="
+        position:absolute; left:60px; top:16px; margin:0; padding:0;
+        font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size:18px; font-weight:700; color:#c0caf5;
+      ">持续记忆</p>
+      <p style="
+        position:absolute; left:60px; top:44px; right:24px; margin:0; padding:0;
+        font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size:14px; font-weight:400; color:#a9b1d6; line-height:1.5;
+      ">跨对话保持上下文，从历史经验中学习和改进策略</p>
+    </div>
+  </div>
+
+  <!-- 页码角标 -->
+  <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+    <circle cx="18" cy="18" r="18" fill="#7aa2f7" opacity="0.3"/>
+    <text x="18" y="18" text-anchor="middle" dominant-baseline="central"
+      font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+      font-size="14" font-weight="600" fill="#7aa2f7">2</text>
+  </svg>
+
+  <!-- 演讲者模式：逐字稿 -->
+  <aside class="notes">
+    好，先搞清楚 **AI Agent 到底是什么**。
+
+    看左边定义——三个关键词：**感知环境**、**做出决策**、**执行行动**。它是一个**循环**：感知 → 思考 → 行动 → 反馈 → 再行动。
+
+    跟 ChatGPT 比，区别在哪？三个维度。
+
+    **第一，自主决策。** ChatGPT 要你一步步教。Agent 不用——你说"帮我订下周三去北京的机票"，它自己查航班、比价格、看日历冲突，全搞定。
+
+    **第二，工具使用。** 这是 Agent 最核心的能力。不光聊天，能调 API、查数据库、执行代码、发邮件。就像一个实习生，不光听你说，还真的去干活。
+
+    **第三，持续记忆。** ChatGPT 每次都是新的对话。Agent 有**长期记忆**——记得你的偏好、历史对话，能从经验里学东西。
+
+    这三根支柱加在一起，才是真正的 Agent。缺一根都不算。
+
+    下一个问题——**它里面长什么样？**
+  </aside>
+
+</div>
+
+<script>
+function scaleSlide() {
+  const slide = document.querySelector('.slide-content');
+  if (!slide) return;
+  const slideWidth = 960;
+  const slideHeight = 540;
+  const scaleX = window.innerWidth / slideWidth;
+  const scaleY = window.innerHeight / slideHeight;
+  const scale = Math.min(scaleX, scaleY);
+  slide.style.width = slideWidth + 'px';
+  slide.style.height = slideHeight + 'px';
+  slide.style.transform = 'scale(' + scale + ')';
+  slide.style.transformOrigin = 'center center';
+  slide.style.flexShrink = '0';
+}
+window.addEventListener('load', scaleSlide);
+window.addEventListener('resize', scaleSlide);
+</script>
+</body>
+</html>

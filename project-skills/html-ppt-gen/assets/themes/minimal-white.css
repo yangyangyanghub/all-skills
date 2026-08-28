@@ -1,0 +1,15 @@
+/* ========================================
+   minimal-white.css
+   极简主义 · 纯白基调
+   ======================================== */
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --text-primary: #333333;
+  --text-secondary: #555555;
+  --text-muted: #999999;
+  --accent: #007aff;
+  --accent-alt: #5ac8fa;
+  --border-color: #e5e5e5;
+}

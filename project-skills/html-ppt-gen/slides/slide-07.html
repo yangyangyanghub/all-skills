@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块三续 — 电子签章拆解实例</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width:960px; height:540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        实例：电子签章功能拆解
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:72px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#7aa2f7"/>
+      </svg>
+
+      <!-- 拆解树状图 SVG -->
+      <svg width="500" height="300" viewBox="0 0 500 300" style="position:absolute; left:40px; top:90px;">
+        <!-- 根节点 -->
+        <rect x="170" y="0" width="160" height="36" rx="6" fill="#7aa2f7"/>
+        <text x="250" y="22" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#1a1b26">电子签章功能</text>
+        <!-- 连线 -->
+        <line x1="250" y1="36" x2="250" y2="56" stroke="#3b4261" stroke-width="1.5"/>
+        <line x1="60" y1="56" x2="440" y2="56" stroke="#3b4261" stroke-width="1.5"/>
+        <line x1="60" y1="56" x2="60" y2="72" stroke="#3b4261" stroke-width="1.5"/>
+        <line x1="180" y1="56" x2="180" y2="72" stroke="#3b4261" stroke-width="1.5"/>
+        <line x1="310" y1="56" x2="310" y2="72" stroke="#3b4261" stroke-width="1.5"/>
+        <line x1="440" y1="56" x2="440" y2="72" stroke="#3b4261" stroke-width="1.5"/>
+
+        <!-- 子任务 A -->
+        <rect x="0" y="72" width="120" height="32" rx="6" fill="#24283b" stroke="#7aa2f7" stroke-width="1.5"/>
+        <text x="60" y="92" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#7aa2f7">A 前端签名板</text>
+        <!-- 子任务 B -->
+        <rect x="125" y="72" width="110" height="32" rx="6" fill="#24283b" stroke="#bb9af7" stroke-width="1.5"/>
+        <text x="180" y="92" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#bb9af7">B 扫码签名页</text>
+        <!-- 子任务 C -->
+        <rect x="245" y="72" width="130" height="32" rx="6" fill="#24283b" stroke="#7aa2f7" stroke-width="1.5"/>
+        <text x="310" y="92" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#7aa2f7">C 后端存储接口</text>
+        <!-- 子任务 D -->
+        <rect x="390" y="72" width="100" height="32" rx="6" fill="#24283b" stroke="#565f89" stroke-width="1.5"/>
+        <text x="440" y="92" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#9aa5ce">D 联调</text>
+
+        <!-- 并行标记 -->
+        <line x1="20" y1="116" x2="100" y2="116" stroke="#7aa2f7" stroke-width="1" stroke-dasharray="3 2"/>
+        <line x1="140" y1="116" x2="220" y2="116" stroke="#bb9af7" stroke-width="1" stroke-dasharray="3 2"/>
+        <line x1="260" y1="116" x2="360" y2="116" stroke="#7aa2f7" stroke-width="1" stroke-dasharray="3 2"/>
+        <text x="60" y="132" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">独立</text>
+        <text x="180" y="132" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">独立</text>
+        <text x="310" y="132" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">独立</text>
+        <text x="440" y="132" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#565f89">依赖 A/B/C</text>
+
+        <!-- 并行区间标注 -->
+        <rect x="10" y="148" width="350" height="24" rx="4" fill="#7aa2f7" fill-opacity="0.12"/>
+        <text x="185" y="164" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#7aa2f7">A / B / C 可并行</text>
+        <rect x="395" y="148" width="90" height="24" rx="4" fill="#565f89" fill-opacity="0.15"/>
+        <text x="440" y="164" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">D 等待</text>
+      </svg>
+
+      <!-- 右侧：工期对比 -->
+      <svg width="360" height="300" viewBox="0 0 360 300" style="position:absolute; right:40px; top:90px;">
+        <rect width="360" height="300" rx="8" fill="#24283b"/>
+        <text x="180" y="30" text-anchor="middle" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#a9b1d6">工期对比</text>
+        <line x1="20" y1="44" x2="340" y2="44" stroke="#3b4261" stroke-width="1"/>
+
+        <!-- 串行 -->
+        <text x="20" y="72" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#9aa5ce">串行</text>
+        <rect x="80" y="58" width="260" height="24" rx="4" fill="#3b4261"/>
+        <text x="210" y="74" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#a9b1d6">A(3d) → B(3d) → C(3d) → D(1d)</text>
+        <text x="20" y="100" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#9aa5ce">= 10 天</text>
+
+        <!-- 并行 -->
+        <text x="20" y="140" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#7aa2f7">并行</text>
+        <rect x="80" y="126" width="100" height="24" rx="4" fill="#7aa2f7"/>
+        <text x="130" y="142" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#1a1b26">A/B/C 并行</text>
+        <rect x="190" y="126" width="40" height="24" rx="4" fill="#565f89"/>
+        <text x="210" y="142" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#a9b1d6">D</text>
+        <text x="20" y="168" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#7aa2f7">= 4 天</text>
+
+        <!-- 压缩效果 -->
+        <line x1="20" y1="190" x2="340" y2="190" stroke="#3b4261" stroke-width="1"/>
+        <text x="180" y="218" text-anchor="middle" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#7aa2f7">10 天 → 4 天</text>
+        <text x="180" y="248" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" fill="#9aa5ce">工期压缩 60%</text>
+        <text x="180" y="278" text-anchor="middle" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">关键：A/B/C 三条线同时推进</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">7</text>
+      </svg>
+    </div>
+    <aside class="notes">
+我们拿武洋手上的"**电子签章功能**"来拆。这个功能要支持**鼠标签名**和**手机扫码签名**。
+
+传统做法：一个人从头写到尾，前端画签名板→写扫码逻辑→对接后端存储接口→联调，串行下来好几天。
+
+用指挥部思路拆：
+
+**子任务 A（独立）**：前端签名板组件——鼠标绘制、清空、生成图片。边界：只在签名组件文件里改。验收：能画、能清、能导出 PNG。
+
+**子任务 B（独立）**：手机扫码签名页——生成二维码、扫码后的移动端签名页。边界：新增扫码模块。验收：扫码能打开签名页、能提交。
+
+**子任务 C（独立）**：后端签章存储接口——接收签名图、存储、返回签章 ID。边界：后端接口层。验收：接口能收能存能返回。
+
+**子任务 D（依赖 A/B/C）**：三者联调。这个必须等前三个完成，不能并行。
+
+看清楚了吗？**A、B、C 三条完全独立，可以同时派给三个 AI 会话并行推进，你在中间盯验收。只有 D 要等。**
+
+原来的"好几天串行"，现在变成"**A/B/C 并行 + D 收尾**"，工期直接压缩。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块三 — 任务怎么拆才能并行</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width:960px; height:540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        模块三：任务怎么拆才能并行
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:76px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#bb9af7"/>
+      </svg>
+
+      <p style="position:absolute; left:60px; top:96px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:15px; font-weight:400; color:#9aa5ce;">
+        拆解是并行的命门。三个判据：
+      </p>
+
+      <!-- 判据一 -->
+      <svg width="260" height="220" viewBox="0 0 260 220" style="position:absolute; left:60px; top:130px;">
+        <rect width="260" height="220" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#7aa2f7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#7aa2f7">判据一</text>
+        <text x="110" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#a9b1d6">独立</text>
+        <line x1="20" y1="50" x2="240" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="78" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">两个子任务之间</text>
+        <text x="20" y="100" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">没有依赖</text>
+        <text x="20" y="130" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">A 不用等 B 的产出</text>
+        <text x="20" y="160" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">各干各的，互不阻塞</text>
+        <!-- 图标：两条平行线 -->
+        <svg x="20" y="178" width="60" height="24" viewBox="0 0 60 24" fill="none" stroke="#7aa2f7" stroke-width="2">
+          <line x1="0" y1="6" x2="50" y2="6"/>
+          <line x1="0" y1="18" x2="50" y2="18"/>
+        </svg>
+      </svg>
+
+      <!-- 判据二 -->
+      <svg width="260" height="220" viewBox="0 0 260 220" style="position:absolute; left:340px; top:130px;">
+        <rect width="260" height="220" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#bb9af7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#bb9af7">判据二</text>
+        <text x="110" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#a9b1d6">边界清</text>
+        <line x1="20" y1="50" x2="240" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="78" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">每个子任务改哪些文件</text>
+        <text x="20" y="100" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">动哪些模块，界线分明</text>
+        <text x="20" y="130" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">不会互相踩脚</text>
+        <text x="20" y="160" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">改完不会冲突</text>
+        <!-- 图标：虚线分隔 -->
+        <svg x="20" y="178" width="60" height="24" viewBox="0 0 60 24" fill="none" stroke="#bb9af7" stroke-width="2" stroke-dasharray="4 3">
+          <line x1="30" y1="0" x2="30" y2="24"/>
+        </svg>
+      </svg>
+
+      <!-- 判据三 -->
+      <svg width="260" height="220" viewBox="0 0 260 220" style="position:absolute; left:620px; top:130px;">
+        <rect width="260" height="220" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#7aa2f7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#7aa2f7">判据三</text>
+        <text x="110" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#a9b1d6">可验收</text>
+        <line x1="20" y1="50" x2="240" y2="50" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="78" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">每个子任务有明确的</text>
+        <text x="20" y="100" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">「做完」标准</text>
+        <text x="20" y="130" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">你能一眼判断对错</text>
+        <text x="20" y="160" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">不用猜「这算完了吗」</text>
+        <!-- 图标：勾选 -->
+        <svg x="20" y="178" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 4 8 18 4 12"/>
+        </svg>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#bb9af7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">6</text>
+      </svg>
+    </div>
+    <aside class="notes">
+拆解是并行的**命门**。什么样的任务能拆开并行？**三个判据**：
+
+**判据一：独立** —— 两个子任务之间没有依赖，A 不用等 B 的产出。
+
+**判据二：边界清** —— 每个子任务改哪些文件、动哪些模块，界线分明，不会互相踩脚。
+
+**判据三：可验收** —— 每个子任务有明确的"做完"标准，你能一眼判断对错。
+
+三个都满足，就能并行。缺一个，就得小心。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

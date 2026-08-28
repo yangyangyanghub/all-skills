@@ -1,0 +1,16 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-08-14T14:00	baseline	space-intel-writer	-	84.3	baseline	-	3新建+6优化技能基线评估（darwin judge 独立评分）	dry_run
+2026-08-14T14:00	baseline	lecturer-training	-	83.8	baseline	-	结构/效果双优，Red flags 完整	dry_run
+2026-08-14T14:00	baseline	pre-sales-solution	-	79.8	baseline	-	6步流程清晰，fallback 显式编码	dry_run
+2026-08-14T14:00	baseline	attention-writing-framework	-	76.1	baseline	-	自包含密度高，缺显式 STOP 标记	dry_run
+2026-08-14T14:00	baseline	critical-analysis	-	71.6	baseline	-	5类23方法体系完整，缺失败分支/检查点	dry_run
+2026-08-14T14:00	baseline	method-library	-	65.7	baseline	-	模板可用，缺失败模式/反模式	dry_run
+2026-08-14T14:00	baseline	ICAP学习方法诊断教练	-	63.8	baseline	-	方法论外包到7个reference，skill本身是路由器	dry_run
+2026-08-14T14:00	baseline	deep-research	-	62.3	baseline	-	缺失败模式/检查点，路径疑似错误	dry_run
+2026-08-14T14:00	baseline	daily-review	-	59.9	baseline	-	缺失败模式/检查点，周复盘未实现	dry_run
+2026-08-14T14:30	b380e26	daily-review	59.9	3-0 better	keep	dim3+dim4+dim9	补失败模式表8行/🔴CHECKPOINT×2/黑名单7条/周复盘模板，3 judge 全判 clear better	paired
+2026-08-14T14:30	e89a7a5	deep-research	62.3	1-0 better	keep	dim3+dim4+dim6+dim9	补失败模式7行/CHECKPOINT×4/黑名单6条，修复8处路径错误，judge 判 clear better	paired
+2026-08-14T14:30	2d5b478	ICAP学习方法诊断教练	63.8	1-0 better	keep	dim5+dim8	内联 ICAP 四层速查（P/A/C/I 定义+判断标准+口诀+典型误判），基础诊断自足，judge 判 clear better	paired
+2026-08-14T14:30	f2c0ab8	method-library	65.7	1-0 better	keep	dim3+dim9	补失败模式6行/黑名单7条，防误触发/防过度框架化，judge 判 clear better	paired
+2026-08-14T15:00	baseline	frontend-design-orchestrator	-	76.4-87.7	baseline	-	2 judge 共识区间（judge1:87.7 优秀 / judge2:76.4 良好），OKLCH/Apple 真集成，短板=冗余+checkpoint无强制+Inter测试预期不匹配	dry_run
+2026-08-14T16:30	paired	frontend-design-orchestrator	76.4-87.7	3-0 better	keep	dim3+dim5+dim7+dim8+dim9	去重(OKLCH/framer-motion单源)+Inter P0→P1修正+补图标失败处理表，3 judge 全判 clear better	paired

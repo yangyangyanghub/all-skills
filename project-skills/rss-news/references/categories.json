@@ -1,0 +1,26 @@
+{
+  "categories": {
+    "测绘地理信息": {
+      "keywords": ["测绘", "GIS", "地理信息", "地图", "坐标", "定位", "测量", "GeoInformatics", "QGIS", "PostGIS", "Esri", "ArcGIS"],
+      "sources": ["GeoInformatics", "GIS Geography", "GIS Resources", "GeoNe.ws", "QGIS Blog", "PostGIS", "Esri ArcGIS Blog"]
+    },
+    "遥感": {
+      "keywords": ["遥感", "卫星", "影像", "InSAR", "LiDAR", "雷达", "光学", "热红外"],
+      "sources": []
+    },
+    "无人机": {
+      "keywords": ["无人机", "UAV", "低空", "航拍", "倾斜摄影", "飞控"],
+      "sources": []
+    },
+    "AI": {
+      "keywords": ["AI", "人工智能", "机器学习", "深度学习", "GPT", "大模型", "神经网络", "NLP"],
+      "sources": []
+    },
+    "政策/通知": {
+      "keywords": ["政策", "通知", "公告", "标准", "规范", "法规", "两会", "国务院", "自然资源部"],
+      "sources": []
+    }
+  },
+  "defaultCategory": "其他",
+  "priorityOrder": ["政策/通知", "AI", "遥感", "无人机", "测绘地理信息", "其他"]
+}

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q2 季度业务汇报 - 封面</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+    }
+    .slide-content {
+      width: 960px;
+      height: 540px;
+      position: relative;
+      transform-origin: center center;
+    }
+  </style>
+  <script>
+    function scaleSlide() {
+      const slide = document.querySelector('.slide-content');
+      if (!slide) return;
+      const slideWidth = 960;
+      const slideHeight = 540;
+      const scaleX = window.innerWidth / slideWidth;
+      const scaleY = window.innerHeight / slideHeight;
+      const scale = Math.min(scaleX, scaleY);
+      slide.style.width = slideWidth + 'px';
+      slide.style.height = slideHeight + 'px';
+      slide.style.transform = `scale(${scale})`;
+      slide.style.transformOrigin = 'center center';
+      slide.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <!-- 封面页：Type 1 - Cover Page -->
+  <div class="slide-content" style="background:#2b2d42;">
+    <!-- 左上角装饰线 -->
+    <svg style="position:absolute; top:40px; left:60px;" width="40" height="40" aria-hidden="true">
+      <path d="M0 35 L0 0 L35 0" stroke="#ef233c" stroke-width="3" fill="none" opacity="0.9"/>
+    </svg>
+    <!-- 右下角装饰线 -->
+    <svg style="position:absolute; bottom:40px; right:60px;" width="40" height="40" aria-hidden="true">
+      <path d="M40 5 L40 40 L5 40" stroke="#ef233c" stroke-width="3" fill="none" opacity="0.9"/>
+    </svg>
+
+    <!-- 背景纹理：微弱点阵 -->
+    <svg width="100%" height="100%" style="position:absolute; top:0; left:0; opacity:0.04; pointer-events:none;">
+      <defs>
+        <pattern id="dot-grid" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+          <circle cx="15" cy="15" r="1.5" fill="#ffffff"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#dot-grid)"/>
+    </svg>
+
+    <!-- 左侧红色竖条装饰 -->
+    <svg style="position:absolute; left:60px; top:120px;" width="4" height="280" aria-hidden="true">
+      <rect width="4" height="280" rx="2" fill="#ef233c"/>
+    </svg>
+
+    <!-- 主标题 -->
+    <h1 style="position:absolute; left:84px; top:110px; margin:0;
+      font-family: 'Noto Serif SC', 'Times New Roman', 'SimSun', serif;
+      font-size: 72px; font-weight: 700; color: #edf2f4; line-height: 1.15;">
+      Q2 季度<br>业务汇报
+    </h1>
+
+    <!-- 副标题 -->
+    <p style="position:absolute; left:84px; top:300px; margin:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 28px; font-weight: 400; color: #8d99ae;">
+      销售数据总结与下半年展望
+    </p>
+
+    <!-- 分隔线 -->
+    <svg style="position:absolute; left:84px; top:356px;" width="280" height="2" aria-hidden="true">
+      <rect width="280" height="2" fill="#8d99ae" opacity="0.4"/>
+    </svg>
+
+    <!-- 底部信息 -->
+    <p style="position:absolute; left:84px; top:380px; margin:0;
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 16px; font-weight: 400; color: #8d99ae;">
+      汇报人：销售部 &nbsp;|&nbsp; 2026年7月
+    </p>
+
+    <!-- 右侧装饰色块 -->
+    <div style="position:absolute; right:0; top:0; width:320px; height:540px; background:#ef233c; opacity:0.06;"></div>
+    <div style="position:absolute; right:80px; top:160px; width:200px; height:200px; border:2px solid #ef233c; opacity:0.15;"></div>
+  </div>
+</body>
+</html>

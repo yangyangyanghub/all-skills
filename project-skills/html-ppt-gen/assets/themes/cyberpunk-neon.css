@@ -1,0 +1,15 @@
+/* ========================================
+   cyberpunk-neon.css
+   赛博朋克 · 暗底霓虹
+   ======================================== */
+
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a2e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #666666;
+  --accent: #00ffff;
+  --accent-alt: #ff00ff;
+  --border-color: #2a2a3e;
+}

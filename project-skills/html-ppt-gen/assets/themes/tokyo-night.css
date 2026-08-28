@@ -1,0 +1,15 @@
+/* ========================================
+   tokyo-night.css
+   开发者友好 · 暗蓝紫色调
+   ======================================== */
+
+:root {
+  --bg-primary: #1a1b26;
+  --bg-secondary: #24283b;
+  --text-primary: #a9b1d6;
+  --text-secondary: #9aa5ce;
+  --text-muted: #565f89;
+  --accent: #7aa2f7;
+  --accent-alt: #bb9af7;
+  --border-color: #3b4261;
+}

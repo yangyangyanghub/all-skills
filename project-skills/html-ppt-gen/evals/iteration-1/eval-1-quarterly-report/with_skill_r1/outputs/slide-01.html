@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q2 季度业务汇报 - 封面</title>
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+  }
+  .slide-content {
+    width: 960px;
+    height: 540px;
+    position: relative;
+    transform-origin: center center;
+  }
+  </style>
+  <script>
+  function scaleSlide() {
+    const slide = document.querySelector('.slide-content');
+    if (!slide) return;
+    const scale = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+    slide.style.width = '960px';
+    slide.style.height = '540px';
+    slide.style.transform = `scale(${scale})`;
+    slide.style.transformOrigin = 'center center';
+    slide.style.flexShrink = '0';
+  }
+  window.addEventListener('load', scaleSlide);
+  window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <div class="slide-content" style="background:#2b2d42;">
+
+    <!-- 左侧色块装饰 -->
+    <svg width="360" height="540" style="position:absolute; left:0; top:0;" aria-hidden="true">
+      <rect width="360" height="540" fill="#ef233c"/>
+      <!-- 装饰线条 -->
+      <rect x="60" y="120" width="240" height="3" fill="#ffffff" opacity="0.3"/>
+      <rect x="60" y="136" width="140" height="3" fill="#ffffff" opacity="0.15"/>
+    </svg>
+
+    <!-- 右侧主内容区 -->
+    <div style="position:absolute; left:420px; top:0; width:540px; height:540px;">
+
+      <!-- 顶部标签 -->
+      <svg width="120" height="28" style="position:absolute; left:0; top:100px;">
+        <rect width="120" height="28" rx="4" fill="#ef233c" opacity="0.15"/>
+        <text x="60" y="14" text-anchor="middle" dominant-baseline="central"
+              font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+              font-size="12" font-weight="600" fill="#ef233c" letter-spacing="4">季度汇报</text>
+      </svg>
+
+      <!-- 主标题 -->
+      <h1 style="position:absolute; left:0; top:144px; margin:0; padding:0;
+                 font-family:'Noto Serif SC','Times New Roman','SimSun',serif;
+                 font-size:60px; font-weight:700; color:#ffffff; line-height:1.25; letter-spacing:2px;">
+        Q2 季度<br/>业务汇报
+      </h1>
+
+      <!-- 副标题 -->
+      <p style="position:absolute; left:0; top:310px; margin:0;
+                font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                font-size:24px; font-weight:400; color:#8d99ae;">
+        聚焦销售数据 · 总结增长动能
+      </p>
+
+      <!-- 分隔线 -->
+      <svg width="80" height="2" style="position:absolute; left:0; top:360px;" aria-hidden="true">
+        <rect width="80" height="2" rx="1" fill="#ef233c"/>
+      </svg>
+
+      <!-- 底部信息 -->
+      <div style="position:absolute; left:0; bottom:60px;">
+        <p style="margin:0 0 6px 0;
+                  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                  font-size:16px; font-weight:400; color:#8d99ae;">
+          销售中心
+        </p>
+        <p style="margin:0;
+                  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+                  font-size:14px; font-weight:400; color:#8d99ae; opacity:0.7;">
+          2026年7月
+        </p>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

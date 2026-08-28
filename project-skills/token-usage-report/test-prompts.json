@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "统计 HDPD API key 使用量",
+    "expected": "生成 assets/tokens/YYYY-MM-DD.md，包含排行榜和今日新增量"
+  },
+  {
+    "id": 2,
+    "prompt": "看下今天的 token 消耗排行，对比昨天谁用得最多",
+    "expected": "生成报告并指出较昨日新增最多的 key"
+  },
+  {
+    "id": 3,
+    "prompt": "帮我生成一份 API 使用日报",
+    "expected": "生成完整的 Markdown 报告，包含统计摘要、排行榜、原始数据"
+  }
+]

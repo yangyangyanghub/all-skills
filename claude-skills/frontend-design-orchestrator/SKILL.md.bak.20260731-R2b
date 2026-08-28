@@ -1,0 +1,323 @@
+---
+name: frontend-design-orchestrator
+description: Use when the user asks for a page/module DESIGN.md or design spec (login page, dashboard, 页面方案, 页面结构, 设计文档, 设计规范), to review or audit an existing DESIGN.md/设计稿审查/设计评审, to choose or standardize an icon system/图标规范 or resolve icon conflicts, or to produce the spec offline with built-in references only, including Vercel guideline review.
+---
+
+# Frontend Design Orchestrator
+
+A hub-type skill that generates high-quality DESIGN.md documents, provides icon system guidance, and runs Vercel Web Design Guidelines reviews.
+
+## When to Use
+
+Use this skill when:
+
+- The user asks to generate a frontend design document or specification
+- The user mentions "DESIGN.md", "design system", or "front-end design"
+- The user needs to select or configure an icon system
+- The user requests a design review or audit
+- The user references "Vercel design guidelines" or "web design guidelines"
+- The user wants to resolve conflicts between multiple icon sources
+- The user provides a URL and wants a structured design audit of a live site
+- The user wants to reverse-engineer a design system from an existing codebase
+
+**Non-goals**: This skill does NOT generate implementation code, CSS, React/Vue components, or design tokens. It produces design specifications only.
+
+## Workflow Overview
+
+### Primary Workflow: Generate DESIGN.md
+
+1. **Analyze Request & Intent Check**: 
+   - Determine if the user has a **Specific Brand/UI Kit** (e.g., "Use our existing design system") vs. **Style Reference** (e.g., "Style like Linear").
+   - If Style Reference: Focus on "Vibe", "Layout patterns", and "Interaction" from the reference, but **DO NOT** scrape hex codes or logos.
+   - If Specific Brand: Proceed to Step 2.
+2. **Execute Brand Asset Protocol (MANDATORY for Specific Brands)**: **DO NOT guess.**
+   - **Step 1 · Ask**: "Do you have brand guidelines, a repo, or a canonical URL?"
+   - **Step 2 · Multi-URL Scrape**: Do NOT rely on homepage alone. Use a URL set for breadth:
+     - Marketing homepage — hero patterns, brand voice
+     - Pricing — table density, mono numerals
+     - Docs — long-form rhythm, code-block style
+     - App/dashboard (if public) — chrome, density
+   - **Step 3 · Download & Grep**: Download SVGs → parse HTML for `#xxxxxx` → Sort by frequency (exclude Black/White/Gray). Verify font families via computed `font-family`, NOT visual guessing.
+   - **Step 4 · Solidify**: Output `brand-spec.md` (internal) with CSS variables. Label each section with Confidence: HIGH (directly observed) / MEDIUM (inferred with evidence) / LOW (educated guess). Note `Inferred vs Observed` disagreements at the bottom.
+   - **Responsive Font Note**: If brand uses `clamp()` for type-scaling, extract at three viewport widths (375 / 1024 / 1440) and present three scales.
+3. **Drafting - "Early Show" (Junior Designer Mode)**:
+   - **Output a Drafting Block** containing 3 Assumptions and 1-2 Text-based Wireframes (ASCII or simple structure).
+   - **🔴 CHECKPOINT · 🛑 STOP**: "Are these assumptions correct? Proceed to full spec?" Wait for explicit confirmation before Step 4. This prevents 20 minutes of spec writing on wrong assumptions.
+4. **Generate Full Document**: Create complete DESIGN.md following the 10-section template.
+5. **Review Output**: If requested, run Vercel Guidelines + 5-Dimension critique.
+6. **Deliver**: Output DESIGN.md + (Optional) Tweaks Prototype.
+
+### Secondary Workflow: Icon System Resolution
+
+1. **Identify Conflicts**: Detect multiple icon sources or naming collisions
+2. **Apply Rules**: Use prefix-based namespacing strategy from icon-systems.md
+3. **Document Decision**: Record icon choices in DESIGN.md Icon System section
+
+### Tertiary Workflow: Design Review
+
+1. **Load Document**: Read existing DESIGN.md or design specification
+2. **Apply Guidelines**: Check against Vercel Web Design Guidelines checklist + Anti-AI Slop Constraints
+3. **🔴 CHECKPOINT · 🛑 STOP**: Show the problem list with severity levels (critical/major/minor/style) and wait for user confirmation. "Does this problem list look right? Any issues I missed or misclassified?" — adjust per feedback before generating the final report.
+4. **Generate Report**: Output structured review with severity levels and specific revision guidance
+
+### Quaternary Workflow: Live Site Audit
+
+*Use this when the user provides a URL and wants a structured design audit of a live website.*
+
+1. **Identify Scope**: Determine which URLs to audit (homepage + pricing + docs + app for breadth)
+2. **Run 7-Dimension Audit** against each URL:
+   - **Hierarchy** (type scale, visual weight, scan path)
+   - **Spacing** (rhythm, breathing room, alignment)
+   - **Color** (palette coherence, contrast, role clarity)
+   - **Accessibility** (WCAG AA text/background, focus states, target sizes)
+   - **AI-Slop Patterns** (Inter everywhere, purple gradients, card-grid monotony, fake-3D glass, generic rounded buttons)
+   - **Motion** (purposeful vs decorative, reduced-motion handling)
+   - **Copy** (microcopy tone, CTA clarity, error-state voice)
+3. **Score & Prioritize**: For each category output score (0–10), top 3 issues with element selector + fix, and priority (P0/P1/P2)
+4. **🔴 CHECKPOINT · 🛑 STOP**: Show the audit scores and top issues per category. "Does this audit match what you see? Any scores that feel off?" Wait for confirmation before generating the punch list.
+5. **Generate Punch List**: Ordered by impact × effort, ready to feed back into DESIGN.md regeneration
+6. **Pair with Review**: Apply `review-rules.md` Section 6 (Anti-AI Slop) rules for additional AI-default pattern detection
+
+### Quinary Workflow: Existing Repo → Design System
+
+*Use this when the user wants to reverse-engineer a DESIGN.md from an existing codebase. Target: ~90% inference from code + ~10% editorial polish.*
+
+1. **Scope Selection — Subdirectory, NOT Monorepo**: Point at one app (`apps/marketing/`) or one package (`packages/ui/`). Never the monorepo root — context chokes.
+2. **Target Files**: `globals.css` + `tailwind.config.{js,ts}` + `src/components/` + `theme.ts`. Explicitly exclude `dist/`, `build/`, `node_modules/`, `.next/`.
+3. **Run Inference**: Extract CSS variables, component primitives, typography stack, spacing scale, color usage. For every claim, cite `file:line`. Label tokens as "observed" vs "inferred".
+4. **Editorial Pass — Fix the 10%**: Common failures to check:
+    - Color roles crossed (warning yellow named `--accent`)
+    - Spacing scale collapsed (Tailwind full scale compressed to 1/2/4/8)
+    - Component variants missed (secondary buttons used only twice)
+    - Dark mode tokens swallowed into light mode
+5. **🔴 CHECKPOINT · 🛑 STOP**: Show the extracted tokens + inferences (with confidence labels). "Do these look accurate? Any corrections?" Wait for confirmation before committing. The user knows their codebase better than you do.
+6. **Commit DESIGN.md**: Place at `/DESIGN.md` or `/docs/DESIGN.md`. For multi-package repos: one `DESIGN.md` per package.
+
+### Optional Workflow: Interactive Prototype with Tweaks
+
+*Use this when the user is a non-technical stakeholder (PM/Designer) who needs visual verification rather than a technical spec.*
+
+1. **Generate Base DESIGN.md**: Follow the primary workflow to get approved design logic.
+2. **Scaffold HTML Prototype**: Guide the implementation agent (`frontend-design` skill) to wrap the design in a responsive HTML file.
+3. **Implement Tweaks Protocol**: Instruct the agent to include a floating "Tweaks" panel that exposes key variables (colors, spacing, content variants) to the user.
+   - Ensure the `window.parent.postMessage` contracts are set up for live updates.
+   - Persist tweak defaults via `/*EDITMODE-BEGIN*/ ... /*EDITMODE-END*/` markers.
+4. **🔴 CHECKPOINT · 🛑 STOP**: Before delivering, confirm: "The DESIGN.md + interactive prototype are ready. Would you like to review them together, or proceed to delivery?" Wait for confirmation.
+5. **Deliver Dual Artifacts**: Output both the technical `DESIGN.md` for developers and the interactive HTML file for stakeholder feedback.
+
+## Reference Files Index
+
+All reference files live in `references/` subdirectory:
+
+| File | Purpose | When to Consult |
+|------|---------|-----------------|
+| `design-md-template.md` | DESIGN.md structure template (10 sections) | When generating new design documents |
+| `design-sources.md` | Design inspiration and style samples | When selecting visual direction |
+| `icon-systems.md` | Icon system selection and conflict resolution | When configuring icons or resolving conflicts |
+| `review-rules.md` | Vercel Web Design Guidelines + Anti-AI Slop 10-rule checklist | When performing design reviews or live site audits |
+| `design-md-examples/` | Real-brand DESIGN.md examples (Linear, Vercel) | When needing concrete examples of 9-section format |
+| `craft/README.md` | Craft rules index — when to inject which rulebook | When deciding which craft rules apply to a design |
+| `craft/typography.md` | Universal typography rules (letter-spacing, font weight, CJK) | Any design with text content |
+| `craft/color.md` | Color discipline (palette layers, accent cap, contrast gate) | Any design with styled output |
+| `craft/anti-ai-slop.md` | P0 auto-checked AI-slop patterns (indigo accent, gradient hero, emoji icons) | All design reviews and new specs |
+| `craft/laws-of-ux.md` | 24 UX laws with concrete code-gen directives | Composition decisions (pricing, dashboard, onboarding) |
+| `craft/animation-discipline.md` | Motion rules (durations, easing, reduced-motion, WCAG) | Any design with transitions or microinteractions |
+| `craft/accessibility-baseline.md` | WCAG minimums (contrast, touch targets, focus, labels) | Any interactive UI design |
+| `craft/state-coverage.md` | Required UI states (loading/empty/error/edge) | Dashboards, forms, data-driven UIs |
+| `craft/form-validation.md` | Form validation patterns and error messaging | Forms, signup, settings, multi-step intake |
+| `craft/rtl-and-bidi.md` | Right-to-left and bidirectional text rules | Any localized design (Arabic, Hebrew, Persian) |
+| `craft/typography-hierarchy.md` | Type hierarchy craft (authored rhythm, not assembled) | Editorial pages, blog, docs |
+| `craft/typography-hierarchy-editorial.md` | Sustained reading surfaces (long-form, e-guide) | Blog posts, documentation pages, digital guides |
+
+## Quick Start
+
+### Generate a New Design Document
+
+```
+User: "I need a design document for a dashboard homepage"
+→ Skill loads, generates DESIGN.md with 9 sections
+```
+
+### Review an Existing Design
+
+```
+User: "Review this design against Vercel guidelines"
+→ Skill loads review-rules.md, applies Vercel checklist, outputs review report
+```
+
+Review workflow for this path:
+
+1. **Invoke the Vercel guidelines check**: Load `review-rules.md` and review each `DESIGN.md` section against the Vercel Web Design Guidelines criteria it defines.
+2. **Apply craft rulebooks**: Load relevant `references/craft/*.md` files (at minimum `anti-ai-slop.md` + `color.md` + `typography.md`) and check the design against universal craft standards.
+3. **Generate a problem list**: For each issue found in the checklist, output one flat-list item using this format: `- [severity] Section Name — issue summary — why it matters — required DESIGN.md update`.
+4. **Update DESIGN.md from review**: For each accepted problem-list item, revise the named `DESIGN.md` section instead of leaving the fix as an external note only.
+5. **Record the review in Review Log**: Append the review date, checklist basis, problem list summary, and revision status to the `Review Log` section.
+6. **Re-review after updates**: Re-run the checklist on revised sections and mark unresolved findings as open items.
+
+### Resolve Icon Conflicts
+
+```
+User: "We have both Lucide and Heroicons, which should we use?"
+→ Skill applies selection criteria from icon-systems.md, documents decision
+```
+
+## Working Patterns & Best Practices
+
+### Junior Designer Mode (Default)
+
+**Problem**: The AI "goes dark" to build a complex design, wasting context on the wrong direction.
+
+**Prevention**: Adopt the **Junior Designer Pattern**:
+- **Assumptions First**: Before generating the full spec, output a "Drafting" block with 3 key assumptions and 1-2 gray-box wireframes.
+- **Early Show**: Show the user the draft (even if it's unfinished) as soon as possible. "Correcting wrong assumptions early is 100x cheaper than fixing a finished design."
+- **Iterate → Show**: When moving from Assumptions → Content → Variations, show the user after each phase.
+
+### Anti-AI Slop Constraints
+
+**CRITICAL: Prevent generic, low-value design outputs from dominating the spec.**
+
+Apply the full 10-rule rejection checklist from `review-rules.md` Section 6 (Anti-AI Slop & AI 默认模式禁令), supplemented by `references/craft/anti-ai-slop.md` for P0 auto-checkable patterns. Key highlights:
+
+### Forbidden Tropes (Design Rot)
+- **Avoid default Tailwind indigo as accent** (P0, auto-checked): `#6366f1`, `#4f46e5` and variants are the textbook AI tell. Use brand-derived `--accent` from DESIGN.md.
+- **Avoid two-stop "trust" gradients on hero** (P0): purple→blue, blue→cyan, indigo→pink. A flat surface + intentional type beats this every time.
+- **Avoid emoji as feature icons** (P0): `✨🚀🎯⚡🔥💡`. Use 1.6–1.8px-stroke monoline SVG with `currentColor`.
+- **Avoid rounded card with colored left-border accent** (P0): The canonical "AI dashboard tile" shape. Drop either the radius or the left border.
+- **Avoid invented metrics**: "10× faster", "99.9% uptime", "3× more productive". Either pull from a real source or use a labelled placeholder.
+- **Avoid filler copy**: `lorem ipsum`, `feature one / two / three`. An empty section is a design problem to solve with composition, not by inventing words.
+- **Avoid aggressive gradient backgrounds**: Only use gradients if explicitly part of the brand system.
+- **Avoid drawing imagery using SVG**: Use descriptive placeholders (e.g., `[Hero Image: 16:9 Landscape]`) and ask for real assets.
+- **Avoid overused font families**: Defaulting to Inter, Roboto, Arial, or system fonts without justification is forbidden.
+- **Additional rules**: See `references/craft/anti-ai-slop.md` for P0/P1/P2 checklist + `review-rules.md` Section 6 (teal accent ban, animated status dots, container nesting ≤ 2, mixed icon libraries, decorative motion, generic CTA copy).
+
+### Content & Scale Discipline
+- **"Less is More"**: Every element must earn its place. Never pad a design with placeholder text, dummy sections, or fake stats just to fill space.
+- **Ask before adding content**: If a section feels empty, treat it as a layout/composition problem, not an excuse to invent filler data. Ask the user first.
+- **Hard Sizing Rules**: 
+  - Desktop (1920x1080) text must never be smaller than **24px**.
+  - Mobile mockup hit targets must never be less than **44px**.
+  - Print documents: 12pt minimum.
+
+### Design System First
+- Create a system up front. Vocalize the system (layout for headers, image ratios, background rules).
+- Use 1-2 background colors max. 
+- If no existing type system is provided, define variables and allow user changes via `Tweaks` (if producing prototypes).
+- When outside a brand system, invoke the `frontend-design` skill for bold aesthetic direction.
+
+## Common Mistakes
+
+### Missing Sections
+
+**Problem**: Generated DESIGN.md lacks critical sections (design rationale, assumptions, accessibility details).
+
+**Prevention**: Always use the full 9-section template from design-md-template.md. Never skip sections.
+
+### Wrong Focus
+
+**Problem**: Output drifts toward implementation code (React/Vue/CSS) or becomes a "scoring report" instead of actionable design guidance.
+
+**Prevention**: Stay in design specification space. If the user asks for implementation code, redirect: "This skill produces design specifications. For implementation, use the frontend-design skill."
+
+### Scope Drift
+
+**Problem**: Handling requests unrelated to design (e.g., backend API debugging, business logic).
+
+**Prevention**: Reject with: "This skill handles frontend design specifications only. Your request is outside this scope."
+
+### Tool Misuse
+
+**Problem**: Using "to be confirmed" lists to defer design decisions instead of making them.
+
+**Prevention**: Distinguish between "acceptable open questions" (minor details) and "must-resolve design constraints" (core decisions). Document the rationale for key choices.
+
+### Ignoring Brand/Design System Reality
+
+**Problem**: Designing based on "training-data memory" of an app instead of reading the actual `theme.css` or component code provided.
+
+**Prevention**: If the user provides a repo or UI kit, you MUST extract exact values (hex codes, spacing scales, font stacks, border radii) from the source files. Building generic look-alikes from memory is lazy and produces unusable specs.
+**Common failure modes and fixes**:
+- *Inference is generic* → Cause: pointed at monorepo root, averaged everything. Fix: scope to one package or app.
+- *Tokens look invented* → Cause: couldn't access file (private repo without auth). Verify by asking to quote three real lines.
+- *Spacing scale collapsed* → Tailwind full scale compressed to (1,2,4,8). Fix: cross-reference `tailwind.config.ts` directly.
+- *Components live in unmentioned directories* → Fix: re-prompt with full directory list, explicitly exclude `dist/` and `node_modules/`.
+- *Dark mode tokens swallowed* → `dark:` prefixes not dense enough. Fix: explicitly check for dark mode patterns.
+
+### Over-relying on Placeholders
+
+**Problem**: Filling the DESIGN.md with dummy content because the designer doesn't know what the user wants.
+
+**Prevention**: Use explicit placeholders like `[User's Actual Copy Here]` or `[3-column Hero Image]`. If a section feels empty, ask the user if additional content is needed rather than inventing fake data or "data slop."
+
+### Rationalization
+
+**Problem**: Justifying incomplete work with phrases like "this covers the main points" or "implementation can fill in the details."
+
+**Prevention**: A design document must be complete enough for implementation. If information is missing, flag it as a blocker, not a footnote.
+
+## Failure Handling（失败模式与兜底）
+
+> **PRINCIPLE**: This skill has 6 distinct workflows. When execution hits a wall, escalate BEFORE guessing. Every workflow has a fallback.
+
+### 1. Ambiguous intent → route correctly
+
+| Trigger | First-line fix | Still failing → Fallback |
+|---------|---------------|--------------------------|
+| User request matches 2+ workflows (e.g. "review my design and make it look like Linear") | Ask ONE clarifying question: "Do you want a design REVIEW first, or a new spec with Linear-style guidance? Also: do you have a screenshot / URL / file of the current design?" Ask ONCE; if the user does not clarify, proceed to the fallback. | Default to Primary workflow (generate spec) — it produces the most actionable output |
+| User says "design document" but provides no context (no brand, no style, no product name) | Start Junior Designer Mode with 3 assumptions based on common defaults for the domain | If user rejects all assumptions, ask: "What is the ONE thing you know about this design?" |
+
+### 2. Missing assets → degrade, don't invent
+
+| Trigger | First-line fix | Still failing → Fallback |
+|---------|---------------|--------------------------|
+| **Specific Brand** route: user has no guidelines / repo / canonical URL | Switch to **Style Reference** route; document the switch in the DESIGN.md assumptions section | If user already volunteered a reference (e.g. "像 Apple 那种"), use it directly — do NOT ask again. If no reference was given, ask for ONE reference product and use it as vibe source only. **Critical**: even well-known brands (Apple, Linear, Stripe, Vercel) are Style Reference only — NEVER extract their hex codes, logos, or exact font specs. |
+| Multi-URL scrape fails (network, login wall, broken links) | Retry with `?format=text`; skip failed URLs; note `[could not fetch]` in brand-spec.md | Proceed with homepage-only + explicit "Confidence: LOW" labels |
+| `globals.css` or `tailwind.config.ts` not found in Existing Repo workflow | Re-check scope (monorepo root? wrong package?); ask user to point at one package explicitly | Report: "Could not find design system files at [path]. Please confirm the correct directory." |
+
+### 3. Review target unclear → define, don't improvise
+
+| Trigger | First-line fix | Still failing → Fallback |
+|---------|---------------|--------------------------|
+| Design Review: no document provided (user describes design verbally) | Treat the description as the document; note "review based on verbal description, confidence: MEDIUM" | Ask for ONE screenshot or URL to ground the review |
+| Live Site Audit: URL returns 4xx/5xx or requires login | Ask for alternative URL or temporary credentials | Audit only the publicly accessible surfaces; label remaining sections "[login required — not reviewed]" |
+| Review finds 0 issues in a clearly problematic design | Re-run with ALL craft rulebooks (at minimum anti-ai-slop + color + typography + accessibility-baseline) | Report: "No issues found with current rule set. Consider expanding the review scope to [typography hierarchy / state coverage]." |
+
+### 4. Downstream agent unavailable → adapt delivery
+
+| Trigger | First-line fix | Still failing → Fallback |
+|---------|---------------|--------------------------|
+| Interactive Prototype: `frontend-design` skill not available in this runtime | Scaffold a minimal HTML prototype inline (basic layout + CSS variables, no Tweaks panel) | Deliver DESIGN.md only + explicit note: "Interactive prototype requires the `frontend-design` skill. Install it or ask a developer to implement from the spec below." |
+| User asks for implementation code (CSS/React/Vue) | Redirect per scope rules: "This skill produces design specifications only" | Point to the Excluded Outputs list; guide user to implementation skills |
+
+**Escalation rule**: If first-line fix + fallback both fail, STOP and report: what failed, what you tried, what you can still deliver. Never fabricate brand data, URLs, or repo contents.
+
+## Output Artifacts
+
+### Primary: DESIGN.md
+
+A complete design specification with 9 sections:
+1. Visual Theme
+2. Color Palette
+3. Typography
+4. Components
+5. Layout
+6. Depth
+7. Icon System
+8. Responsive
+9. Review Log
+
+### Secondary: Review Artifacts
+
+When review is requested:
+- Structured problem list
+- Severity classification (critical/major/minor)
+- Specific revision suggestions
+- Reference to Vercel guidelines sections
+
+### Excluded Outputs
+
+This skill does NOT produce:
+- Token mapping files
+- Icon inventory lists
+- Implementation code
+- Build configuration
+- Asset downloads

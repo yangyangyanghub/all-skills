@@ -1,0 +1,3 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-06-16T16:00:00+08:00	baseline	lecturer-training	-	89.2	baseline	-	结构分66.7/75；实测表现9/10；最低维度为Frontmatter quality	full_test
+2026-06-16T16:00:00+08:00	a62c8ac	lecturer-training	89.2	90.8	keep	Frontmatter quality	将description改为纯触发条件，frontmatter评分7/10提升到9/10	full_test

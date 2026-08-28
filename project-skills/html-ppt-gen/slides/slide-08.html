@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块四 — 验收标准怎么写</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width:960px; height:540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        模块四：验收标准怎么写 AI 才不跑偏
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:76px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#bb9af7"/>
+      </svg>
+
+      <!-- 问题描述 -->
+      <p style="position:absolute; left:60px; top:96px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:14px; font-weight:400; color:#9aa5ce;">
+        好的任务书 = 目标 + 边界 + 验收标准 + 现有参照
+      </p>
+
+      <!-- 四要素卡片 -->
+      <!-- 目标 -->
+      <svg width="200" height="180" viewBox="0 0 200 180" style="position:absolute; left:60px; top:130px;">
+        <rect width="200" height="180" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="200" height="4" rx="2" fill="#7aa2f7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#7aa2f7">目标</text>
+        <text x="20" y="64" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">一句话说清要什么</text>
+        <line x1="20" y1="80" x2="180" y2="80" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="104" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">例：实现鼠标绘制</text>
+        <text x="20" y="124" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">签名板组件，支持</text>
+        <text x="20" y="144" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">绘制、清空、导出</text>
+      </svg>
+
+      <!-- 边界 -->
+      <svg width="200" height="180" viewBox="0 0 200 180" style="position:absolute; left:275px; top:130px;">
+        <rect width="200" height="180" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="200" height="4" rx="2" fill="#bb9af7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#bb9af7">边界</text>
+        <text x="20" y="64" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">改哪些文件，不许动哪些</text>
+        <line x1="20" y1="80" x2="180" y2="80" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="104" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">例：只在 signature/</text>
+        <text x="20" y="124" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">目录下改，不动路由</text>
+        <text x="20" y="144" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">和数据库配置</text>
+      </svg>
+
+      <!-- 验收标准 -->
+      <svg width="200" height="180" viewBox="0 0 200 180" style="position:absolute; left:490px; top:130px;">
+        <rect width="200" height="180" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="200" height="4" rx="2" fill="#7aa2f7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#7aa2f7">验收标准</text>
+        <text x="20" y="64" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">什么算做完，越具体越好</text>
+        <line x1="20" y1="80" x2="180" y2="80" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="104" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">例：2 空格缩进、禁止</text>
+        <text x="20" y="124" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">any、复用现有 request</text>
+        <text x="20" y="144" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">封装、无死代码</text>
+      </svg>
+
+      <!-- 现有参照 -->
+      <svg width="200" height="180" viewBox="0 0 200 180" style="position:absolute; left:705px; top:130px;">
+        <rect width="200" height="180" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="200" height="4" rx="2" fill="#bb9af7"/>
+        <text x="20" y="36" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="16" font-weight="700" fill="#bb9af7">现有参照</text>
+        <text x="20" y="64" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">指给它看已有的类似实现</text>
+        <line x1="20" y1="80" x2="180" y2="80" stroke="#3b4261" stroke-width="1"/>
+        <text x="20" y="104" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">例：参照 src/utils/</text>
+        <text x="20" y="124" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">uploader.ts 的风格</text>
+        <text x="20" y="144" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">和错误处理方式</text>
+      </svg>
+
+      <!-- 底部对比 -->
+      <svg width="840" height="50" viewBox="0 0 840 50" style="position:absolute; left:60px; top:340px;">
+        <rect width="840" height="50" rx="6" fill="#24283b" fill-opacity="0.6"/>
+        <text x="30" y="20" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">差的派活</text>
+        <text x="110" y="20" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">"帮我写个签名组件"</text>
+        <text x="340" y="20" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" fill="#7aa2f7">→</text>
+        <text x="380" y="20" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">好的派活</text>
+        <text x="460" y="20" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#a9b1d6">"照着 uploader.ts 的风格，在 signature/ 下实现，满足这几条标准"</text>
+        <text x="30" y="40" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">模糊 → 跑偏 → 返工</text>
+        <text x="460" y="40" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#565f89">清晰 → 一次到位</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#bb9af7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">8</text>
+      </svg>
+    </div>
+    <aside class="notes">
+派活给 AI，最容易踩的坑是**任务书太模糊**。你说"帮我写个签名组件"，它给你一个能跑但不符合我们规范的东西——用了 any、没删死代码、风格和现有代码对不上。
+
+好的任务书 = **目标 + 边界 + 验收标准 + 现有参照**。
+
+**目标**：一句话说清要什么。
+
+**边界**：改哪些文件，不许动哪些。
+
+**验收标准**：什么算做完。越具体越好，比如"2 空格缩进、禁止 any、复用现有 request 封装"。
+
+**现有参照**：指给它看项目里已有的类似实现，让它照着写，别自己发明一套。
+
+好的派活**不是**"你帮我写个 X"，**而是**"照着这个文件的风格，在这几个文件范围内，实现 X，满足这几条标准"。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

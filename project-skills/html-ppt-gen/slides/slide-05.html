@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块二 — 你是开发指挥部</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width:960px; height:540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26;">
+      <!-- 标题 -->
+      <p style="position:absolute; left:60px; top:36px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 36px; font-weight:700; color:#a9b1d6;">
+        模块二：你不是码农，是开发指挥部
+      </p>
+      <svg width="60" height="3" style="position:absolute; left:60px; top:76px;" aria-hidden="true">
+        <rect width="60" height="3" fill="#7aa2f7"/>
+      </svg>
+
+      <!-- 核心模型：三件事 -->
+      <!-- 拆解 -->
+      <svg width="260" height="200" viewBox="0 0 260 200" style="position:absolute; left:60px; top:110px;">
+        <rect width="260" height="200" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#7aa2f7"/>
+        <!-- 图标：分叉 -->
+        <svg x="20" y="24" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round">
+          <path d="M16 4 L16 16 M16 16 L6 28 M16 16 L26 28"/>
+        </svg>
+        <text x="62" y="46" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#a9b1d6">拆解</text>
+        <text x="20" y="82" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">把大任务拆成</text>
+        <text x="20" y="102" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">互相独立的小任务</text>
+        <text x="20" y="134" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">拆不开，就并行不了</text>
+        <text x="20" y="170" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#7aa2f7">并行的前提</text>
+      </svg>
+
+      <!-- 派活 -->
+      <svg width="260" height="200" viewBox="0 0 260 200" style="position:absolute; left:340px; top:110px;">
+        <rect width="260" height="200" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#bb9af7"/>
+        <!-- 图标：发送 -->
+        <svg x="20" y="24" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#bb9af7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 16 L28 4 L20 28 L16 18 L4 16"/>
+        </svg>
+        <text x="62" y="46" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#a9b1d6">派活</text>
+        <text x="20" y="82" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">每个小任务配一份</text>
+        <text x="20" y="102" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">清晰的「任务书」</text>
+        <text x="20" y="134" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">你不写代码，你写任务书</text>
+        <text x="20" y="170" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#bb9af7">交给 AI 执行</text>
+      </svg>
+
+      <!-- 验收 -->
+      <svg width="260" height="200" viewBox="0 0 260 200" style="position:absolute; left:620px; top:110px;">
+        <rect width="260" height="200" rx="8" fill="#24283b"/>
+        <rect x="0" y="0" width="260" height="4" rx="2" fill="#7aa2f7"/>
+        <!-- 图标：勾选 -->
+        <svg x="20" y="24" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#7aa2f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="24 8 12 22 6 16"/>
+        </svg>
+        <text x="62" y="46" font-family="'Noto Serif SC','Times New Roman','SimSun',serif" font-size="18" font-weight="700" fill="#a9b1d6">验收</text>
+        <text x="20" y="82" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">AI 干完不是直接用</text>
+        <text x="20" y="102" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#9aa5ce">检查对不对、符不符合规范</text>
+        <text x="20" y="134" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#565f89">验收通过才算数</text>
+        <text x="20" y="170" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#7aa2f7">质量把关</text>
+      </svg>
+
+      <!-- 底部反例提醒 -->
+      <svg width="840" height="60" viewBox="0 0 840 60" style="position:absolute; left:60px; top:340px;">
+        <rect width="840" height="60" rx="6" fill="#24283b" fill-opacity="0.6"/>
+        <text x="30" y="24" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#bb9af7">反例：并行 ≠ 甩手</text>
+        <text x="30" y="46" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="12" fill="#9aa5ce">多开几个 AI 窗口让它们自己跑 → 三个都跑偏 → 全部返工 → 比串行还慢</text>
+      </svg>
+
+      <!-- 底部金句 -->
+      <p style="position:absolute; left:60px; top:420px; margin:0; font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; font-size:14px; font-weight:400; color:#565f89;">
+        手速有上限，判断力和编排力没有上限
+      </p>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">5</text>
+      </svg>
+    </div>
+    <aside class="notes">
+我先给一个模型，请大家记住这句话：
+
+**AI 时代的开发者，不是写得更快的码农，而是能同时指挥多个 AI 的"开发指挥部"。**
+
+指挥部只做**三件事**：
+
+**第一件：拆解。** 把一个大任务拆成互相独立、可以同时干的小任务。这是并行的前提。**拆不开，就并行不了**。
+
+**第二件：派活。** 每个独立小任务，配一份清晰的"任务书"——目标是什么、边界在哪、什么算做完——交给一个 AI 去执行。**你不写代码，你写任务书**。
+
+**第三件：验收。** AI 干完，你不是直接用，而是检查：对不对、符不符合我们的规范、有没有跑偏。**验收通过才算数**。
+
+这里要特别提醒一个**反例**：**并行不等于甩手。** 很多人以为"多开几个 AI 窗口让它们自己跑"就是并行，结果三个都跑偏，收回来还要全部返工，比串行还慢。
+
+真正的并行，是**拆得清、派得明、收得严**。
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>

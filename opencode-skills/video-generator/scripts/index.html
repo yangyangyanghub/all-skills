@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+[data-composition-id="root"]{width:1080px;height:1440px;overflow:hidden;position:relative;background:#0c0a1d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+</style></head><body>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1440" data-start="0" data-duration="196.0">
+  <div id="intro" data-composition-id="intro" data-composition-src="compositions/intro.html" data-start="0.0" data-duration="5"></div>
+  <div id="outro" class="clip" data-start="187.0" data-duration="9" style="position:absolute;top:0;left:0;width:1080px;height:1440px;overflow:hidden;z-index:100;opacity:0;display:block">
+    <div data-composition-id="outro-inner" data-composition-src="compositions/outro.html" data-start="0" data-duration="9"></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script>
+window.__timelines=window.__timelines||{};
+window.__timelines["root"]=gsap.timeline({paused:true});
+var HF_SHOTS=[{"id": "slide-1", "start": 5.0, "duration": 6.5}, {"id": "slide-2", "start": 11.5, "duration": 6.5}, {"id": "slide-3", "start": 18.0, "duration": 6.5}, {"id": "slide-4", "start": 24.5, "duration": 6.5}, {"id": "slide-5", "start": 31.0, "duration": 6.5}, {"id": "slide-6", "start": 37.5, "duration": 6.5}, {"id": "slide-7", "start": 44.0, "duration": 6.5}, {"id": "slide-8", "start": 50.5, "duration": 6.5}, {"id": "slide-9", "start": 57.0, "duration": 6.5}, {"id": "slide-10", "start": 63.5, "duration": 6.5}, {"id": "slide-11", "start": 70.0, "duration": 6.5}, {"id": "slide-12", "start": 76.5, "duration": 6.5}, {"id": "slide-13", "start": 83.0, "duration": 6.5}, {"id": "slide-14", "start": 89.5, "duration": 6.5}, {"id": "slide-15", "start": 96.0, "duration": 6.5}, {"id": "slide-16", "start": 102.5, "duration": 6.5}, {"id": "slide-17", "start": 109.0, "duration": 6.5}, {"id": "slide-18", "start": 115.5, "duration": 6.5}, {"id": "slide-19", "start": 122.0, "duration": 6.5}, {"id": "slide-20", "start": 128.5, "duration": 6.5}, {"id": "slide-21", "start": 135.0, "duration": 6.5}, {"id": "slide-22", "start": 141.5, "duration": 6.5}, {"id": "slide-23", "start": 148.0, "duration": 6.5}, {"id": "slide-24", "start": 154.5, "duration": 6.5}, {"id": "slide-25", "start": 161.0, "duration": 6.5}, {"id": "slide-26", "start": 167.5, "duration": 6.5}, {"id": "slide-27", "start": 174.0, "duration": 6.5}, {"id": "slide-28", "start": 180.5, "duration": 6.5}];
+var HF_ROOT=window.__timelines["root"];
+var _played={};
+HF_ROOT.eventCallback("onUpdate",function(){
+  var t=HF_ROOT.time();
+  for(var i=0;i<HF_SHOTS.length;i++){
+    var s=HF_SHOTS[i];var el=document.getElementById(s.id);
+    if(!el)continue;
+    var st=s.start,ed=s.start+s.duration;
+    if(t>=st&&t<=ed){el.style.opacity="1";el.style.display="block";
+    }else{el.style.opacity="0";el.style.display="none";}
+  }
+});
+</script>
+</body></html>

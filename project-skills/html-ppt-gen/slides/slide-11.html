@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank You</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; display:flex; justify-content:center; align-items:center; background:#000; }
+    .slide-content { width:960px; height:540px; position:relative; transform-origin:center center; }
+  </style>
+  <script>
+    function scaleSlide() {
+      var s = document.querySelector('.slide-content');
+      if (!s) return;
+      var sc = Math.min(window.innerWidth / 960, window.innerHeight / 540);
+      s.style.width = '960px'; s.style.height = '540px';
+      s.style.transform = 'scale(' + sc + ')';
+      s.style.transformOrigin = 'center center'; s.style.flexShrink = '0';
+    }
+    window.addEventListener('load', scaleSlide);
+    window.addEventListener('resize', scaleSlide);
+  </script>
+</head>
+<body>
+  <section class="slide">
+    <div class="slide-content" style="width: 960px; height: 540px; background:#1a1b26; overflow:hidden;">
+      <!-- 背景装饰点阵 -->
+      <svg width="960" height="540" style="position:absolute; top:0; left:0; opacity:0.04; pointer-events:none;" aria-hidden="true">
+        <circle cx="80" cy="80" r="2" fill="#7aa2f7"/><circle cx="160" cy="80" r="2" fill="#7aa2f7"/><circle cx="240" cy="80" r="2" fill="#7aa2f7"/><circle cx="320" cy="80" r="2" fill="#7aa2f7"/><circle cx="400" cy="80" r="2" fill="#7aa2f7"/><circle cx="480" cy="80" r="2" fill="#7aa2f7"/><circle cx="560" cy="80" r="2" fill="#7aa2f7"/><circle cx="640" cy="80" r="2" fill="#7aa2f7"/><circle cx="720" cy="80" r="2" fill="#7aa2f7"/><circle cx="800" cy="80" r="2" fill="#7aa2f7"/><circle cx="880" cy="80" r="2" fill="#7aa2f7"/>
+        <circle cx="80" cy="160" r="2" fill="#bb9af7"/><circle cx="160" cy="160" r="2" fill="#bb9af7"/><circle cx="240" cy="160" r="2" fill="#bb9af7"/><circle cx="320" cy="160" r="2" fill="#bb9af7"/><circle cx="400" cy="160" r="2" fill="#bb9af7"/><circle cx="480" cy="160" r="2" fill="#bb9af7"/><circle cx="560" cy="160" r="2" fill="#bb9af7"/><circle cx="640" cy="160" r="2" fill="#bb9af7"/><circle cx="720" cy="160" r="2" fill="#bb9af7"/><circle cx="800" cy="160" r="2" fill="#bb9af7"/><circle cx="880" cy="160" r="2" fill="#bb9af7"/>
+        <circle cx="80" cy="240" r="2" fill="#7aa2f7"/><circle cx="160" cy="240" r="2" fill="#7aa2f7"/><circle cx="240" cy="240" r="2" fill="#7aa2f7"/><circle cx="320" cy="240" r="2" fill="#7aa2f7"/><circle cx="400" cy="240" r="2" fill="#7aa2f7"/><circle cx="480" cy="240" r="2" fill="#7aa2f7"/><circle cx="560" cy="240" r="2" fill="#7aa2f7"/><circle cx="640" cy="240" r="2" fill="#7aa2f7"/><circle cx="720" cy="240" r="2" fill="#7aa2f7"/><circle cx="800" cy="240" r="2" fill="#7aa2f7"/><circle cx="880" cy="240" r="2" fill="#7aa2f7"/>
+        <circle cx="80" cy="320" r="2" fill="#bb9af7"/><circle cx="160" cy="320" r="2" fill="#bb9af7"/><circle cx="240" cy="320" r="2" fill="#bb9af7"/><circle cx="320" cy="320" r="2" fill="#bb9af7"/><circle cx="400" cy="320" r="2" fill="#bb9af7"/><circle cx="480" cy="320" r="2" fill="#bb9af7"/><circle cx="560" cy="320" r="2" fill="#bb9af7"/><circle cx="640" cy="320" r="2" fill="#bb9af7"/><circle cx="720" cy="320" r="2" fill="#bb9af7"/><circle cx="800" cy="320" r="2" fill="#bb9af7"/><circle cx="880" cy="320" r="2" fill="#bb9af7"/>
+        <circle cx="80" cy="400" r="2" fill="#7aa2f7"/><circle cx="160" cy="400" r="2" fill="#7aa2f7"/><circle cx="240" cy="400" r="2" fill="#7aa2f7"/><circle cx="320" cy="400" r="2" fill="#7aa2f7"/><circle cx="400" cy="400" r="2" fill="#7aa2f7"/><circle cx="480" cy="400" r="2" fill="#7aa2f7"/><circle cx="560" cy="400" r="2" fill="#7aa2f7"/><circle cx="640" cy="400" r="2" fill="#7aa2f7"/><circle cx="720" cy="400" r="2" fill="#7aa2f7"/><circle cx="800" cy="400" r="2" fill="#7aa2f7"/><circle cx="880" cy="400" r="2" fill="#7aa2f7"/>
+        <circle cx="80" cy="480" r="2" fill="#bb9af7"/><circle cx="160" cy="480" r="2" fill="#bb9af7"/><circle cx="240" cy="480" r="2" fill="#bb9af7"/><circle cx="320" cy="480" r="2" fill="#bb9af7"/><circle cx="400" cy="480" r="2" fill="#bb9af7"/><circle cx="480" cy="480" r="2" fill="#bb9af7"/><circle cx="560" cy="480" r="2" fill="#bb9af7"/><circle cx="640" cy="480" r="2" fill="#bb9af7"/><circle cx="720" cy="480" r="2" fill="#bb9af7"/><circle cx="800" cy="480" r="2" fill="#bb9af7"/><circle cx="880" cy="480" r="2" fill="#bb9af7"/>
+      </svg>
+
+      <!-- 主标题 -->
+      <p style="position:absolute; left:340px; top:160px; margin:0; font-family:'Noto Serif SC','Times New Roman','SimSun',serif; font-size: 48px; font-weight:700; color:#a9b1d6;">
+        Thank You
+      </p>
+
+      <!-- 分隔线 -->
+      <svg width="120" height="3" style="position:absolute; left:420px; top:230px;" aria-hidden="true">
+        <rect width="120" height="3" fill="#7aa2f7"/>
+      </svg>
+
+      <!-- 品牌线 -->
+      <svg width="960" height="30" style="position:absolute; left:0; top:255px;">
+        <text x="480" y="15" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="18" font-weight="400" fill="#9aa5ce" letter-spacing="4">从地理信息到空间智能</text>
+      </svg>
+
+      <!-- 课程信息 -->
+      <svg width="960" height="24" style="position:absolute; left:0; top:310px;">
+        <text x="480" y="12" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="400" fill="#565f89">AI 时代多任务并行开发 · 内部技术分享</text>
+      </svg>
+      <svg width="960" height="24" style="position:absolute; left:0; top:340px;">
+        <text x="480" y="12" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="400" fill="#565f89">讲师：WY · 2026-07-20</text>
+      </svg>
+
+      <!-- 行动号召 -->
+      <svg width="360" height="44" viewBox="0 0 360 44" style="position:absolute; left:300px; top:400px;">
+        <rect width="360" height="44" rx="22" fill="#24283b"/>
+        <text x="180" y="22" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#7aa2f7">画出你的并行编排图，今天就试</text>
+      </svg>
+
+      <!-- 页码 -->
+      <svg style="position:absolute; right:32px; bottom:24px;" width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="18" fill="#7aa2f7"/>
+        <text x="18" y="18" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="600" fill="#1a1b26">11</text>
+      </svg>
+    </div>
+    <aside class="notes">
+好，今天的分享就到这里。
+
+总结一下核心：**从"一次盯一个"到"同时指挥一群"**。
+
+你的角色不是码农，是**开发指挥部**。三件事：**拆解、派活、验收**。
+
+回去之后，请大家**今天就画一张并行编排图**，把你本周的任务拆一拆、排一排，试着让 AI 帮你并行推进。
+
+**从地理信息到空间智能**，我们的开发方式也该升级了。
+
+谢谢大家！
+    </aside>
+  </section>
+  <script src="../assets/runtime.js"></script>
+</body>
+</html>
