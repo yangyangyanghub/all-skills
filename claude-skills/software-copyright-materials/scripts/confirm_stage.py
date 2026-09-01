@@ -35,7 +35,7 @@ def write_confirmation(path: Path, data: dict[str, Any], key: str, note: str) ->
 def pending_application_fields(md_path: Path) -> list[str]:
     if not md_path.exists():
         return [f"缺少 {md_path}"]
-    return [line.strip() for line in md_path.read_text(encoding="utf-8").splitlines() if "待用户确认" in line]
+    return [line.strip() for line in md_path.read_text(encoding="utf-8", errors="replace").splitlines() if "待用户确认" in line]
 
 
 def effective_len(value: str) -> int:
@@ -44,7 +44,7 @@ def effective_len(value: str) -> int:
 
 def application_field_value(md_path: Path, field_name: str) -> str:
     prefix = f"➤{field_name}："
-    for line in md_path.read_text(encoding="utf-8").splitlines():
+    for line in md_path.read_text(encoding="utf-8", errors="replace").splitlines():
         if line.startswith(prefix):
             return line[len(prefix) :].strip()
     return ""

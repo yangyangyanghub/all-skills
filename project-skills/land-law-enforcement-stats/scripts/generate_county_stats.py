@@ -179,8 +179,8 @@ def generate_county_stats(input_file, output_file):
     ws.page_margins.footer = 0.3
     
     # 保存
-    wb.save(output_path)
-    print(f'Excel文件已生成：{output_path}')
+    wb.save(output_file)
+    print(f'Excel文件已生成：{output_file}')
     print(f'共 {len(county_data)} 个县（区）+ 1行合计')
     print(f'按非农违法耕地面积降序排列')
 

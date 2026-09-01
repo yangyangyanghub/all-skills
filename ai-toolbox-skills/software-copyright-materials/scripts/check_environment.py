@@ -17,7 +17,7 @@ def command_version(command: list[str]) -> tuple[bool, str]:
     if not shutil.which(command[0]):
         return False, "not found"
     try:
-        completed = subprocess.run(command, text=True, capture_output=True, timeout=20)
+        completed = subprocess.run(command, text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=20)
         output = (completed.stdout or completed.stderr).strip().splitlines()
         return completed.returncode == 0, output[0] if output else "available"
     except Exception as exc:
@@ -29,7 +29,7 @@ def run_docx_env(skill_dir: Path) -> tuple[bool, str]:
     if not env_script.exists():
         return False, "vendor/docx-toolkit/scripts/env_check.sh not found"
     try:
-        completed = subprocess.run(["bash", str(env_script)], text=True, capture_output=True, timeout=40)
+        completed = subprocess.run(["bash", str(env_script)], text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=40)
         return completed.returncode == 0, (completed.stdout + completed.stderr).strip()
     except Exception as exc:
         return False, str(exc)

@@ -96,6 +96,9 @@ const LEGACY_SPEC: DashScopeModelSpec = {
 };
 
 const MODEL_SPEC_ALIASES: Record<string, DashScopeModelSpec> = {
+  // token plan 套餐下官方支持的 qwen-image 旗舰（qwen-image-2.0 系列在 token plan 报 Unpurchased）
+  "qwen-image-3.0-pro": QWEN_2_SPEC,
+  "qwen-image-3.0": QWEN_2_SPEC,
   "qwen-image-2.0-pro": QWEN_2_SPEC,
   "qwen-image-2.0-pro-2026-03-03": QWEN_2_SPEC,
   "qwen-image-2.0": QWEN_2_SPEC,
@@ -135,6 +138,10 @@ function getApiKey(): string | null {
 }
 
 function getBaseUrl(): string {
+  // 优先级：DASHSCOPE_ENDPOINT（完整 URL，含路径）> DASHSCOPE_BASE_URL（域名，代码拼后缀）
+  // 阿里百炼 token plan 套餐走 OpenAI 兼容模式，必须用 DASHSCOPE_ENDPOINT 指定完整路径
+  const endpoint = process.env.DASHSCOPE_ENDPOINT;
+  if (endpoint) return endpoint.replace(/\/+$/g, "");
   const base = process.env.DASHSCOPE_BASE_URL || "https://dashscope.aliyuncs.com";
   return base.replace(/\/+$/g, "");
 }
@@ -581,7 +588,7 @@ export async function generateImage(
   }
 
   const size = resolveSizeForModel(model, args);
-  const url = `${getBaseUrl()}/api/v1/services/aigc/multimodal-generation/generation`;
+  const url = getBaseUrl();
 
   const content: Array<Record<string, unknown>> = [];
   if (spec.family === "wan27" && args.referenceImages.length > 0) {

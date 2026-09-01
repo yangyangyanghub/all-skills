@@ -38,7 +38,7 @@ def strip_markdown_links(text: str) -> str:
 
 
 def parse_application_lines(md_path: Path) -> tuple[list[str], list[str]]:
-    lines = md_path.read_text(encoding="utf-8").splitlines()
+    lines = md_path.read_text(encoding="utf-8", errors="replace").splitlines()
     fields = [line.strip() for line in lines if line.strip().startswith("➤")]
     warnings = [line for line in fields if "待用户确认" in line]
     return fields, warnings
@@ -48,7 +48,7 @@ def parse_application_field(md_path: Path, field_name: str) -> str:
     if not md_path.exists():
         return ""
     prefix = f"➤{field_name}："
-    for line in md_path.read_text(encoding="utf-8").splitlines():
+    for line in md_path.read_text(encoding="utf-8", errors="replace").splitlines():
         stripped = line.strip()
         if stripped.startswith(prefix):
             return stripped[len(prefix) :].strip()
@@ -306,7 +306,7 @@ def parse_code_pages(md_path: Path) -> list[tuple[int, list[str]]]:
     current_lines: list[str] = []
     in_fence = False
 
-    for raw in md_path.read_text(encoding="utf-8").splitlines():
+    for raw in md_path.read_text(encoding="utf-8", errors="replace").splitlines():
         page_match = re.match(r"^##\s+第\s*(\d+)\s*页", raw.strip())
         if page_match:
             if current_no is not None:
@@ -983,7 +983,7 @@ def build_manual_docx_python(md_path: Path, out_path: Path, base_dir: Path, soft
     else:
         set_manual_header(document, software_name, version)
 
-    lines = md_path.read_text(encoding="utf-8").splitlines()
+    lines = md_path.read_text(encoding="utf-8", errors="replace").splitlines()
     table_buf: list[list[str]] = []
     in_fence = False
     # 用于给图片/表格自动编号
@@ -1101,7 +1101,7 @@ def build_with_pandoc(md_path: Path, out_path: Path, code_mode: bool = False) ->
         raise RuntimeError("python-docx is unavailable and pandoc is not installed")
     source = md_path
     tmp_name: str | None = None
-    original_text = md_path.read_text(encoding="utf-8")
+    original_text = md_path.read_text(encoding="utf-8", errors="replace")
     text = original_text
     text = re.sub(r"```text\s*\nSTOP_FOR_USER\n.*?```", "", text, flags=re.S)
     text = re.sub(r"<!--[^>]*截图[^>]*-->", "【截图预留：请在此处插入当前功能页面或操作结果截图。】", text)
@@ -1114,7 +1114,7 @@ def build_with_pandoc(md_path: Path, out_path: Path, code_mode: bool = False) ->
             tmp_name = tmp.name
         source = Path(tmp_name)
     try:
-        subprocess.run(["pandoc", "-f", "markdown", "-t", "docx", str(source), "-o", str(out_path)], check=True)
+        subprocess.run(["pandoc", "-f", "markdown", "-t", "docx", str(source), "-o", str(out_path)], check=True, encoding="utf-8", errors="replace")
     finally:
         if tmp_name:
             Path(tmp_name).unlink(missing_ok=True)
@@ -1146,7 +1146,7 @@ def build_manual_docx(md_path: Path, out_path: Path, base_dir: Path, software_na
 
 def run_command(command: list[str], cwd: Path | None = None, timeout: int = 60) -> tuple[int, str]:
     try:
-        completed = subprocess.run(command, cwd=cwd, text=True, capture_output=True, timeout=timeout)
+        completed = subprocess.run(command, cwd=cwd, text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=timeout)
         return completed.returncode, (completed.stdout + completed.stderr).strip()
     except Exception as exc:
         return 99, str(exc)
@@ -1242,7 +1242,7 @@ def build_all(workdir: Path, software_name: str, version: str, skip_preview: boo
         manual_source = manual_md
         tmp_manual: Path | None = None
         if app_name and app_name != software_name:
-            text = manual_md.read_text(encoding="utf-8").replace(software_name, app_name)
+            text = manual_md.read_text(encoding="utf-8", errors="replace").replace(software_name, app_name)
             with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as tmp:
                 tmp.write(text)
                 tmp_manual = Path(tmp.name)

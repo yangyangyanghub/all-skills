@@ -16,11 +16,24 @@ allowed-tools: >
 metadata:
   short-description: 生成软著申请资料 Word/TXT
   author: Fokkyp
-  version: "1.6"
+  version: "1.7"
   repository: https://github.com/Fokkyp/SoftwareCopyright-Skill
 ---
 
 # 软著申请资料生成
+
+## 运行时与脚本路径说明（runtime-specific 标注）
+
+本 skill 的脚本与工具均位于 skill 根目录下：`scripts/`（11 个 Python 脚本）、`vendor/docx-toolkit/`（DOCX 生成工具）、`references/`（排版等参考文档）。本文所有命令中的 `${CLAUDE_SKILL_DIR}` 均指 **skill 根目录**。
+
+- **在 Claude Code 中**：`${CLAUDE_SKILL_DIR}` 由 runtime 自动注入，可直接使用。
+- **其他 runtime（OpenCode / Codex / Cursor / Hermes / Gemini CLI 等）**：`${CLAUDE_SKILL_DIR}` 不存在，请把它替换为该 runtime 的 skill 目录变量，或用以下任一方式定位 skill 根目录：
+  1. 本 SKILL.md 所在目录即 skill 根目录；
+  2. 在 skill 根目录下执行 `python3 -c "import os;print(os.getcwd())"`；
+  3. 直接使用相对路径 `scripts/xxx.py`（需在 skill 根目录下执行）。
+- **路径自检**：任选一条命令，确认能解析到 `scripts/check_environment.py` 即路径正确。
+
+> 本 skill 不依赖特定 runtime 的 UI/组件，仅需 Python 3.10+（含 python-docx）即可在任意 skills-compatible runtime 中运行。
 
 这个 skill 生成可审阅、可追溯的软著申请资料。核心原则：
 
@@ -65,6 +78,18 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/confirm_stage.py --workdir 软件著作权�
 - `code-selection`：`草稿/代码文件选择.json` 生成后，用户必须确认或修改抽取文件。
 - `screenshot-method`：操作手册截图前，用户必须在 Chrome DevTools MCP、Codex Computer Use、用户自行截图三种方式中选择一种；如果用户明确说“现在不截图/先跳过截图”，记录为 `skip`。
 - `markdown`：全部 Markdown 草稿完成后，用户必须确认可以进入 Word/TXT 生成。
+
+## 脚本执行失败模式与恢复
+
+运行工作流脚本可能遇到的失败，按「触发条件 → 一线修复 → 仍失败兜底」处理：
+
+| 触发条件 | 一线修复 | 仍失败兜底 |
+|---|---|---|
+| 运行脚本报 `UnicodeDecodeError: 'gbk' codec can't decode` | 脚本已统一在 subprocess / read_text 加 `encoding="utf-8", errors="replace"`；若仍出现，先 `python3 -X utf8` 或用 UTF-8 终端 | 升级脚本至带编码加固版本（scripts/** 已修复） |
+| 生成正式 Word 报 `PermissionError: ..._操作手册.docx` | 目标 docx 正被 Word 打开，提示用户关闭后重试 | 删除 `~$` 临时锁文件后重跑 `build_docx_from_md.py` |
+| 生成操作手册报「业务理解缺少 system_requirements / faq / glossary」 | 回 `草稿/业务理解.json` 补成对应结构：system_requirements 为 `{item,minimum,recommended}` 列表、faq 为 `{question,answer}` 列表、glossary 为 `{term,definition}` 列表，再重新生成 | 检读 `generate_manual_draft.py` 的 `normalize_*` 要求 |
+| 环境检查显示完整 DOCX（.NET SDK）缺失 | 按 `environment` 门禁让用户选「安装完整环境」或「基础 DOCX 兜底」 | 兜底继续生成 Markdown/TXT/基础 DOCX，并在报告说明 |
+| 脚本输出中文乱码 | 加环境变量 `PYTHONIOENCODING=utf-8` 或在脚本入口调用 `common.ensure_utf8()` | 使用 UTF-8 编码的终端/进程 |
 
 ## 工作流
 
@@ -521,3 +546,29 @@ bash ${CLAUDE_SKILL_DIR}/vendor/docx-toolkit/scripts/docx_preview.sh <生成的d
 - 代码文件候选清单生成后，需要用户确认或修改 `代码文件选择.json`。
 - 操作手册截图前，需要用户在 Chrome DevTools MCP、Codex Computer Use、用户自行截图三种方式中选择一种；选择后再检查对应工具是否可用。
 - 用户是否确认 Markdown 草稿并进入 Word 生成。
+
+## 编码与字符处理规范（防 GBK 解码崩溃）
+
+在 Windows 环境生成软著资料时，Python 默认使用系统 locale（GBK）解码子进程输出与读取文本，遇到 UTF-8 中文或非 GBK 字节会抛 `UnicodeDecodeError: 'gbk' codec can't decode`，导致 markdown→word 转换中断。脚本必须遵守：
+
+1. **subprocess 必须指定编码**：所有 `subprocess.run(...)` 一律加 `encoding="utf-8", errors="replace"`，禁止裸 `text=True` 不指定 encoding（Windows 下会按 GBK 解码子进程输出而崩溃）。
+2. **文件读写统一 UTF-8**：读文件用 `read_text(encoding="utf-8")`，写文件用 `write_text(..., encoding="utf-8")`；读取外部/用户提供的 .md 一律加 `errors="replace"`，防止编码不符中断整个转换流程。
+3. **脚本入口调用 `common.ensure_utf8()`**：对 `sys.stdout/stderr` reconfigure 为 utf-8 并设置环境变量 `PYTHONIOENCODING=utf-8`，保证输出与子进程继承 UTF-8。
+4. **MD 草稿必须为 UTF-8**：所有 Markdown 草稿（业务理解、申请表、操作手册、代码材料）由脚本以 `encoding="utf-8"` 写入；生成 docx 前确认源 md 为 UTF-8，切勿由 Windows 记事本另存为 GBK/ANSI。
+5. **中文引号规范**：Markdown 中包住中文名词、按钮文案、提示语一律用中文双引号 `“...”`；避免半角单引号 `'...'` 被部分渲染器误处理（"年度计划" 而非 '年度计划'）。
+6. **生成 docx 统一入口**：正式 Word 必须在源 md 编码正确（UTF-8）、无文件占用（若目标 docx 正被打开会抛 `PermissionError`，需提示用户关闭后重试）的前提下生成。
+
+## 反例与黑名单
+
+生成软著材料时必须避免以下反模式（SkillLens risk-action blacklist 维度）：
+
+| # | 反模式 | 为什么不做 | 替代做法 |
+|---|---|---|---|
+| 1 | 为凑 60 页强行注入虚构内容 | 破坏章节编号连续性、章节重复错乱，必须返工清理 | 以功能写完整为准，不足 60 页直接提交整个文档 |
+| 2 | 照抄用户提供的范本文案或旧项目内容 | 与真实项目不符，材料失真 | 吸收其结构特点但不复制内容 |
+| 3 | 依赖脚本关键字表/固定范本决定行业、功能与结构 | 与真实业务脱节 | 由模型读项目证据+源码研判 |
+| 4 | AI 编造代码 | 软著代码必须真实可溯源 | 代码材料只来自用户确认的完整源文件 |
+| 5 | 硬编码硬件/系统环境 | 与真实部署不符 | 必须让用户确认或填写 |
+| 6 | 用半角单引号 `'...'` 包中文名词/提示语 | 部分渲染器误处理（“年度计划”变 '年度计划'）| 一律用中文双引号 `“...”` |
+| 7 | 生成 docx 前不校验源 md 编码/文件占用 | 抛 UnicodeDecodeError / PermissionError | 统一 UTF-8、确认目标文件未被占用 |
+| 8 | 操作手册反复插入同一批模块或五段式套话 | 内容重复、制式化 | 每个真实页面独立成节，信息自然合并到段落 |

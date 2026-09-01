@@ -256,3 +256,22 @@ def safe_filename(value: str) -> str:
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def ensure_utf8() -> None:
+    """强制当前进程与子进程使用 UTF-8，避免 Windows 默认 GBK 在解码/输出时抛 UnicodeDecodeError。
+
+    在脚本入口调用一次即可：对标准流 reconfigure 为 utf-8，并为子进程设置 PYTHONIOENCODING。
+    配合 subprocess.run(..., encoding="utf-8", errors="replace") 使用可彻底规避 GBK 解码崩溃。
+    """
+    os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+    try:
+        import sys
+
+        for stream in (sys.stdout, sys.stderr):
+            try:
+                stream.reconfigure(encoding="utf-8")
+            except Exception:
+                pass
+    except Exception:
+        pass
