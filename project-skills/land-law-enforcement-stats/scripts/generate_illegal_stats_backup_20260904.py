@@ -40,18 +40,10 @@ def generate_illegal_stats(input_file, output_file, illegal_type='非农违法')
         basic_farmland_col = '非粮违法永久基本农田面积（亩）'
     
     # 整改判定
-    # 剩余未整改面积：负值视为0（数据浮点误差，如涉县 -0.01 实际已完成整改）
-    remain = illegal['剩余未整改面积'].fillna(0)
-    remain_clamped = remain.where(remain >= 0, 0)
-    completed = illegal[(remain_clamped == 0) & (illegal['拆分状态'] == '审核结束')]
-    pending = illegal[(remain_clamped > 0) | (illegal['拆分状态'] != '审核结束')]
-    # 拆除：含拆除 或 拆除面积>0（拆补组合图斑归拆除主分类，只计一次）
+    completed = illegal[(illegal['剩余未整改面积'] == 0) & (illegal['拆分状态'] == '审核结束')]
     demolish = completed[completed['整改情况'].str.contains('拆除', na=False) | (completed['拆除面积（亩）'] > 0)]
-    # 补办（纯补办，个数依据）：含补办 或 补办面积>0 且 不含拆除，避免拆补组合重复计数
-    supplement = completed[
-        (completed['整改情况'].str.contains('补办', na=False) | (completed['补办面积（亩）'] > 0))
-        & ~(completed['整改情况'].str.contains('拆除', na=False) | (completed['拆除面积（亩）'] > 0))
-    ]
+    supplement = completed[completed['整改情况'].str.contains('补办', na=False) | (completed['补办面积（亩）'] > 0)]
+    pending = illegal[(illegal['剩余未整改面积'] > 0) | (illegal['拆分状态'] != '审核结束')]
     
     all_counties = sorted(illegal['县级行政区名称'].unique().tolist())
     
@@ -78,9 +70,8 @@ def generate_illegal_stats(input_file, output_file, illegal_type='非农违法')
         demolish_farmland = round(dem['拆除耕地面积（亩）'].sum(), 2)
         
         supplement_count = len(sup)
-        # 补办面积：用该县所有已完成整改图斑的补办面积列求和（拆补组合的补办部分也计入）
-        supplement_area = round(comp['补办面积（亩）'].sum(), 2)
-        supplement_farmland = round(comp['补办耕地面积（亩）'].sum(), 2)
+        supplement_area = round(sup['补办面积（亩）'].sum(), 2)
+        supplement_farmland = round(sup['补办耕地面积（亩）'].sum(), 2)
         
         pending_count = len(pend)
         pending_area = round(pend[area_col].sum(), 2)

@@ -14,3 +14,12 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-08-14T14:30	f2c0ab8	method-library	65.7	1-0 better	keep	dim3+dim9	补失败模式6行/黑名单7条，防误触发/防过度框架化，judge 判 clear better	paired
 2026-08-14T15:00	baseline	frontend-design-orchestrator	-	76.4-87.7	baseline	-	2 judge 共识区间（judge1:87.7 优秀 / judge2:76.4 良好），OKLCH/Apple 真集成，短板=冗余+checkpoint无强制+Inter测试预期不匹配	dry_run
 2026-08-14T16:30	paired	frontend-design-orchestrator	76.4-87.7	3-0 better	keep	dim3+dim5+dim7+dim8+dim9	去重(OKLCH/framer-motion单源)+Inter P0→P1修正+补图标失败处理表，3 judge 全判 clear better	paired
+2026-09-07T13:22	baseline	yuandangwen	-	75.6	baseline	-	Phase1 dim1-7+9静态+dim8子agent=7.5	full_test
+2026-09-07T13:23	cbdac5f	yuandangwen-zhifu	75.6	78.4	keep	dim3	加失败模式三段式表(10种触发条件+兜底)+5.1执行前checklist, dim3:4→8, dim2/dim4相关簇未跟涨(0.5以内),体积1.32x	paired_static
+2026-09-07T13:24	37ba22c	yuandangwen-zhifu	78.4	83.2	keep	dim9	加危险动作清单(3层×3条+自查checklist), dim9:5→9, 体积两次精简后1.49x达标. dim3+dim9累计总分+7.6	paired_static
+2026-09-07T13:26	summary	yuandangwen-zhifu	75.6	83.2	summary	dim3+dim9	2轮keep, 体积1.49x达标(经2次精简), darwin Phase 2 完成	paired_static
+2026-09-08T12:41	file-backup	pre-sales-solution	-	3-0 better	keep	dim5-可执行具体性	3处'建议'软化措辞改明确指令，judge 3-0 better，dim5提升且其余8维零改动无退步	paired
+2026-09-08T12:49	file-backup	pre-sales-solution	-	3-0 better	keep	dim4-检查点设计	Step3分析卡/Step5自检加🔴CHECKPOINT·🛑STOP显性标记(HL-1杠杆)，judge 3-0 better全部clear，决策管控度提升	paired
+2026-09-08T12:56	file-backup	pre-sales-solution	-	3-0 better	keep	dim9-反例与黑名单	SKILL.md主体增加独立反例黑名单章节(9条 反模式vs正确做法 对照表)，dim9从references散落升格为显式条目，judge 3-0 better无冗余膨胀	paired
+2026-09-08T13:00	file-backup	pre-sales-solution	-	+1	keep	dim7-整体架构	删除参考资源重复的format_docx.py引用行(确定性清理，无需judge)	full_test
+2026-09-08T13:05	file-backup	pre-sales-solution	-	8.5	keep	dim8-实测表现	full_test：2 prompt × with_skill vs baseline，T2提升明显(FDE方法论独特增值)，T1中等，无负面	full_test

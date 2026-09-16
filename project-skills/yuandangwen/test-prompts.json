@@ -1,0 +1,39 @@
+{
+  "skill_name": "yuandangwen",
+  "scope": "评估 yuandangwen 总 skill + yuandangwen-zhifu 子 skill 的协同效果",
+  "test_prompts": [
+    {
+      "id": 1,
+      "name": "happy_path_合同费用支付",
+      "prompt": "洋哥，帮我写一下邯郸市国土空间规划院那个'智慧监管平台'项目的合同费用支付申请，总金额 36 万，要按 30/40/30 分期付，这是首期款。",
+      "expected": "AI 应通过 yuandangwen 路由到 yuandangwen-zhifu，询问付款方式（3 选 1）、金额、对方账号 3 个关键变量后，基于 docx 模板生成填好的 .docx 文件，不输出 Markdown 草稿",
+      "covers_dim": ["dim1 触发分流", "dim2 工作流", "dim5 可执行性", "dim8 实测"],
+      "difficulty": "easy"
+    },
+    {
+      "id": 2,
+      "name": "ambiguous_非支付类公文",
+      "prompt": "帮我写一份关于召开2026年第三季度全院工作总结会议的通知。",
+      "expected": "AI 应识别出这是会议通知（不属于已实现的支付类子 skill），明确告知用户该类型尚未实现子 skill，询问是否走临时方案，**不会强行套用 yuandangwen-zhifu 的 docx 模板**",
+      "covers_dim": ["dim1 触发分流", "dim2 工作流边界", "dim8 实测"],
+      "difficulty": "medium"
+    },
+    {
+      "id": 3,
+      "name": "out_of_scope_对外文件",
+      "prompt": "帮我们写一个致邯郸市自然资源和规划局的关于XX项目进展的函件。",
+      "expected": "AI 应识别这是对外公文（不是院内文件），明确告知用户本 skill 不处理对外文件，**不会**走 yuandangwen 流程，**不会**生成 docx 模板填充",
+      "covers_dim": ["dim1 触发分流", "dim4 检查点", "dim8 实测"],
+      "difficulty": "medium"
+    }
+  ],
+  "test_prompts_count": 3,
+  "covers_dim_summary": {
+    "dim1": "Frontmatter 触发词是否足够（happy path + ambiguous + out_of_scope 三种场景）",
+    "dim2": "工作流：路由 → 子 skill → 模板填充是否清晰可执行",
+    "dim4": "检查点：是否主动询问付款方式、对方账号等关键变量",
+    "dim5": "可执行性：是否有具体的 docx 模板路径、python-docx 代码示例",
+    "dim8": "实测：3 个 prompt 跑出来的输出是否达成预期"
+  },
+  "note": "本次仅评估不改，dim8 实测需要 spawn 子 agent 跑 with_skill vs baseline 对比"
+}

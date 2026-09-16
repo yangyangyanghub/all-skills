@@ -3,3 +3,7 @@
 2026-08-12T14:00	01c8045	ontology-driven-design	87.0	88.5	keep	dim9反例黑名单	8条反模式清单，实测带skill10/10 vs 基线6/10	full_test
 2026-08-12T14:05	-	ontology-driven-design	80.6	89.0	summary	-	三轮优化完成，全部keep，+8.4分	full_test
 2026-08-28T18:03	925c766	software-copyright-materials	85.5	3-0 better	keep	P0 runtime+dim3失败模式+dim9反例	3评委一致better(clear/clear/slight),best_dim=失败模式编码,跨runtime路径说明填补空白	paired
+2026-09-03T22:50	baseline	land-law-enforcement-stats	-	61.9	baseline	-	交叉评估：dim7架构重复(十一节出现两次/十与十一颠倒/版本块v1.3+v1.4重复)、dim2流程乱序、dim5文档与脚本漂移(5.6写15列/新脚本6列)；dim8脚本可跑但需实测, dim6漏列business_table_field_spec.md;红灯扫描绿灯, dry_run
+2026-09-03T22:55	fix-structure	land-law-enforcement-stats	61.9	~71	keep	dim7架构+dim2流程	修复结构退化：删v1.3旧版本块、删重复十一节(754)、修正十/十一顺序、保留唯一v1.4版本块+唯一案例节；总行数1240→1201	dry_run
+2026-09-03T23:10	refactor-nested	land-law-enforcement-stats	~71	~	keep	dim7架构+组织	拆分并嵌套：入口69行纯路由 + weipian/biz 子skill(212/191行) 嵌套于land-law-enforcement-stats/下；资源引用改../scripts ../references 全部可达；仿huashu-nuwa/examples嵌套模式	dry_run
+2026-09-03T23:30	116b09f	land-law-enforcement-stats	79.2	~82	keep	dim4检查点+dim3fallback	加STOP标记于入口子类型识别+biz识别歧义；biz加if-then三段式fallback表(KeyError/PermissionError/覆盖/地类未匹配/聚合0)；dim8 full_test真跑860条通过	full_test

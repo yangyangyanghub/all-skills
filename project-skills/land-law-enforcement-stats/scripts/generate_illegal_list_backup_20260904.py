@@ -18,9 +18,6 @@ def judge_rectify_status(remain_area, split_status):
         remain = float(remain_area)
     except (TypeError, ValueError):
         remain = -1.0
-    # 负剩余面积视为0（数据浮点误差，如涉县 -0.01 实际已完成整改），与统计表逻辑保持一致
-    if remain < 0:
-        remain = 0.0
     if remain == 0 and str(split_status) == '审核结束':
         return '是'
     return '否'
