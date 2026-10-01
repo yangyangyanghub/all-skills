@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-from common import COPYRIGHT_CODE_EXTS, FRONTEND_EXTS, ensure_dir, is_known_config_file, iter_project_files, looks_binary, read_json, read_text, rel, safe_filename, write_json
+from common import COPYRIGHT_CODE_EXTS, FRONTEND_EXTS, ensure_dir, is_known_config_file, iter_project_files, looks_binary, read_json, read_text, rel, safe_filename, write_json, _has_garbled_text
 
 
 LINES_PER_PAGE = 50
@@ -68,6 +68,9 @@ def should_skip_file(path: Path) -> bool:
         return True
     lines = sample.splitlines()
     if any(len(line) > 3000 for line in lines[:80]):
+        return True
+    # 检测编码损坏（乱码字符过多）
+    if _has_garbled_text(sample):
         return True
     return False
 

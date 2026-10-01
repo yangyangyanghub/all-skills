@@ -557,6 +557,7 @@ bash ${CLAUDE_SKILL_DIR}/vendor/docx-toolkit/scripts/docx_preview.sh <生成的d
 4. **MD 草稿必须为 UTF-8**：所有 Markdown 草稿（业务理解、申请表、操作手册、代码材料）由脚本以 `encoding="utf-8"` 写入；生成 docx 前确认源 md 为 UTF-8，切勿由 Windows 记事本另存为 GBK/ANSI。
 5. **中文引号规范**：Markdown 中包住中文名词、按钮文案、提示语一律用中文双引号 `“...”`；避免半角单引号 `'...'` 被部分渲染器误处理（"年度计划" 而非 '年度计划'）。
 6. **生成 docx 统一入口**：正式 Word 必须在源 md 编码正确（UTF-8）、无文件占用（若目标 docx 正被打开会抛 `PermissionError`，需提示用户关闭后重试）的前提下生成。
+7. **源文件编码检查与自动修复**：抽取代码时 `common.read_text` 会自动检测双重编码乱码（GBK→UTF-8 往返特征）并逐行/分段修复；无法修复且乱码超阈值（>10 个损坏字符）的源文件由 `should_skip_file` 自动跳过并警告用户。生成的代码材料保证不出现可见乱码。
 
 ## 反例与黑名单
 
@@ -572,3 +573,4 @@ bash ${CLAUDE_SKILL_DIR}/vendor/docx-toolkit/scripts/docx_preview.sh <生成的d
 | 6 | 用半角单引号 `'...'` 包中文名词/提示语 | 部分渲染器误处理（“年度计划”变 '年度计划'）| 一律用中文双引号 `“...”` |
 | 7 | 生成 docx 前不校验源 md 编码/文件占用 | 抛 UnicodeDecodeError / PermissionError | 统一 UTF-8、确认目标文件未被占用 |
 | 8 | 操作手册反复插入同一批模块或五段式套话 | 内容重复、制式化 | 每个真实页面独立成节，信息自然合并到段落 |
+| 9 | 忽略源文件编码损坏 | 生成的代码 Word 含大量乱码 | 抽取前检测乱码字符，损坏文件自动跳过并警告用户 |

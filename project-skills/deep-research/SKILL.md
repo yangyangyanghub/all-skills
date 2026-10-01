@@ -38,22 +38,22 @@ metadata:
 
 ```
 {output_dir}/
-├── Ralph-Loop/                    # 主题文件夹（英文短横线命名）
+├── 2026-09-20政务智能体/             # 主题文件夹（YYYY-MM-DD主题名称）
 │   ├── images/                    # 该主题的信息图
 │   │   ├── architecture.png
 │   │   └── comparison.png
-│   ├── Ralph-Loop调研报告.md      # Markdown 报告
-│   └── Ralph-Loop调研报告.docx    # Word 报告
-├── MCP-Protocol/
+│   ├── 政务智能体调研报告.md       # Markdown 报告
+│   └── 政务智能体调研报告.docx     # Word 报告
+├── 2026-07-06实时流式三维建模/
 │   ├── images/
-│   ├── MCP-Protocol调研报告.md
-│   └── MCP-Protocol调研报告.docx
+│   ├── 实时流式三维建模调研报告.md
+│   └── 实时流式三维建模调研报告.docx
 └── ...
 ```
 
-命名规范：
-- 文件夹名：英文，单词间用短横线连接，如 `Ralph-Loop`、`MCP-Protocol`
-- 报告文件：`{主题名}调研报告.md` 和 `{主题名}调研报告.docx`
+命名规范（与 AGENTS.md 调研笔记规范统一，AGENTS.md 优先）：
+- 文件夹名：`YYYY-MM-DD主题名称`，如 `2026-09-20政务智能体`、`2026-03-11AI-API-Providers`
+- 报告文件：`{主题名}调研报告.md` 和 `{主题名}调研报告.docx`，主题名不含日期前缀
 - 图片目录：每个主题文件夹下单独的 `images/` 目录
 - **默认输出目录**：`myk/调研笔记/`（与 AGENTS.md 规范的调研笔记目录统一）
 
@@ -350,13 +350,13 @@ python .opencode/skills/deep-research/scripts/format_docx.py "输入.docx" ["输
 ## 完整调研示例
 
 用户输入：
-> 调研下 Ralph Loop
+> 调研下政务智能体
 
 执行流程：
 
 ```bash
-# 1. 创建主题目录
-mkdir -p "myk/调研笔记/Ralph-Loop/images"
+# 1. 创建主题目录（YYYY-MM-DD主题名称）
+mkdir -p "myk/调研笔记/2026-09-20政务智能体/images"
 
 # 2. 获取内容（如有 URL）
 webfetch https://example.com/article
@@ -364,25 +364,25 @@ webfetch https://example.com/article
 # 3. 深度调研（使用 Task 工具联网搜索）
 
 # 4. 生成信息图
-python .opencode/skills/image-service/scripts/text_to_image.py "技术架构图..." --output "myk/调研笔记/Ralph-Loop/images/architecture.png"
+python .opencode/skills/image-service/scripts/text_to_image.py "技术架构图..." --output "myk/调研笔记/2026-09-20政务智能体/images/architecture.png"
 
 # 5. 撰写报告
-# 写入 myk/调研笔记/Ralph-Loop/Ralph-Loop调研报告.md
+# 写入 myk/调研笔记/2026-09-20政务智能体/政务智能体调研报告.md
 
 # 6. 导出 Word（不使用 --toc，Markdown 已有手写目录）
-cd "myk/调研笔记/Ralph-Loop"
-pandoc "Ralph-Loop调研报告.md" -o "Ralph-Loop调研报告.docx" --resource-path=.
-python ../../../.opencode/skills/deep-research/scripts/format_docx.py "Ralph-Loop调研报告.docx"
+cd "myk/调研笔记/2026-09-20政务智能体"
+pandoc "政务智能体调研报告.md" -o "政务智能体调研报告.docx" --resource-path=.
+python ../../../.opencode/skills/deep-research/scripts/format_docx.py "政务智能体调研报告.docx"
 ```
 
 输出文件：
 ```
-myk/调研笔记/Ralph-Loop/
+myk/调研笔记/2026-09-20政务智能体/
 ├── images/
 │   ├── architecture.png
 │   └── comparison.png
-├── Ralph-Loop调研报告.md
-└── Ralph-Loop调研报告.docx
+├── 政务智能体调研报告.md
+└── 政务智能体调研报告.docx
 ```
 
 ## 依赖

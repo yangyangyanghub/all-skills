@@ -6,8 +6,12 @@
 
 排序：图斑个数降序；「（未认定）」置末
 
-用法：python generate_dilei_summary.py <源xlsx> [统计日期YYYY-MM-DD]
+用法：python generate_dilei_summary.py <源xlsx> [统计日期YYYY-MM-DD] [套合结果xlsx]
 输出：<源目录>/变更调查各地类情况统计_<日期>.xlsx
+
+说明：
+- 如果提供套合结果文件，则用套合结果的「地块总面积(亩)」作为面积字段
+- 否则用源表的「图斑面积(亩)」
 """
 import sys
 import os
@@ -22,11 +26,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from dilei_map import DIL_EI_MAP
 
 if len(sys.argv) < 2:
-    print('用法: python generate_dilei_summary.py <源xlsx> [统计日期YYYY-MM-DD]')
+    print('用法: python generate_dilei_summary.py <源xlsx> [统计日期YYYY-MM-DD] [套合结果xlsx]')
     sys.exit(1)
 SRC = sys.argv[1]
 OUT_DIR = os.path.dirname(SRC)
 TODAY = sys.argv[2] if len(sys.argv) > 2 else datetime.now().strftime('%Y-%m-%d')
+OVERLAY = sys.argv[3] if len(sys.argv) > 3 else None
 
 UNDEF = '（未认定）'
 COLS = ['序号', '实地地类', '图斑个数', '个数占比', '面积(亩)', '面积占比',
@@ -150,9 +155,27 @@ def main():
     df = pd.read_excel(SRC)
     print(f'源表行数: {len(df)}')
 
+    # 如果提供套合结果，合并并用套合结果的面积
+    if OVERLAY:
+        print(f'套合结果: {OVERLAY}')
+        df_overlay = pd.read_excel(OVERLAY)
+        print(f'  套合结果行数: {len(df_overlay)}')
+        
+        # 合并：用图斑编号/图斑标识 join
+        df = pd.merge(
+            df,
+            df_overlay[['图斑标识', '地块总面积(亩)']],
+            left_on='图斑编号',
+            right_on='图斑标识',
+            how='left'
+        )
+        df['__area'] = pd.to_numeric(df['地块总面积(亩)'], errors='coerce').fillna(0)
+        print(f'  合并后行数: {len(df)}')
+    else:
+        df['__area'] = pd.to_numeric(df['图斑面积(亩)'], errors='coerce').fillna(0)
+
     df['__county'] = df['行政区名称'].fillna(df['县级行政区名称']).fillna('（未分配）')
     df['__dilei'] = df['实地地类'].apply(to_name)
-    df['__area'] = pd.to_numeric(df['图斑面积(亩)'], errors='coerce').fillna(0)
 
     out, total_row = build_summary(df)
 

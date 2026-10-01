@@ -2,7 +2,7 @@
   "image_api": {
     "key": "sk-sp-H.DLPIML.CygX.MEUCIDAfmguM_jTNLWZGIkODzgxBXjinrFYHglB1tLy_5bFJAiEAgB9xiNWoIoMeiCTxtGGK0aJVklBeN_VlK2CiyoSvoaM",
     "base_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
-    "model": "wan2.7-image"
+    "model": "qwen-image-3.0-pro"
   },
   "vision_api": {
     "key": "sk-5404be6673584a9b9071cd64067d0fe0",

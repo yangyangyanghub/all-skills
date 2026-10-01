@@ -142,12 +142,13 @@ SEND_BACK_TEXT = {0.0: '市级待审核', 1.0: '已打回'}
 ```bash
 python ../scripts/generate_county_dilei.py <源xlsx> [统计日期YYYY-MM-DD]
 python ../scripts/generate_dilei_flow.py <源xlsx> [统计日期YYYY-MM-DD]
-python ../scripts/generate_dilei_summary.py <源xlsx> [统计日期YYYY-MM-DD]
+python ../scripts/generate_dilei_summary.py <源xlsx> [统计日期YYYY-MM-DD] [套合结果xlsx]
 ```
 
 - 地类映射用 `dilei_map.py` 的 `DIL_EI_MAP`；`实地地类` 为空 → `（未认定）`
 - 县分组用 `行政区名称` 优先（回退 `县级行政区名称`）
 - 三脚本路径已相对化（`os.path.dirname(__file__)`），可在任意目录调用
+- **套合结果面积**：`generate_dilei_summary.py` 支持可选的套合结果文件参数，提供后用套合结果的「地块总面积(亩)」替代源表的「图斑面积(亩)」
 
 > **2026-09-11 收编**：两脚本由 `temp/change_county_dilei.py`、`temp/change_dilei_flow.py` 移入 skill，去掉硬编码源路径、日期默认今天。temp 原件已删。
 >
