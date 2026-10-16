@@ -19,11 +19,6 @@ def join_items(items: list[str], limit: int = 4) -> str:
     return "、".join(values[:limit])
 
 
-def feature_summary(feature: str, detail: str, software_name: str) -> str:
-    clean_detail = normalize_detail(feature, detail)
-    return clean_detail
-
-
 def plain_manual_text(text: str) -> str:
     value = text
     replacements = {
@@ -63,27 +58,10 @@ def plain_feature_name(name: str) -> str:
     return value.strip() or "核心功能"
 
 
-def normalize_detail(feature: str, detail: str) -> str:
-    value = plain_manual_text(detail or "").strip()
-    value = re.sub(rf"^{re.escape(feature)}(模块|功能)?用于", "", value)
-    value = re.sub(rf"^{re.escape(feature)}主要用于", "", value)
-    value = re.sub(r"^主要用于", "", value)
-    value = re.sub(rf"^{re.escape(feature)}[：:，, ]*", "", value)
-    value = re.sub(rf"^用户使用{re.escape(feature)}时，可以", "", value)
-    value = re.sub(rf"^进入{re.escape(feature)}后，用户可以", "", value)
-    value = re.sub(rf"^在{re.escape(feature)}中，用户可以", "", value)
-    value = re.sub(rf"^用户通过{re.escape(feature)}可以", "", value)
-    value = re.sub(rf"^在{re.escape(feature)}环节，用户可以", "", value)
-    value = re.sub(rf"^通过{re.escape(feature)}，用户可以", "", value)
-    value = value.strip("。；; ，,")
-    if not value or value == feature:
-        value = "支撑软件中的相关业务处理，帮助用户完成信息查看、内容填写、结果确认或资料维护"
-    return value + ("。" if not value.endswith("。") else "")
-
-
 TECHNICAL_TERMS = [
     "技术实现",
-    "代码",
+    "代码实现",
+    "源码结构",
     "框架",
     "接口封装",
     "状态管理",
@@ -149,17 +127,6 @@ def manual_section_body(text: str, title: str) -> str:
     return text[match.end() : end].strip()
 
 
-def manual_subsection_body(text: str, title: str) -> str:
-    number_pattern = r"（[零一二三四五六七八九十百]+）"
-    pattern = re.compile(rf"^###\s+{number_pattern}\s*{re.escape(title)}\s*$", flags=re.M)
-    match = pattern.search(text)
-    if not match:
-        return ""
-    next_match = re.search(r"^###\s+|^##\s+", text[match.end() :], flags=re.M)
-    end = match.end() + next_match.start() if next_match else len(text)
-    return text[match.end() : end].strip()
-
-
 def manual_quality_issues(text: str, modules: list[dict[str, Any]]) -> list[str]:
     issues: list[str] = []
     required_sections = ["相关文档", "说明", "功能特点", "系统要求", "常见问题解答", "术语表"]
@@ -168,27 +135,6 @@ def manual_quality_issues(text: str, modules: list[dict[str, Any]]) -> list[str]
             issues.append(f"缺少通用手册章节：{title}")
     if re.search(r"^##\s+\(\d+\)、", text, flags=re.M):
         issues.append("章节标题仍使用括号数字，应使用中文大写序号")
-    if re.search(r"^###\s+[(（]\s*\d+\s*[)）]", text, flags=re.M):
-        issues.append("二级小节序号应使用中文括号序号，例如（一）")
-    module_titles = [str(module.get("feature") or "").strip() for module in modules]
-    module_titles = [title for title in module_titles if title]
-    subsection_titles = [title for title in module_titles if manual_subsection_body(text, title)]
-    if len(module_titles) > 3 and not subsection_titles:
-        issues.append("操作模块超过 3 个仍未按功能域归组为二级小节（### （一）……）")
-    chapter_count = len(re.findall(r"^##\s+[零一二三四五六七八九十百]+、", text, flags=re.M))
-    if chapter_count > 12:
-        issues.append(f"一级章节共 {chapter_count} 个，数量过多；应把操作模块按功能域归组为功能操作大章")
-    chapter_matches = list(re.finditer(r"^##\s+[零一二三四五六七八九十百]+、(.+)$", text, flags=re.M))
-    for idx, match in enumerate(chapter_matches):
-        seg_start = match.end()
-        seg_end = chapter_matches[idx + 1].start() if idx + 1 < len(chapter_matches) else len(text)
-        segment = text[seg_start:seg_end]
-        first_sub = re.search(r"^###\s+", segment, flags=re.M)
-        if not first_sub:
-            continue
-        lead_in = segment[: first_sub.start()].strip()
-        if not lead_in:
-            issues.append(f"归组大章缺少导语：{match.group(1).strip()}")
     related_body = manual_section_body(text, "相关文档")
     if related_body and "| 文档名称 |" not in related_body:
         issues.append("相关文档章节应使用表格指向配套文档")
@@ -214,7 +160,7 @@ def manual_quality_issues(text: str, modules: list[dict[str, Any]]) -> list[str]
         title = str(module.get("feature") or "").strip()
         if not title:
             continue
-        body = manual_section_body(text, title) or manual_subsection_body(text, title)
+        body = manual_section_body(text, title)
         if not body:
             issues.append(f"缺少核心模块章节：{title}")
             continue
@@ -302,12 +248,10 @@ def normalize_manual_modules(
         screenshot_note = plain_manual_text(str(item.get("screenshot") or "")).strip()
         if not screenshot_note:
             screenshot_note = f"请在此处插入“{title}”页面或操作结果截图"
-        group = plain_manual_text(str(item.get("group") or "")).strip()
         modules.append(
             {
                 "feature": title,
                 "raw_feature": title,
-                "group": group,
                 "purpose": purpose + ("。" if not purpose.endswith(("。", "！", "？")) else ""),
                 "entry": entry + ("。" if not entry.endswith(("。", "！", "？")) else ""),
                 "usage": usage,
@@ -320,22 +264,6 @@ def normalize_manual_modules(
             }
         )
     return modules
-
-
-def normalize_manual_groups(business: dict[str, Any] | None) -> list[dict[str, str]]:
-    """解析业务理解中的 manual_groups：[{title, intro}]，title 为归组大章标题，intro 为导语。"""
-    raw_groups = business.get("manual_groups") if business else None
-    groups: list[dict[str, str]] = []
-    if isinstance(raw_groups, list):
-        for item in raw_groups:
-            if not isinstance(item, dict):
-                continue
-            title = plain_manual_text(str(item.get("title") or item.get("name") or "")).strip()
-            if not title:
-                continue
-            intro = plain_manual_text(str(item.get("intro") or item.get("description") or "")).strip()
-            groups.append({"title": title, "intro": intro})
-    return groups
 
 
 def normalize_system_requirements(business: dict[str, Any] | None) -> list[dict[str, str]]:
@@ -399,11 +327,6 @@ def normalize_glossary(business: dict[str, Any] | None, modules: list[dict[str, 
     )
 
 
-def feature_phrase(modules: list[dict[str, Any]], limit: int = 5) -> str:
-    names = [module["feature"] for module in modules if module.get("feature")]
-    return "、".join(names[:limit]) if names else "主要业务处理"
-
-
 def chinese_number(value: int) -> str:
     digits = "零一二三四五六七八九"
     if value <= 0:
@@ -422,10 +345,6 @@ def chinese_number(value: int) -> str:
 
 def section_heading(index: int, title: str) -> str:
     return f"## {chinese_number(index)}、{title}"
-
-
-def sub_section_heading(index: int, title: str) -> str:
-    return f"### （{chinese_number(index)}）{title}"
 
 
 def strip_sentence_punctuation(text: str) -> str:
@@ -643,86 +562,32 @@ def tidy_manual_output(text: str) -> str:
     return value
 
 
-def append_module_body(lines: list[str], module: dict[str, Any], seq: int) -> None:
-    """输出单个模块的正文段落（不含标题）：用途、入口、可见控件、操作、规则反馈、截图预留。"""
-    visible_elements = as_text_list(module.get("visible_elements"))
-    validation_rules = as_text_list(module.get("validation_rules"))
-    feedback = as_text_list(module.get("feedback")) or [module["result"]]
-    lines.extend(
-        [
-            purpose_sentence(module["feature"], module["purpose"]) + entry_sentence(module["entry"]),
-            "",
-        ]
-    )
-    if module.get("usage"):
-        lines.extend([ensure_sentence(module["usage"]), ""])
-    element_text = visible_elements_sentence(visible_elements, module["feature"], seq)
-    if element_text:
-        lines.extend([element_text, ""])
-    step_text = steps_sentence(module["steps"], seq)
-    if step_text:
-        lines.extend([step_text, ""])
-    rule_feedback = rules_feedback_sentence(validation_rules, feedback, seq)
-    if rule_feedback:
-        lines.extend([rule_feedback, ""])
-    lines.extend(["", module["screenshot"], ""])
-
-
-def module_group_names(modules: list[dict[str, Any]], groups: list[dict[str, str]]) -> list[str]:
-    """归组顺序：先按 manual_groups 声明顺序，再补充模块中出现但未声明的新分组。"""
-    names: list[str] = []
-    for group in groups:
-        title = plain_manual_text(str(group.get("title") or "")).strip()
-        if title and title not in names:
-            names.append(title)
-    for module in modules:
-        group = plain_manual_text(str(module.get("group") or "")).strip()
-        if group and group not in names:
-            names.append(group)
-    return names
-
-
-def append_modules_canonical(
-    lines: list[str],
-    modules: list[dict[str, Any]],
-    start_index: int,
-    groups: list[dict[str, str]] | None = None,
-) -> int:
-    """输出功能操作部分：未分组模块（如用户登录）先平铺成章，再输出功能域归组大章；二级小节用中文括号序号且每组内重新计数。"""
-    group_names = module_group_names(modules, groups or [])
-    has_grouped = any(plain_manual_text(str(module.get("group") or "")).strip() for module in modules)
-    index = start_index
-    for module in modules:
-        if plain_manual_text(str(module.get("group") or "")).strip():
-            continue
-        lines.extend([section_heading(index, module["feature"]), ""])
-        append_module_body(lines, module, index)
-        index += 1
-    if group_names and has_grouped:
-        for group_name in group_names:
-            group_modules = [
-                module
-                for module in modules
-                if plain_manual_text(str(module.get("group") or "")).strip() == group_name
+def append_modules_canonical(lines: list[str], modules: list[dict[str, Any]], start_index: int) -> int:
+    for i, module in enumerate(modules, start=start_index):
+        visible_elements = as_text_list(module.get("visible_elements"))
+        validation_rules = as_text_list(module.get("validation_rules"))
+        feedback = as_text_list(module.get("feedback")) or [module["result"]]
+        lines.extend(
+            [
+                section_heading(i, module["feature"]),
+                "",
+                purpose_sentence(module["feature"], module["purpose"]) + entry_sentence(module["entry"]),
+                "",
             ]
-            if not group_modules:
-                continue
-            lines.extend([section_heading(index, group_name), ""])
-            intro = ""
-            for group in groups or []:
-                if plain_manual_text(str(group.get("title") or "")).strip() == group_name:
-                    intro = plain_manual_text(str(group.get("intro") or group.get("description") or "")).strip()
-                    break
-            if intro:
-                lines.extend([ensure_sentence(intro), ""])
-            else:
-                names = natural_join([module["feature"] for module in group_modules])
-                lines.extend([f"本部分说明{group_name}的使用方法，包括{names}。", ""])
-            for seq, module in enumerate(group_modules, start=1):
-                lines.extend([sub_section_heading(seq, module["feature"]), ""])
-                append_module_body(lines, module, seq)
-            index += 1
-    return index
+        )
+        if module.get("usage"):
+            lines.extend([ensure_sentence(module["usage"]), ""])
+        element_text = visible_elements_sentence(visible_elements, module["feature"], i)
+        if element_text:
+            lines.extend([element_text, ""])
+        step_text = steps_sentence(module["steps"], i)
+        if step_text:
+            lines.extend([step_text, ""])
+        rule_feedback = rules_feedback_sentence(validation_rules, feedback, i)
+        if rule_feedback:
+            lines.extend([rule_feedback, ""])
+        lines.extend(["", module["screenshot"], ""])
+    return start_index + len(modules)
 
 
 def append_flow_canonical(lines: list[str], software_name: str, flow: list[str], start_index: int) -> int:
@@ -760,7 +625,6 @@ def render_manual_canonical(
     system_rows = normalize_system_requirements(business)
     faq_items = normalize_faq(business, software_name)
     glossary_items = normalize_glossary(business, modules, software_name)
-    module_groups = normalize_manual_groups(business)
     overview_paragraphs: list[str] = []
     for section in manual_sections or []:
         if isinstance(section, dict) and section.get("paragraphs") and len(overview_paragraphs) < 4:
@@ -805,7 +669,7 @@ def render_manual_canonical(
             "",
         ]
     )
-    next_index = append_modules_canonical(lines, modules, start_index=5, groups=module_groups)
+    next_index = append_modules_canonical(lines, modules, start_index=5)
     if flow:
         next_index = append_flow_canonical(lines, software_name, flow, start_index=next_index)
     lines.extend([section_heading(next_index, "常见问题解答"), ""])

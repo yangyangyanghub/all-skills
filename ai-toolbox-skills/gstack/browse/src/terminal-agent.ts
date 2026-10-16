@@ -3,8 +3,8 @@
  * sidebar. Translates the phoenix gbrowser PTY (cmd/gbd/terminal.go) into
  * Bun, with a few changes informed by codex's outside-voice review:
  *
- *  - Lives in a separate non-compiled bun process from sidebar-agent.ts so
- *    a bug in WS framing or PTY cleanup can't take down the chat path.
+ *  - Lives in a separate non-compiled bun process from the browse daemon so
+ *    a bug in WS framing or PTY cleanup can't take down the command surface.
  *  - Binds 127.0.0.1 only — never on the dual-listener tunnel surface.
  *  - Origin validation on the WS upgrade is REQUIRED (not defense-in-depth)
  *    because a localhost shell WS is a real cross-site WebSocket-hijacking
@@ -23,14 +23,27 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { writeSecureFile, mkdirSecure } from './file-permissions';
+import { writeSecureFile, restrictFilePermissions, mkdirSecure } from './file-permissions';
+import { atomicWriteSync, atomicWriteQuiet } from '../../lib/fs-atomic';
 import { safeUnlink } from './error-handling';
-import { writeAgentRecord, clearAgentRecord } from './terminal-agent-control';
+import { writeAgentRecord, readAgentRecord, clearAgentRecord, readAgentStartTime, acquireAgentStateLock } from './terminal-agent-control';
+import { findAvailablePort } from './port-allocator';
+import { extractPtyCookie } from './pty-session-cookie';
+import { allowedExtensionOrigin } from './extension-id';
+import {
+  createPtyLifecycle, disposePtyProcess, ptyCompletionReason,
+  type PtyCompletion, type PtyLifecycle,
+} from './terminal-pty-lifecycle';
 
 const STATE_FILE = process.env.BROWSE_STATE_FILE || path.join(process.env.HOME || '/tmp', '.gstack', 'browse.json');
 const PORT_FILE = path.join(path.dirname(STATE_FILE), 'terminal-port');
 const BROWSE_SERVER_PORT = parseInt(process.env.BROWSE_SERVER_PORT || '0', 10);
-const EXTENSION_ID = process.env.BROWSE_EXTENSION_ID || ''; // optional: tighten Origin check
+const BROWSE_OWNER_PID = parseInt(process.env.BROWSE_OWNER_PID || '0', 10);
+const BROWSE_OWNER_START_TIME = process.env.BROWSE_OWNER_START_TIME || (BROWSE_OWNER_PID > 0 ? readAgentStartTime(BROWSE_OWNER_PID) : '');
+const OWNER_WATCHDOG_MS = parseInt(
+  process.env.GSTACK_TERMINAL_OWNER_WATCHDOG_MS || '15000',
+  10,
+);
 const INTERNAL_TOKEN = crypto.randomBytes(32).toString('base64url'); // shared with parent server via env at spawn
 /**
  * Per-boot generation identifier. Loopback /internal/* callers include
@@ -39,7 +52,7 @@ const INTERNAL_TOKEN = crypto.randomBytes(32).toString('base64url'); // shared w
  * header means "legacy caller" and is accepted (backward compat); a
  * present-but-mismatched header returns 409 stale generation.
  */
-const CURRENT_GEN = crypto.randomBytes(16).toString('base64url');
+const CURRENT_GEN = process.env.BROWSE_AGENT_GEN || crypto.randomBytes(16).toString('base64url');
 
 // In-memory attach-token registry. Parent posts /internal/grant after
 // /pty-session; we validate WS upgrades against this map.
@@ -70,15 +83,11 @@ const sessionsById = new Map<string, PtySession>();
 // Active PTY session per WS. One terminal per connection. Codex finding #4:
 // uncaught handlers below catch bugs in framing/cleanup so they don't kill
 // the listener loop.
-process.on('uncaughtException', (err) => {
-  console.error('[terminal-agent] uncaughtException:', err);
-});
-process.on('unhandledRejection', (reason) => {
-  console.error('[terminal-agent] unhandledRejection:', reason);
-});
-
 export interface PtySession {
   proc: any | null;        // Bun.Subprocess once spawned
+  lifecycle?: PtyLifecycle | null;
+  completion?: PtyCompletion;
+  disposed?: boolean;
   cols: number;
   rows: number;
   cookie: string;
@@ -266,12 +275,9 @@ function writeClaudeAvailable(): void {
     checked_at: new Date().toISOString(),
   };
   const target = path.join(stateDir, 'claude-available.json');
-  const tmp = path.join(stateDir, `.tmp-claude-${process.pid}`);
-  try {
-    writeSecureFile(tmp, JSON.stringify(status, null, 2));
-    fs.renameSync(tmp, target);
-  } catch {
-    safeUnlink(tmp);
+  // Fire-and-forget state file: a failed write must not break boot.
+  if (atomicWriteQuiet(target, JSON.stringify(status, null, 2), { mode: 0o600 })) {
+    restrictFilePermissions(target); // Windows ACL hardening
   }
 }
 
@@ -295,11 +301,12 @@ function buildTabAwarenessHint(stateDir: string): string {
     'You are running inside the gstack browser sidebar with live access to the user\'s browser tabs.',
     '',
     'Tab state files (kept fresh automatically by the extension):',
-    `  ${tabsFile}        — all open tabs (id, url, title, active, pinned)`,
-    `  ${activeFile}    — the currently active tab`,
-    'Read these any time the user asks about "tabs", "the current page", or anything multi-tab. Do NOT shell out to $B tabs just to learn what\'s open — read the file.',
+    `  ${tabsFile}        — all open tabs: tabs[] of {tabId, url, title, active, pinned, windowId}`,
+    `  ${activeFile}    — the currently active tab: {tabId, url, title}`,
+    'Read these any time the user asks about "tabs", "the current page", or anything multi-tab. They\'re kept current, so read them instead of running $B tabs when you only need to know what\'s open.',
     '',
     'Tab manipulation commands (via $B):',
+    '  ($B is the gstack browse CLI. This shell does not set it, so resolve it the way the /browse skill does: the project\'s .claude/skills/gstack/browse/dist/browse if present, else ~/.claude/skills/gstack/browse/dist/browse.)',
     '  $B tab <id>                 — switch to a tab',
     '  $B newtab [url]             — open a new tab',
     '  $B closetab [id]            — close a tab (current if no id)',
@@ -315,7 +322,7 @@ function buildTabAwarenessHint(stateDir: string): string {
 }
 
 /** Spawn claude in a PTY. Returns null if claude not on PATH. */
-function spawnClaude(cols: number, rows: number, onData: (chunk: Buffer) => void) {
+function spawnClaude(cols: number, rows: number, lifecycle: PtyLifecycle) {
   const claudePath = findClaude();
   if (!claudePath) return null;
 
@@ -342,10 +349,14 @@ function spawnClaude(cols: number, rows: number, onData: (chunk: Buffer) => void
   const tabHint = buildTabAwarenessHint(stateDir);
 
   const proc = (Bun as any).spawn([claudePath, '--append-system-prompt', tabHint], {
+    windowsHide: true,
     terminal: {
       rows,
       cols,
-      data(_terminal: any, chunk: Buffer) { onData(chunk); },
+      data(_terminal: any, chunk: Buffer) { lifecycle.data(chunk); },
+      exit(_terminal: any, code: number, signal: string | null) {
+        lifecycle.readerEnded(code, signal);
+      },
     },
     env,
   });
@@ -354,17 +365,24 @@ function spawnClaude(cols: number, rows: number, onData: (chunk: Buffer) => void
 
 /** Cleanup a PTY session: SIGINT, then SIGKILL after 3s. */
 function disposeSession(session: PtySession): void {
-  try { session.proc?.terminal?.close?.(); } catch {}
-  if (session.proc?.pid) {
-    try { session.proc.kill?.('SIGINT'); } catch {}
-    setTimeout(() => {
-      try {
-        if (session.proc && !session.proc.killed) session.proc.kill?.('SIGKILL');
-      } catch {}
-    }, 3000);
-  }
+  // Suppress callbacks caused by explicit close, and cancel any drain deadline.
+  session.disposed = true;
+  session.lifecycle?.dispose();
+  session.lifecycle = null;
+  const proc = session.proc;
   session.proc = null;
   session.spawned = false;
+  disposePtyProcess(proc);
+}
+
+function sendPtyCompletion(session: PtySession): void {
+  if (!session.completion || !session.liveWs) return;
+  // Keep process status and reader status distinct. Linux PTY shutdown can
+  // report reader status 1; Bun exposes no errno to distinguish it from other
+  // I/O errors. Keep completeness unknown for that status, rather than claiming
+  // clean EOF or loss; only a missing reader callback proves drain timeout.
+  try { session.liveWs.send(JSON.stringify({ type: 'pty-exit', ...session.completion })); } catch {}
+  try { session.liveWs.close(1000, ptyCompletionReason(session.completion)); } catch {}
 }
 
 /**
@@ -438,37 +456,49 @@ async function internalHandler<T>(
  * surfaced the error to the client (or will via the next frame).
  */
 function maybeSpawnPty(ws: any, session: PtySession): boolean {
+  if (session.disposed || session.completion) return false;
   if (session.spawned) return true;
   session.spawned = true;
   let leftover = Buffer.alloc(0);
-  const proc = spawnClaude(session.cols, session.rows, (chunk) => {
-    const combined = Buffer.concat([leftover, Buffer.from(chunk)]);
-    // UTF-8 boundary detection (issue #1272). Look back at most 3 bytes
-    // for the start of an incomplete multibyte sequence and defer it.
-    let safeEnd = combined.length;
-    for (let i = combined.length - 1; i >= Math.max(0, combined.length - 3); i--) {
-      const b = combined[i];
-      if ((b & 0x80) === 0) { safeEnd = i + 1; break; }
-      if ((b & 0xC0) === 0x80) continue;
-      const expected = (b & 0xE0) === 0xC0 ? 2 : (b & 0xF0) === 0xE0 ? 3 : 4;
-      safeEnd = (combined.length - i >= expected) ? combined.length : i;
-      break;
+  const forward = (flush: Buffer) => {
+    if (!flush.length) return;
+    appendToRingBuffer(session, flush);
+    if (session.liveWs) {
+      try { session.liveWs.sendBinary(flush); } catch {}
     }
-    const flush = combined.slice(0, safeEnd);
-    leftover = combined.slice(safeEnd);
-    if (flush.length) {
-      // Always record into the ring buffer (Commit 3) so re-attach can
-      // replay. session.liveWs is what changes across re-attaches — we
-      // close over `session`, not the original `ws`, so the write always
-      // goes to whichever ws is currently attached (or is skipped when
-      // detached and liveWs is null).
-      appendToRingBuffer(session, flush);
-      if (session.liveWs) {
-        try { session.liveWs.sendBinary(flush); } catch {}
+  };
+  const lifecycle = createPtyLifecycle({
+    onData(chunk) {
+      const combined = Buffer.concat([leftover, Buffer.from(chunk)]);
+      // UTF-8 boundary detection (issue #1272). Look back at most 3 bytes
+      // for the start of an incomplete multibyte sequence and defer it.
+      let safeEnd = combined.length;
+      for (let i = combined.length - 1; i >= Math.max(0, combined.length - 3); i--) {
+        const b = combined[i];
+        if ((b & 0x80) === 0) { safeEnd = i + 1; break; }
+        if ((b & 0xC0) === 0x80) continue;
+        const expected = (b & 0xE0) === 0xC0 ? 2 : (b & 0xF0) === 0xE0 ? 3 : 4;
+        safeEnd = (combined.length - i >= expected) ? combined.length : i;
+        break;
       }
-    }
+      const flush = combined.slice(0, safeEnd);
+      leftover = combined.slice(safeEnd);
+      forward(flush);
+    },
+    onComplete(completion) {
+      // Preserve a final incomplete UTF-8 sequence as bytes as well. A reader
+      // error/deadline remains explicit in the completion record.
+      forward(leftover);
+      leftover = Buffer.alloc(0);
+      session.completion = completion;
+      disposeSession(session);
+      sendPtyCompletion(session);
+    },
   });
+  session.lifecycle = lifecycle;
+  const proc = spawnClaude(session.cols, session.rows, lifecycle);
   if (!proc) {
+    lifecycle.dispose();
     try {
       ws.send(JSON.stringify({
         type: 'error',
@@ -480,16 +510,27 @@ function maybeSpawnPty(ws: any, session: PtySession): boolean {
     return false;
   }
   session.proc = proc;
-  proc.exited?.then?.(() => {
-    try { session.liveWs?.close(1000, 'pty exited'); } catch {}
-  });
+  proc.exited.then(
+    (code: number) => lifecycle.exited(code, proc.signalCode ?? null),
+    () => lifecycle.exited(null, proc.signalCode ?? null, true),
+  );
   return true;
 }
 
-function buildServer() {
-  return Bun.serve({
+interface TerminalAgentWsData {
+  cookie: string;
+  sessionId: string | null;
+}
+
+function buildServer(port: number) {
+  return Bun.serve<TerminalAgentWsData>({
     hostname: '127.0.0.1',
-    port: 0,
+    // #2314: allocated from the SAME fixed 10000-60000 scan range the main
+    // server uses (port-allocator.ts, decision 8) — never `port: 0`. Binding
+    // 0 drew from the OS EPHEMERAL range (49152-65535 on macOS), where this
+    // weeks-lived agent squatted ports that short-lived `app.listen(0)` test
+    // servers expected to receive, absorbing their traffic as phantom 404s.
+    port,
     idleTimeout: 0, // PTY connections are long-lived; default idleTimeout would kill them
 
     fetch(req, server) {
@@ -539,6 +580,15 @@ function buildServer() {
           }
           disposeSession(session);
           sessionsById.delete(sid);
+          // Disposal no longer closes the socket through proc.exited. Retire
+          // its heartbeat and grant explicitly; late input cannot respawn this
+          // disposed session while the close handshake is in progress.
+          if (session.pingInterval) {
+            clearInterval(session.pingInterval);
+            session.pingInterval = null;
+          }
+          if (session.cookie) validTokens.delete(session.cookie);
+          try { session.liveWs?.close(4001, 'pty restarted'); } catch {}
           return { killed: 1 };
         });
       }
@@ -555,6 +605,7 @@ function buildServer() {
           pid: process.pid,
           gen: CURRENT_GEN,
           sessions: validTokens.size,
+          completedSessions: [...sessionsById.values()].filter(session => session.completion).length,
         }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
 
@@ -569,8 +620,8 @@ function buildServer() {
       }
 
       // /ws — WebSocket upgrade. CRITICAL gates:
-      //   (1) Origin must be chrome-extension://<id>. Cross-site WS hijacking
-      //       defense — required, not optional.
+      //   (1) Origin must be exactly the pinned (or gstack-config configured)
+      //       extension. Any other origin, other extensions included, is 403.
       //   (2) Token must be in validTokens. We accept the token via two
       //       transports for compatibility:
       //         - Sec-WebSocket-Protocol (preferred for browsers — the only
@@ -583,12 +634,7 @@ function buildServer() {
       //       validTokens Set, populated by the parent server's
       //       authenticated /pty-session → /internal/grant chain.
       if (url.pathname === '/ws') {
-        const origin = req.headers.get('origin') || '';
-        const isExtensionOrigin = origin.startsWith('chrome-extension://');
-        if (!isExtensionOrigin) {
-          return new Response('forbidden origin', { status: 403 });
-        }
-        if (EXTENSION_ID && origin !== `chrome-extension://${EXTENSION_ID}`) {
+        if (req.headers.get('origin') !== allowedExtensionOrigin()) {
           return new Response('forbidden origin', { status: 403 });
         }
 
@@ -598,28 +644,22 @@ function buildServer() {
         // first that matches a known token.
         const protoHeader = req.headers.get('sec-websocket-protocol') || '';
         let token: string | null = null;
-        let acceptedProtocol: string | null = null;
         for (const raw of protoHeader.split(',').map(s => s.trim()).filter(Boolean)) {
           const candidate = raw.startsWith('gstack-pty.') ? raw.slice('gstack-pty.'.length) : raw;
           if (validTokens.has(candidate)) {
             token = candidate;
-            acceptedProtocol = raw;
             break;
           }
         }
 
         // Fallback: Cookie gstack_pty (legacy / non-browser callers).
+        // Parsing is shared with the server via extractPtyCookie; VALIDATION
+        // deliberately stays against the agent's own validTokens map — the
+        // server's registry lives in a different process.
         if (!token) {
-          const cookieHeader = req.headers.get('cookie') || '';
-          for (const part of cookieHeader.split(';')) {
-            const [name, ...rest] = part.trim().split('=');
-            if (name === 'gstack_pty') {
-              const candidate = rest.join('=') || null;
-              if (candidate && validTokens.has(candidate)) {
-                token = candidate;
-              }
-              break;
-            }
+          const candidate = extractPtyCookie(req);
+          if (candidate && validTokens.has(candidate)) {
+            token = candidate;
           }
         }
 
@@ -632,13 +672,13 @@ function buildServer() {
         // sessionsById so /internal/restart and (Commit 3) re-attach
         // lookups can find it.
         const sessionId = validTokens.get(token) ?? null;
+        // No explicit Sec-WebSocket-Protocol echo: Bun >= 1.3 auto-echoes the
+        // first offered protocol in the 101 response, so setting the header
+        // here produced a DUPLICATE header — strict clients (Chromium, python
+        // websockets) reject the handshake per RFC 6455 and the sidebar
+        // terminal could never connect. Verified on Bun 1.3.6.
         const upgraded = server.upgrade(req, {
           data: { cookie: token, sessionId },
-          // Echo the protocol back so the browser accepts the upgrade.
-          // Required when the client sends Sec-WebSocket-Protocol — the
-          // server MUST select one of the offered protocols, otherwise
-          // the browser closes the connection immediately.
-          ...(acceptedProtocol ? { headers: { 'Sec-WebSocket-Protocol': acceptedProtocol } } : {}),
         });
         return upgraded ? undefined : new Response('upgrade failed', { status: 500 });
       }
@@ -656,8 +696,8 @@ function buildServer() {
        * after `spawned: true` is a no-op.
        */
       open(ws) {
-        const sessionId = (ws.data as any)?.sessionId ?? null;
-        const cookie = (ws.data as any)?.cookie || '';
+        const sessionId = ws.data?.sessionId ?? null;
+        const cookie = ws.data?.cookie || '';
 
         // Commit 3 re-attach: if this sessionId already has a detached
         // PtySession in sessionsById, REPLACE its liveWs ref and replay
@@ -686,6 +726,9 @@ function buildServer() {
             // immediately after this text frame IS the replay.
             try { ws.send(JSON.stringify({ type: 'reattach-begin', sessionId })); } catch {}
             try { ws.sendBinary(buildReplayPayload(existing)); } catch {}
+            // A child can finish while detached. Replay its final bytes before
+            // reporting completion; never spawn a replacement into that lease.
+            sendPtyCompletion(existing);
             return;
           }
         }
@@ -719,6 +762,7 @@ function buildServer() {
 
       message(ws, raw) {
         let session = sessions.get(ws);
+        if (session && (session.disposed || session.liveWs !== ws)) return;
         if (!session) {
           // Fallback for any path where open() didn't fire (shouldn't happen
           // in Bun.serve but keeps the spawn path safe). No keepalive on
@@ -727,9 +771,9 @@ function buildServer() {
             proc: null,
             cols: 80,
             rows: 24,
-            cookie: (ws.data as any)?.cookie || '',
+            cookie: ws.data?.cookie || '',
             liveWs: ws,
-            sessionId: (ws.data as any)?.sessionId ?? null,
+            sessionId: ws.data?.sessionId ?? null,
             spawned: false,
             pingInterval: null,
             ringBuffer: [],
@@ -807,7 +851,11 @@ function buildServer() {
         // Always drop the WS-keyed map entry and the per-attach
         // attachToken — the attach grant was single-use.
         sessions.delete(ws);
-        if (session.cookie) validTokens.delete(session.cookie);
+        const cookie = ws.data?.cookie;
+        if (cookie) validTokens.delete(cookie);
+        // A reattach can replace liveWs before the old socket's close arrives.
+        // That stale callback must not retire the new socket, grant or child.
+        if (session.liveWs !== ws) return;
         // Keepalive lives with the WS — every attach starts a fresh one.
         if (session.pingInterval) {
           clearInterval(session.pingInterval);
@@ -827,7 +875,9 @@ function buildServer() {
         const intentional = code === 4001 || code === 4404 || code === 1000;
         if (intentional || !session.sessionId) {
           disposeSession(session);
-          if (session.sessionId) sessionsById.delete(session.sessionId);
+          if (session.sessionId && sessionsById.get(session.sessionId) === session) {
+            sessionsById.delete(session.sessionId);
+          }
           return;
         }
 
@@ -839,7 +889,9 @@ function buildServer() {
         session.detachTimer = setTimeout(() => {
           if (!session.detached) return; // re-attached in the meantime
           disposeSession(session);
-          if (session.sessionId) sessionsById.delete(session.sessionId);
+          if (session.sessionId && sessionsById.get(session.sessionId) === session) {
+            sessionsById.delete(session.sessionId);
+          }
         }, DETACH_WINDOW_MS);
         // setTimeout returns a Bun Timer; unref so the detach window
         // doesn't keep the process alive past natural shutdown.
@@ -884,12 +936,10 @@ function handleTabState(msg: {
       })),
     };
     const target = path.join(stateDir, 'tabs.json');
-    const tmp = path.join(stateDir, `.tmp-tabs-${process.pid}`);
-    try {
-      writeSecureFile(tmp, JSON.stringify(payload, null, 2));
-      fs.renameSync(tmp, target);
-    } catch {
-      safeUnlink(tmp);
+    // Fire-and-forget state file: atomic write (via lib/fs-atomic) so
+    // claude never reads a half-written JSON document; failures swallowed.
+    if (atomicWriteQuiet(target, JSON.stringify(payload, null, 2), { mode: 0o600 })) {
+      restrictFilePermissions(target); // Windows ACL hardening
     }
   }
 
@@ -899,17 +949,12 @@ function handleTabState(msg: {
   const active = msg.active;
   if (active && active.url && !active.url.startsWith('chrome://') && !active.url.startsWith('chrome-extension://')) {
     const ctxFile = path.join(stateDir, 'active-tab.json');
-    const tmp = path.join(stateDir, `.tmp-tab-${process.pid}`);
-    try {
-      writeSecureFile(tmp, JSON.stringify({
-        tabId: active.tabId ?? null,
-        url: active.url,
-        title: active.title ?? '',
-      }));
-      fs.renameSync(tmp, ctxFile);
-    } catch {
-      safeUnlink(tmp);
-    }
+    const ok = atomicWriteQuiet(ctxFile, JSON.stringify({
+      tabId: active.tabId ?? null,
+      url: active.url,
+      title: active.title ?? '',
+    }), { mode: 0o600 });
+    if (ok) restrictFilePermissions(ctxFile); // Windows ACL hardening
   }
 }
 
@@ -919,17 +964,13 @@ function handleTabSwitch(msg: { tabId?: number; url?: string; title?: string }):
 
   const stateDir = path.dirname(STATE_FILE);
   const ctxFile = path.join(stateDir, 'active-tab.json');
-  const tmp = path.join(stateDir, `.tmp-tab-${process.pid}`);
-  try {
-    writeSecureFile(tmp, JSON.stringify({
-      tabId: msg.tabId ?? null,
-      url,
-      title: msg.title ?? '',
-    }));
-    fs.renameSync(tmp, ctxFile);
-  } catch {
-    safeUnlink(tmp);
-  }
+  // Fire-and-forget: atomic write via lib/fs-atomic, failures swallowed.
+  const ok = atomicWriteQuiet(ctxFile, JSON.stringify({
+    tabId: msg.tabId ?? null,
+    url,
+    title: msg.title ?? '',
+  }), { mode: 0o600 });
+  if (ok) restrictFilePermissions(ctxFile); // Windows ACL hardening
 
   // Best-effort sync to parent server so its activeTabId tracking matches.
   // No await; this is fire-and-forget.
@@ -957,9 +998,46 @@ function readBrowseToken(): string {
 }
 
 // Boot.
-function main() {
+async function main() {
+  const dir = path.dirname(PORT_FILE);
+  if (process.env.BROWSE_AGENT_GEN) {
+    const deadline = Date.now() + 2000;
+    while (Date.now() < deadline) {
+      const pending = readAgentRecord(dir);
+      if (pending?.gen === CURRENT_GEN && pending.pid === process.pid) break;
+      if (pending && pending.gen !== CURRENT_GEN) throw new Error('terminal-agent startup record was replaced');
+      await Bun.sleep(25);
+    }
+    const recorded = readAgentRecord(dir);
+    if (recorded?.pid !== process.pid || recorded.ownerPid !== BROWSE_OWNER_PID || recorded.ownerStartTime !== BROWSE_OWNER_START_TIME) {
+      throw new Error('terminal-agent startup record was not confirmed');
+    }
+  }
+  const pauseFile = process.env.NODE_ENV === 'test' ? process.env.GSTACK_TERMINAL_TEST_PUBLISH_BARRIER : undefined;
+  if (pauseFile) {
+    fs.writeFileSync(`${pauseFile}.ready`, 'ready');
+    while (!fs.existsSync(pauseFile)) await Bun.sleep(10);
+  }
   writeClaudeAvailable();
-  const server = buildServer();
+  // #2314: allocate from the shared fixed scan range, then bind. Probe-then-
+  // bind has a TOCTOU window — a concurrent process can take the port between
+  // the probe and Bun.serve, which throws and would kill the boot with no
+  // retry (main().catch → exit 1). Re-allocate and retry a few times; each
+  // iteration probes fresh, so only a genuine race lands here.
+  let server: ReturnType<typeof buildServer> | undefined;
+  let lastBindErr: unknown;
+  for (let attempt = 0; attempt < 5 && !server; attempt++) {
+    const allocatedPort = await findAvailablePort();
+    try {
+      server = buildServer(allocatedPort);
+    } catch (err) {
+      lastBindErr = err;
+    }
+  }
+  if (!server) {
+    console.error(`[terminal-agent] failed to bind after 5 attempts: ${lastBindErr}`);
+    process.exit(1);
+  }
   const port = (server as any).port || (server as any).address?.port;
   if (!port) {
     console.error('[terminal-agent] failed to bind: no port');
@@ -967,18 +1045,22 @@ function main() {
   }
 
   // Write port file atomically so the parent server can pick it up.
-  const dir = path.dirname(PORT_FILE);
-  try { mkdirSecure(dir); } catch {}
-  const tmp = `${PORT_FILE}.tmp-${process.pid}`;
-  writeSecureFile(tmp, String(port));
-  fs.renameSync(tmp, PORT_FILE);
-
-  // Write identity-based agent record (pid + per-boot gen). Replaces the
-  // v1.43- `pkill -f terminal-agent\.ts` regex teardown that could kill
-  // sibling gstack sessions. Callers (cli.ts spawn site, server.ts
-  // shutdown, the v1.44 watchdog) now route through killAgentByRecord in
-  // terminal-agent-control.ts.
-  writeAgentRecord(dir, { pid: process.pid, gen: CURRENT_GEN, startedAt: Date.now() });
+  // Throws on failure — a boot without a discoverable port file is broken.
+  const releasePublication = acquireAgentStateLock(dir, 5000, process.env.BROWSE_AGENT_GEN);
+  let record;
+  try {
+    const current = readAgentRecord(dir);
+    if (current && current.pid !== process.pid && current.pid > 0) throw new Error('terminal-agent record was replaced before bind');
+    record = process.env.BROWSE_AGENT_GEN ? current : {
+      pid: process.pid, gen: CURRENT_GEN, startedAt: Date.now(), startTime: readAgentStartTime(process.pid),
+      ownerPid: BROWSE_OWNER_PID, ownerStartTime: BROWSE_OWNER_START_TIME,
+    };
+    if (!record || record.pid !== process.pid || record.gen !== CURRENT_GEN) throw new Error('terminal-agent record was replaced before bind');
+    if (!process.env.BROWSE_AGENT_GEN) writeAgentRecord(dir, record);
+    writeSecureFile(INTERNAL_TOKEN_FILE, INTERNAL_TOKEN);
+    atomicWriteSync(PORT_FILE, String(port), { mode: 0o600 });
+    restrictFilePermissions(PORT_FILE);
+  } finally { releasePublication(); }
 
   // Hand the parent the internal token so it can call /internal/grant.
   // Parent learns INTERNAL_TOKEN via env (TERMINAL_AGENT_INTERNAL_TOKEN below).
@@ -987,13 +1069,37 @@ function main() {
   console.log(`[terminal-agent] listening on 127.0.0.1:${port} pid=${process.pid} gen=${CURRENT_GEN}`);
 
   // Cleanup port file + agent record on exit.
+  let cleaningUp = false;
   const cleanup = () => {
-    safeUnlink(PORT_FILE);
-    clearAgentRecord(dir);
+    if (cleaningUp) return;
+    cleaningUp = true;
+    try {
+      const releaseCleanup = acquireAgentStateLock(dir, 25);
+      try {
+        if (readAgentRecord(dir)?.gen === CURRENT_GEN) {
+          safeUnlink(PORT_FILE);
+          safeUnlink(INTERNAL_TOKEN_FILE);
+          clearAgentRecord(dir, record);
+        }
+      } finally { releaseCleanup(); }
+    } catch {}
     process.exit(0);
   };
   process.on('SIGTERM', cleanup);
   process.on('SIGINT', cleanup);
+
+  // The terminal agent is intentionally detached so it survives the short-lived
+  // CLI launcher, but its real owner is the persistent browse server. If that
+  // server crashes or is killed before running normal shutdown, the agent would
+  // otherwise be adopted by PID 1 and live forever. Poll the server PID and use
+  // the same cleanup path as an intentional shutdown when it disappears.
+  if (BROWSE_OWNER_PID > 0) {
+    const ownerWatchdog = setInterval(() => {
+      if (!BROWSE_OWNER_START_TIME || readAgentStartTime(BROWSE_OWNER_PID) !== BROWSE_OWNER_START_TIME
+        || readAgentRecord(dir)?.gen !== CURRENT_GEN) cleanup();
+    }, OWNER_WATCHDOG_MS);
+    (ownerWatchdog as any)?.unref?.();
+  }
 }
 
 // Export the internal token so cli.ts can pass the SAME value to the parent
@@ -1003,9 +1109,16 @@ function main() {
 // In practice, the agent generates INTERNAL_TOKEN once at boot and writes it
 // to a state file the parent reads. This avoids env-passing races. See main().
 const INTERNAL_TOKEN_FILE = path.join(path.dirname(STATE_FILE), 'terminal-internal-token');
-try {
-  mkdirSecure(path.dirname(INTERNAL_TOKEN_FILE));
-  writeSecureFile(INTERNAL_TOKEN_FILE, INTERNAL_TOKEN);
-} catch {}
 
-main();
+if (import.meta.main) {
+  process.on('uncaughtException', (err) => {
+    console.error('[terminal-agent] uncaughtException:', err);
+  });
+  process.on('unhandledRejection', (reason) => {
+    console.error('[terminal-agent] unhandledRejection:', reason);
+  });
+  main().catch((err) => {
+    console.error(`[terminal-agent] boot failed: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+  });
+}

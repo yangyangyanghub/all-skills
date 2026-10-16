@@ -19,9 +19,9 @@ import { probeTailscale, whoIs } from './tailscale-localapi';
 import { SessionTokenStore } from './session-tokens';
 import { mintForCaller } from './auth-mint';
 import { classifyRoute, proxyToDevice, type DeviceTunnel } from './proxy';
-import { writeAudit, writeAttempt, sanitizeReplacer } from './audit';
-import { bootstrapTunnel } from './tunnel-bootstrap';
-import { startTunnelKeepalive } from './devicectl';
+import { writeAudit, writeAttempt, sanitizeReplacer, saltedHash } from './audit';
+import { bootstrapTunnel, recoverTunnel, type TunnelRecovery } from './tunnel-bootstrap';
+import { startTunnelKeepalive, type SpawnImpl, type ResolveImpl } from './devicectl';
 import type { Capability } from './types';
 
 interface DaemonOptions {
@@ -37,7 +37,10 @@ interface DaemonOptions {
   attemptsPath?: string;
   allowlistPath?: string;
   // Test injection
+  proxyTimeoutMs?: number;
   tunnelProvider?: () => Promise<DeviceTunnel | null>;
+  /** Route-drop recovery (see recoverTunnel). Without it a route drop re-bootstraps. */
+  tunnelRecovery?: (failed: DeviceTunnel) => Promise<TunnelRecovery>;
   whoIsImpl?: (addr: string) => Promise<{ identity: string; raw: unknown }>;
   probeImpl?: () => Promise<{ ok: boolean; reason?: string; ownIdentity?: string }>;
 }
@@ -62,16 +65,65 @@ export async function startDaemon(opts: DaemonOptions): Promise<RunningDaemon | 
 
   const tokenStore = new SessionTokenStore();
   let tunnel: DeviceTunnel | null = null;
-  let cachedTunnelAt = 0;
+  let tunnelInFlight: Promise<DeviceTunnel | null> | null = null;
 
   const getTunnel = async (): Promise<DeviceTunnel | null> => {
-    // Cache the tunnel for 30s; refresh on demand.
-    if (tunnel && Date.now() - cachedTunnelAt < 30_000) return tunnel;
-    if (opts.tunnelProvider) {
-      tunnel = await opts.tunnelProvider();
-      cachedTunnelAt = Date.now();
+    // A successful bootstrap consumes and deletes the app's one-shot boot
+    // token. Keep that rotated tunnel for this daemon's lifetime instead of
+    // trying to bootstrap it again on a timer. Failed attempts are not cached.
+    if (tunnel) return tunnel;
+    if (!opts.tunnelProvider) return null;
+
+    // Multiple first requests can arrive before bootstrap completes. Share
+    // one provider call so they cannot race through independent rotations.
+    if (!tunnelInFlight) {
+      tunnelInFlight = Promise.resolve()
+        .then(() => opts.tunnelProvider!())
+        .then((candidate) => {
+          if (candidate) tunnel = candidate;
+          return candidate;
+        })
+        .finally(() => {
+          tunnelInFlight = null;
+        });
     }
-    return tunnel;
+    return tunnelInFlight;
+  };
+
+  const invalidateTunnel = (failedTunnel: DeviceTunnel): void => {
+    // A late response from the old app must not evict a tunnel that another
+    // request has already refreshed. Object identity gives each bootstrap a
+    // cheap generation token without exposing generation state elsewhere.
+    if (tunnel === failedTunnel) tunnel = null;
+  };
+
+  // Every request that failed on the same cached tunnel shares one refresh,
+  // so concurrent failures cause one probe or one bootstrap, never several.
+  let refreshInFlight: { failed: DeviceTunnel; promise: Promise<DeviceTunnel | null> } | null = null;
+  const refreshTunnel = (failedTunnel: DeviceTunnel, cause: RefreshCause): Promise<DeviceTunnel | null> => {
+    if (tunnel && tunnel !== failedTunnel) return Promise.resolve(tunnel);
+    if (refreshInFlight?.failed === failedTunnel) return refreshInFlight.promise;
+    if (!tunnel && tunnelInFlight) return tunnelInFlight;
+
+    const promise: Promise<DeviceTunnel | null> = (async () => {
+      // A route drop leaves the app and its in-memory bearer alive. Probe it
+      // first: a full bootstrap would have to relaunch the app (the one-shot
+      // boot-token file is gone) and wipe its QA state. A 401 skips this.
+      if (cause === 'route_lost' && opts.tunnelRecovery) {
+        const recovery = await opts.tunnelRecovery(failedTunnel);
+        if (recovery.action === 'unavailable') return null;
+        if (recovery.action === 'reuse') {
+          if (tunnel === failedTunnel) tunnel = recovery.tunnel;
+          return tunnel ?? recovery.tunnel;
+        }
+      }
+      invalidateTunnel(failedTunnel);
+      return getTunnel();
+    })().finally(() => {
+      if (refreshInFlight?.promise === promise) refreshInFlight = null;
+    });
+    refreshInFlight = { failed: failedTunnel, promise };
+    return promise;
   };
 
   // 2. Tailnet probe (fail-closed).
@@ -86,7 +138,7 @@ export async function startDaemon(opts: DaemonOptions): Promise<RunningDaemon | 
 
   // 3. Loopback listener (full surface).
   const loopbackServer = createServer(async (req, res) => {
-    await handleLoopback({ req, res, tokenStore, getTunnel });
+    await handleLoopback({ req, res, tokenStore, getTunnel, invalidateTunnel, refreshTunnel, proxyTimeoutMs: opts.proxyTimeoutMs });
   });
   // Use port 0 for OS-assigned port when test/random port collisions are a risk.
   const requestedPort = opts.loopbackPort;
@@ -97,7 +149,7 @@ export async function startDaemon(opts: DaemonOptions): Promise<RunningDaemon | 
   // mode this can collide; we try the actualPort first and skip ipv6 if it
   // fails (tests don't exercise ::1 explicitly).
   const loopbackServerV6 = createServer(async (req, res) => {
-    await handleLoopback({ req, res, tokenStore, getTunnel });
+    await handleLoopback({ req, res, tokenStore, getTunnel, invalidateTunnel, refreshTunnel, proxyTimeoutMs: opts.proxyTimeoutMs });
   });
   let v6Bound = false;
   try {
@@ -118,6 +170,9 @@ export async function startDaemon(opts: DaemonOptions): Promise<RunningDaemon | 
         res,
         tokenStore,
         getTunnel,
+        invalidateTunnel,
+        refreshTunnel,
+        proxyTimeoutMs: opts.proxyTimeoutMs,
         auditPath: opts.auditPath,
         attemptsPath: opts.attemptsPath,
         allowlistPath: opts.allowlistPath,
@@ -181,10 +236,118 @@ interface HandlerCtx {
   res: ServerResponse;
   tokenStore: SessionTokenStore;
   getTunnel: () => Promise<DeviceTunnel | null>;
+  invalidateTunnel: (failedTunnel: DeviceTunnel) => void;
+  refreshTunnel: (failedTunnel: DeviceTunnel, cause: RefreshCause) => Promise<DeviceTunnel | null>;
+  proxyTimeoutMs?: number;
   // Explicit security-log + allowlist paths (default to env-derived when undefined).
   auditPath?: string;
   attemptsPath?: string;
   allowlistPath?: string;
+}
+
+type DeviceProxyResponse = Awaited<ReturnType<typeof proxyToDevice>>;
+type RefreshCause = 'unauthorized' | 'route_lost';
+const RECOVERABLE_SOCKET_ERRORS = new Set([
+  'ECONNABORTED',
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  'EPIPE',
+  'ETIMEDOUT',
+]);
+
+function localProxyError(status: number, error: string): DeviceProxyResponse {
+  const body = Buffer.from(JSON.stringify({ error }, sanitizeReplacer));
+  return {
+    status,
+    headers: { 'content-type': 'application/json', 'content-length': String(body.length) },
+    body,
+  };
+}
+
+async function proxyAttempt(opts: Parameters<typeof proxyToDevice>[0]): Promise<DeviceProxyResponse> {
+  try {
+    return await proxyToDevice(opts);
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    // CoreDevice can surface the same stale route as several different socket
+    // failures while an app is being relaunched or replaced. Normalize those
+    // failures so the cache recovery path below can handle all of them.
+    if (code && RECOVERABLE_SOCKET_ERRORS.has(code)) {
+      return localProxyError(503, 'device_disconnected');
+    }
+    throw err;
+  }
+}
+
+function shouldRefreshTunnel(upstream: DeviceProxyResponse): boolean {
+  // A relaunched app has a new in-memory bearer and rejects the daemon's old
+  // rotated token: that needs a fresh bootstrap. A blip or redeploy can
+  // instead leave the CoreDevice route refusing connections or timing out:
+  // that goes through route-drop recovery first.
+  if (upstream.status === 401) return true;
+  if (upstream.status !== 503 && upstream.status !== 504) return false;
+  try {
+    const body = JSON.parse(upstream.body.toString('utf-8')) as { error?: string };
+    return body.error === 'device_disconnected' || body.error === 'upstream_timeout';
+  } catch {
+    return false;
+  }
+}
+
+function canReplayAfterRefresh(inbound: IncomingMessage, upstream: DeviceProxyResponse): boolean {
+  // A 401 proves the stale bearer was rejected before StateServer dispatched
+  // the operation, so retrying is safe even for a mutation. Connection loss
+  // is ambiguous: the app may have applied a tap/write before its response was
+  // lost. Replay only read-only requests in that case to prevent double taps.
+  if (upstream.status === 401) return true;
+  const method = inbound.method ?? 'GET';
+  return method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
+}
+
+async function proxyWithTunnelRecovery(opts: {
+  inbound: IncomingMessage;
+  body: Buffer;
+  sessionId: string | null;
+  agentIdentity?: string;
+  getTunnel: HandlerCtx['getTunnel'];
+  invalidateTunnel: HandlerCtx['invalidateTunnel'];
+  refreshTunnel: HandlerCtx['refreshTunnel'];
+  timeoutMs?: number;
+}): Promise<{ tunnel: DeviceTunnel; upstream: DeviceProxyResponse } | null> {
+  let tunnel = await opts.getTunnel();
+  if (!tunnel) return null;
+
+  const makeAttempt = (candidate: DeviceTunnel) => proxyAttempt({
+    inbound: opts.inbound,
+    body: opts.body,
+    tunnel: candidate,
+    sessionId: opts.sessionId,
+    agentIdentity: opts.agentIdentity,
+    timeoutMs: opts.timeoutMs,
+  });
+
+  let upstream = await makeAttempt(tunnel);
+  if (!shouldRefreshTunnel(upstream)) return { tunnel, upstream };
+
+  const failedTunnel = tunnel;
+  const replaySafe = canReplayAfterRefresh(opts.inbound, upstream);
+  const refreshed = await opts.refreshTunnel(tunnel, upstream.status === 401 ? 'unauthorized' : 'route_lost');
+  if (!refreshed) return replaySafe ? null : { tunnel: failedTunnel, upstream };
+
+  // The replacement is now cached for the next request, but never replay an
+  // ambiguous mutation whose response was lost: doing so could double-tap or
+  // apply a state transition twice.
+  if (!replaySafe) return { tunnel: failedTunnel, upstream };
+
+  tunnel = refreshed;
+  upstream = await makeAttempt(tunnel);
+  // Do not loop forever if the replacement is itself unavailable. A rejected
+  // bearer empties the cache so the next request bootstraps; a route that is
+  // still down keeps it so the next request probes again instead.
+  if (upstream.status === 401) opts.invalidateTunnel(tunnel);
+  return { tunnel, upstream };
 }
 
 function readBody(req: IncomingMessage, maxBytes = 1_048_576): Promise<Buffer | { error: 'body_too_large' }> {
@@ -228,7 +391,7 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
  * loopback bind itself is the boundary).
  */
 async function handleLoopback(ctx: HandlerCtx): Promise<void> {
-  const { req, res, tokenStore, getTunnel } = ctx;
+  const { req, res, tokenStore, getTunnel, invalidateTunnel, refreshTunnel } = ctx;
   const url = parseUrl(req.url ?? '/');
   const path = url.pathname ?? '/';
   const method = req.method ?? 'GET';
@@ -240,20 +403,38 @@ async function handleLoopback(ctx: HandlerCtx): Promise<void> {
       return;
     }
 
-    // /auth/sessions — list active sessions (owner only).
+    // /auth/sessions — list active sessions (owner only). Raw token values
+    // never leave the store: any local process can hit this listener, so a
+    // list that echoed live bearer tokens was a harvest-and-replay primitive.
+    // Callers get a salted-hash id plus metadata; revoke by identity, by the
+    // token they already hold from mint, or by token_id from this list.
     if (method === 'GET' && path === '/auth/sessions') {
-      sendJson(res, 200, { sessions: tokenStore.list() });
+      const sessions = await Promise.all(tokenStore.list().map(async ({ token, ...meta }) => ({
+        token_id: await saltedHash(token),
+        ...meta,
+      })));
+      sendJson(res, 200, { sessions });
       return;
     }
 
-    // /auth/revoke — revoke a token.
+    // /auth/revoke — revoke by raw token (the caller's own, from mint), by
+    // token_id (from /auth/sessions — keeps the list→revoke workflow alive
+    // now that the list is hash-only), or by identity.
     if (method === 'POST' && path === '/auth/revoke') {
       const body = await readBody(req);
       if ('error' in body) { sendJson(res, 413, body); return; }
-      const parsed = JSON.parse(body.toString('utf-8') || '{}') as { token?: string; identity?: string };
+      const parsed = JSON.parse(body.toString('utf-8') || '{}') as {
+        token?: string; token_id?: string; identity?: string;
+      };
       let count = 0;
       if (parsed.token) {
         count = tokenStore.revoke(parsed.token) ? 1 : 0;
+      } else if (parsed.token_id) {
+        for (const s of tokenStore.list()) {
+          if ((await saltedHash(s.token)) === parsed.token_id) {
+            count += tokenStore.revoke(s.token) ? 1 : 0;
+          }
+        }
       } else if (parsed.identity) {
         count = tokenStore.revokeByIdentity(parsed.identity);
       }
@@ -262,16 +443,25 @@ async function handleLoopback(ctx: HandlerCtx): Promise<void> {
     }
 
     // Other endpoints — proxy to the device.
-    const tunnel = await getTunnel();
-    if (!tunnel) {
-      sendJson(res, 503, { error: 'device_not_connected' });
-      return;
-    }
     const body = await readBody(req);
     if ('error' in body) { sendJson(res, 413, body); return; }
     const sessionId = (req.headers['x-session-id'] as string | undefined) ?? null;
     const agentIdentity = (req.headers['x-agent-identity'] as string | undefined) ?? undefined;
-    const upstream = await proxyToDevice({ inbound: req, body, tunnel, sessionId, agentIdentity });
+    const proxied = await proxyWithTunnelRecovery({
+      inbound: req,
+      body,
+      sessionId,
+      agentIdentity,
+      getTunnel,
+      invalidateTunnel,
+      refreshTunnel,
+      timeoutMs: ctx.proxyTimeoutMs,
+    });
+    if (!proxied) {
+      sendJson(res, 503, { error: 'device_not_connected' });
+      return;
+    }
+    const { upstream } = proxied;
     res.writeHead(upstream.status, upstream.headers);
     res.end(upstream.body);
   } catch (err) {
@@ -287,7 +477,7 @@ interface TailnetCtx extends HandlerCtx {
  * Tailnet handler — locked allowlist + capability tiers.
  */
 async function handleTailnet(ctx: TailnetCtx): Promise<void> {
-  const { req, res, tokenStore, getTunnel, whoIsImpl, auditPath, attemptsPath, allowlistPath } = ctx;
+  const { req, res, tokenStore, getTunnel, invalidateTunnel, refreshTunnel, whoIsImpl, auditPath, attemptsPath, allowlistPath } = ctx;
   const url = parseUrl(req.url ?? '/');
   const path = url.pathname ?? '/';
   const method = req.method ?? 'GET';
@@ -375,19 +565,22 @@ async function handleTailnet(ctx: TailnetCtx): Promise<void> {
     }
 
     // Proxy to device.
-    const tunnel = await getTunnel();
-    if (!tunnel) {
+    const sessionId = (req.headers['x-session-id'] as string | undefined) ?? null;
+    const proxied = await proxyWithTunnelRecovery({
+      inbound: req,
+      body,
+      sessionId,
+      agentIdentity: session.identity,
+      getTunnel,
+      invalidateTunnel,
+      refreshTunnel,
+      timeoutMs: ctx.proxyTimeoutMs,
+    });
+    if (!proxied) {
       sendJson(res, 503, { error: 'device_not_connected' });
       return;
     }
-    const sessionId = (req.headers['x-session-id'] as string | undefined) ?? null;
-    const upstream = await proxyToDevice({
-      inbound: req,
-      body,
-      tunnel,
-      sessionId,
-      agentIdentity: session.identity,
-    });
+    const { tunnel, upstream } = proxied;
 
     // Audit the action (mutating endpoints only).
     if (requiredCapability !== 'observe') {
@@ -410,6 +603,66 @@ async function handleTailnet(ctx: TailnetCtx): Promise<void> {
   }
 }
 
+/**
+ * Real-device tunnel wiring the CLI uses: bootstrap with the CoreDevice
+ * keepalive, plus route-drop recovery bound to the same target. Exported so
+ * tests drive exactly this wiring against a simulated device.
+ */
+export function deviceTunnelSource(opts: {
+  udid?: string;
+  bundleId: string;
+  port?: number;
+  spawnImpl?: SpawnImpl;
+  resolveImpl?: ResolveImpl;
+  fetchImpl?: typeof fetch;
+  keepalive?: (udid: string) => { stop: () => void };
+  log?: (line: string) => void;
+}): {
+  tunnelProvider: () => Promise<DeviceTunnel | null>;
+  tunnelRecovery: (failed: DeviceTunnel) => Promise<TunnelRecovery>;
+  stop: () => void;
+} {
+  const log = opts.log ?? ((line: string) => process.stderr.write(`${line}\n`));
+  const keepaliveFor = opts.keepalive ?? ((udid: string) => startTunnelKeepalive(udid));
+  let keepalive: { stop: () => void } | null = null;
+  return {
+    tunnelProvider: async () => {
+      const result = await bootstrapTunnel({
+        udid: opts.udid,
+        bundleId: opts.bundleId,
+        port: opts.port,
+        spawnImpl: opts.spawnImpl,
+        resolveImpl: opts.resolveImpl,
+        fetchImpl: opts.fetchImpl,
+      });
+      if (!result.ok) {
+        log(`bootstrap error: ${result.error}${result.detail ? ' — ' + result.detail : ''}`);
+        return null;
+      }
+      keepalive?.stop();
+      keepalive = keepaliveFor(result.tunnel.udid);
+      return result.tunnel;
+    },
+    tunnelRecovery: async (failed) => {
+      const recovery = await recoverTunnel(failed, {
+        udid: opts.udid,
+        bundleId: opts.bundleId,
+        spawnImpl: opts.spawnImpl,
+        resolveImpl: opts.resolveImpl,
+        fetchImpl: opts.fetchImpl,
+      });
+      if (recovery.action === 'reuse') log(`tunnel recovered: kept the session at [${recovery.tunnel.ipv6Addr}]:${recovery.tunnel.port}`);
+      else if (recovery.action === 'bootstrap') log(`tunnel recovery: ${recovery.reason}; bootstrapping`);
+      else log(`tunnel recovery: ${recovery.reason}`);
+      return recovery;
+    },
+    stop: () => {
+      keepalive?.stop();
+      keepalive = null;
+    },
+  };
+}
+
 // CLI entry — runs when this file is executed directly, not when imported.
 if (import.meta.main) {
   const port = parseInt(process.env.GSTACK_IOS_DAEMON_PORT ?? '9099', 10);
@@ -417,40 +670,21 @@ if (import.meta.main) {
   const targetUDID = process.env.GSTACK_IOS_TARGET_UDID;
   const bundleId = process.env.GSTACK_IOS_TARGET_BUNDLE_ID ?? 'com.gstack.iosqa.fixture';
 
-  // Default tunnelProvider: when GSTACK_IOS_TARGET_UDID (or a default with
-  // any connected paired device) is set, bootstrap a real CoreDevice tunnel.
-  // Otherwise return null (proxy will return 503 device_not_connected).
-  //
-  // After a successful bootstrap we spawn a periodic devicectl `info details`
-  // call to keep the CoreDevice tunnel session alive — Xcode 26's CoreDevice
-  // only holds the tunnel up while a devicectl command is in-flight, so
-  // without a poke every few seconds the IPv6 becomes unroutable.
-  let keepalive: { stop: () => void } | null = null;
-  const realTunnelProvider = async () => {
-    const result = await bootstrapTunnel({
-      udid: targetUDID,
-      bundleId,
-    });
-    if (!result.ok) {
-      process.stderr.write(`bootstrap error: ${result.error}${result.detail ? ' — ' + result.detail : ''}\n`);
-      return null;
-    }
-    if (keepalive) keepalive.stop();
-    keepalive = startTunnelKeepalive(result.tunnel.udid);
-    return result.tunnel;
-  };
-
-  const shutdown = () => {
-    if (keepalive) { keepalive.stop(); keepalive = null; }
-  };
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
-  process.on('exit', shutdown);
+  // Bootstrap a real CoreDevice tunnel to GSTACK_IOS_TARGET_UDID, or to the
+  // single best connected paired iPhone/iPad. With no device the provider
+  // returns null and the proxy answers 503 device_not_connected. Xcode 26's
+  // CoreDevice only holds the tunnel up while a devicectl command is in
+  // flight, so a successful bootstrap also starts a periodic keepalive.
+  const source = deviceTunnelSource({ udid: targetUDID, bundleId });
+  process.on('SIGINT', source.stop);
+  process.on('SIGTERM', source.stop);
+  process.on('exit', source.stop);
 
   startDaemon({
     loopbackPort: port,
     tailnetEnabled: tailnet,
-    tunnelProvider: realTunnelProvider,
+    tunnelProvider: source.tunnelProvider,
+    tunnelRecovery: source.tunnelRecovery,
   }).then((d) => {
     if ('error' in d) {
       process.stderr.write(`daemon error: ${d.error}\n`);

@@ -1,0 +1,75 @@
+<!-- Detail Overlay Modal Component — 详情弹窗组件 -->
+<!-- 复制 CSS + HTML 到课件中，与 detail-stats.js 配合使用 -->
+<!-- 关闭按钮使用 .detail-close-btn 类名，与 detail-stats.js 注释中一致 -->
+
+<!-- ===== CSS ===== -->
+<!-- 复制以下 CSS 到课件的 <style> 中 -->
+<!--
+<style>
+/* 遮罩 + 居中面板 */
+.detail-overlay{
+  display:none;position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,.55);
+  justify-content:center;align-items:flex-start;padding-top:40px;
+}
+.detail-overlay.show{display:flex}
+.detail-panel{
+  background:#fff;border-radius:16px;width:min(92vw,700px);max-height:88vh;
+  overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.25);
+  padding:28px 32px 32px;position:relative;
+}
+.detail-close-btn{
+  position:absolute;top:16px;right:20px;width:36px;height:36px;
+  border-radius:50%;border:2px solid var(--line);background:#fff;
+  font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--primary);transition:background .2s;
+}
+.detail-close-btn:hover{background:var(--red);color:#fff;border-color:var(--red)}
+/* 每题卡片 */
+.detail-q-block{
+  border:1px solid var(--line);border-radius:12px;padding:12px 18px;
+  margin-bottom:12px;background:var(--paper);
+}
+.detail-q-title{font-size:16px;font-weight:700;color:var(--primary);margin-bottom:6px}
+/* 选项统计：条形图 + 百分比为主视觉，选项文本为次视觉（v2026-10-13） */
+.detail-q-bar .bar-row{position:relative;display:block;padding:5px 0;border-bottom:1px dashed var(--line)}
+.detail-q-bar .bar-row:last-child{border-bottom:none}
+.detail-q-bar .opt-barline{display:flex;align-items:center;gap:10px}
+.detail-q-bar .opt-tag{font-weight:800;font-size:18px;min-width:44px;flex:none;white-space:nowrap}
+.detail-q-bar .bar-bg{flex:1;height:18px;background:var(--paper-2);border-radius:5px;overflow:hidden}
+.detail-q-bar .bar-fill{height:100%;border-radius:5px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:13px;color:#fff;font-weight:700}
+.detail-q-bar .bar-fill.green{background:var(--green)}
+.detail-q-bar .bar-fill.orange{background:var(--accent)}
+.detail-q-bar .bar-fill.gray{background:#b8bcc2}
+/* 百分比：放大加粗，作为统计核心数字（视觉重点） */
+.detail-q-bar .opt-pct{width:56px;text-align:right;font-size:20px;font-weight:800;color:var(--primary);flex:none}
+/* 选项文本内容：默认隐藏，悬停整行时以浮窗显示（非重点、省高度，不占版式空间） */
+.detail-q-bar .opt-tip{
+  position:absolute;bottom:100%;left:0;right:0;margin-bottom:6px;z-index:20;
+  background:var(--primary);color:#fff;font-size:13px;line-height:1.45;
+  padding:7px 11px;border-radius:8px;box-shadow:0 6px 18px rgba(30,58,95,.28);
+  opacity:0;visibility:hidden;transform:translateY(4px);
+  transition:opacity .12s ease,transform .12s ease;pointer-events:none;word-break:break-word;
+}
+.detail-q-bar .bar-row:hover .opt-tip{opacity:1;visibility:visible;transform:translateY(0)}
+</style>
+-->
+
+<!-- ===== HTML ===== -->
+<!-- 复制以下 HTML 到 </body> 前 -->
+<!--
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-panel" id="detailPanel">
+    <button class="detail-close-btn" onclick="closeDetail()">✕</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+-->
+
+<!-- ===== 使用说明 ===== -->
+<!-- 1) 复制上述 CSS 和 HTML 到课件 -->
+<!-- 2) 复制 detail-stats.js 到 <script> 中 -->
+<!-- 3) 每个 QR 弹窗加"查看每题详情"按钮： -->
+<!--   <a class="qr-detail-link" onclick="openDetail('post');closeQRPopup('post')">查看每题详情 →</a> -->
+<!-- 4) 确保 CSS 类名 .detail-close-btn 与 HTML/JS 一致 -->
+<!-- 5) ⚠ 正确答案标记规则：正确选项旁只加 ✓ 符号，不单独写"正确"二字 -->

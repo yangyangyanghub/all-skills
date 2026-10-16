@@ -14,7 +14,6 @@ import {
   buildGStackLaunchArgs,
   readHostProfile,
   AUTOMATION_ARTIFACT_CLEANUP_SCRIPT,
-  WEBDRIVER_MASK_SCRIPT,
   STEALTH_LAUNCH_ARGS,
   STEALTH_IGNORE_DEFAULT_ARGS,
 } from '../src/stealth';
@@ -63,9 +62,8 @@ describe('buildStealthScript — T3 Layer C', () => {
     expect(s).toContain('PlatformArch');
     expect(s).toContain('PlatformOs');
     expect(s).toContain('RequestUpdateCheckStatus');
-    // sendMessage / connect must throw native-shaped errors
-    expect(s).toContain('runtime.connect');
-    expect(s).toContain('runtime.sendMessage');
+    expect(s).not.toContain('function connect()');
+    expect(s).not.toContain('function sendMessage()');
   });
 
   test('chrome.csi and chrome.loadTimes provide method bodies', () => {
@@ -106,10 +104,12 @@ describe('buildStealthScript — T3 Layer C', () => {
     const s = buildStealthScript(hw);
     // Every getter (hardwareConcurrency, deviceMemory, webdriver, Notification.permission)
     // should be wrapped through markNative so the toString Proxy covers it.
-    const markNativeMatches = s.match(/markNative\(/g) || [];
-    // At least 8 markNative wrappings (webdriver, csi, loadTimes, connect, sendMessage,
-    // notification permission, hwConcurrency, deviceMemory)
-    expect(markNativeMatches.length).toBeGreaterThanOrEqual(7);
+    for (const declaration of [
+      'const webdriverGetter', 'chrome.csi', 'chrome.loadTimes',
+      'const notificationPermissionGetter', 'const hwConcurrencyGetter', 'const deviceMemoryGetter',
+    ]) {
+      expect(s).toContain(`${declaration} = markNative(`);
+    }
   });
 
   test('script does not include "GStackBrowser" branding string', () => {
@@ -235,10 +235,6 @@ describe('buildGStackLaunchArgs — Pack 1 cmdline-switch construction', () => {
 });
 
 describe('backwards-compat exports', () => {
-  test('WEBDRIVER_MASK_SCRIPT still exported', () => {
-    expect(WEBDRIVER_MASK_SCRIPT).toContain("'webdriver'");
-    expect(WEBDRIVER_MASK_SCRIPT).toContain('false');
-  });
   test('STEALTH_LAUNCH_ARGS still includes blink-features=AutomationControlled', () => {
     expect(STEALTH_LAUNCH_ARGS).toContain('--disable-blink-features=AutomationControlled');
   });

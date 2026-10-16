@@ -14,6 +14,9 @@ import { __testInternals__, fetchHandler, idleCheckTick } from "../src/daemon";
 
 const { markMeaningfulActivity } = __testInternals__;
 import { makeBoardHtml, makeTmpDir, req, resetDaemon } from "./daemon-tests-fixtures";
+import { usePrivateStateRoot } from "../../test/helpers/private-state-root";
+
+const stateRoot = usePrivateStateRoot();
 
 let tmpDir: string;
 
@@ -361,16 +364,33 @@ describe("daemon /shutdown", () => {
     await fetchHandler(
       req("POST", `/boards/${board.id}/api/feedback`, { regenerated: false }),
     );
-    // Now non-done count is 0 — handler should return shuttingDown:true.
-    // We DON'T let the real gracefulShutdown timer fire (it calls process.exit
-    // after 50ms which would tear down the test runner); instead we just
-    // observe the immediate response.
-    const r = await fetchHandler(req("POST", "/shutdown"));
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as any;
-    expect(body.shuttingDown).toBe(true);
-    // Reset state for subsequent tests; the shutdown timer will be a no-op
-    // because the next resetForTest flips shuttingDown back to false.
+    // The handler arms setTimeout(gracefulShutdown, 50), and gracefulShutdown
+    // arms setTimeout(process.exit, 50). bun test runs ALL files in one
+    // process, so letting that exit fire would kill the whole suite ~100ms
+    // later (exit 0, no summary — see test/no-suicide-exit.test.ts). Stub
+    // process.exit and restore it only after the exit callback has reached
+    // the stub; a fixed sleep lets a late timer reach the real exit under
+    // load. (resetForTest does NOT defuse the timers: the exit callback is
+    // unconditional.)
+    const origExit = process.exit;
+    let exitCode: number | undefined;
+    const exited = new Promise<void>((resolve) => {
+      (process as any).exit = ((code?: number) => {
+        exitCode = code;
+        resolve();
+      }) as any;
+    });
+    try {
+      const r = await fetchHandler(req("POST", "/shutdown"));
+      expect(r.status).toBe(200);
+      const body = (await r.json()) as any;
+      expect(body.shuttingDown).toBe(true);
+      await exited;
+      expect(exitCode).toBe(0);
+    } finally {
+      (process as any).exit = origExit;
+    }
+    // Reset state for subsequent tests (gracefulShutdown set shuttingDown).
     resetDaemon();
   });
 });
@@ -516,6 +536,30 @@ describe("daemon malformed body handling", () => {
     expect(r.status).toBe(400);
     const body = (await r.json()) as any;
     expect(body.error).toContain("HTML file not found");
+  });
+});
+
+// ─── Daemon log ──────────────────────────────────────────────────
+
+describe("daemon log", () => {
+  test("an unopenable log disables file logging instead of raising an uncaught error", async () => {
+    // A directory where the log file belongs makes the asynchronous open fail
+    // with EISDIR, the same path as a state root removed before the open lands.
+    fs.mkdirSync(path.join(stateRoot.dir, "design-daemon.log"));
+    await publishTestBoard();
+    const log = __testInternals__.daemonLog();
+    expect(log).toBeTruthy();
+    while (__testInternals__.daemonLog() === log) await new Promise((r) => setTimeout(r, 1));
+    expect(log!.destroyed).toBe(true);
+    expect(__testInternals__.daemonLog()).toBeNull();
+
+    const dirB = makeTmpDir("log-b");
+    try {
+      await publishTestBoard({ dir: dirB });
+      expect(__testInternals__.boards.size).toBe(2);
+    } finally {
+      try { fs.rmSync(dirB, { recursive: true, force: true }); } catch {}
+    }
   });
 });
 

@@ -14,7 +14,13 @@ Multiple isolated browser sessions with state persistence and concurrent browsin
 
 ## Named Sessions
 
-Use `--session` flag to isolate browser contexts:
+Generate a stable, unique session id for the task, then use it everywhere:
+
+```bash
+export AGENT_BROWSER_SESSION="$(agent-browser session id --scope worktree --prefix task)"
+```
+
+Or use the `--session` flag directly to isolate browser contexts:
 
 ```bash
 # Session 1: Authentication flow
@@ -27,6 +33,14 @@ agent-browser --session public open https://example.com
 agent-browser --session auth fill @e1 "user@example.com"
 agent-browser --session public get text body
 ```
+
+> **Warning:** the default (unnamed) session is shared with every other agent
+> on the machine and persists across conversations. Working in it can hijack
+> another agent's page or navigate away from something the human left open.
+> Always prefer a named session.
+
+Inspect a session's daemon/launch/restore state with
+`agent-browser session info` (add `--json` for machine-readable output).
 
 ## Session Isolation Properties
 
@@ -67,6 +81,20 @@ agent-browser open https://app.example.com/dashboard
   "origins": [...]
 }
 ```
+
+### Auto-Persistence with --restore
+
+Skip explicit save/load entirely — the named session auto-saves and restores:
+
+```bash
+agent-browser --session myapp --restore open https://app.example.com
+```
+
+State files expire after 30 days by default
+(`AGENT_BROWSER_STATE_EXPIRE_DAYS` to tune; `state clean --older-than <days>`
+to purge manually). Encrypt at rest with `AGENT_BROWSER_ENCRYPTION_KEY`.
+Isolate daemon sockets and restore directories per project with
+`--namespace <name>`. Cap daemon lifetime with `--idle-timeout 10s|3m|1h`.
 
 ## Common Patterns
 
@@ -147,6 +175,9 @@ agent-browser close  # Closes default session
 ```bash
 # Close specific session
 agent-browser --session auth close
+
+# Close every session at once
+agent-browser close --all
 
 # List active sessions
 agent-browser session list

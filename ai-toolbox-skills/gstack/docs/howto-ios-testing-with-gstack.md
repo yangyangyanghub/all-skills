@@ -7,9 +7,9 @@ Everything below has been verified end-to-end on a real iPhone 17 Pro Max runnin
 ## What you'll need
 
 - macOS with Xcode 16.0+ installed (`xcrun devicectl --version` must succeed). Xcode 16 ships the CoreDevice tunnel `devicectl` uses to reach the device over USB.
-- A real iPhone running iOS 16 or later. Unlocked, paired with your Mac, with **Developer Mode** enabled in Settings → Privacy & Security.
+- A real iPhone or iPad running iOS/iPadOS 16 or later (iPad Stage Manager and multi-window layouts are not device-verified yet). Unlocked, paired with your Mac, with **Developer Mode** enabled in Settings → Privacy & Security.
 - An Apple developer team — the free personal team works fine for live-device debug deploys. You'll need the team ID (e.g. `623FYQ2M88`), not the certificate ID. Find it in Xcode → Settings → Accounts → your Apple ID → team list. The setup signs the app for your device on first deploy via `-allowProvisioningUpdates -allowProvisioningDeviceRegistration`.
-- gstack installed (`./setup` complete; `bin/gstack-ios-qa-daemon` must be on disk and executable).
+- gstack installed (`./setup` complete; `gstack-ios-qa-regen` and `gstack-ios-qa-daemon` must be on PATH).
 - Bun runtime on PATH (`bun --version`). The Mac-side daemon is a bun process.
 
 For the optional remote-agent (Tailscale) mode, you'll additionally need Tailscale installed on the Mac with `/var/run/tailscale.sock` readable.
@@ -24,40 +24,61 @@ For the optional remote-agent (Tailscale) mode, you'll additionally need Tailsca
 └─────────────────┘                    └──────────────────────┘                     └─────────────────────┘
 ```
 
-- iOS app embeds a `StateServer` (`DebugBridge` SPM library, `#if DEBUG` only) listening on `::1` + `127.0.0.1` port 9999. Bearer-token gated. Boot token rotates within ~5 seconds of daemon spawn so anything scraping `os_log` past then sees a dead credential.
+- iOS app embeds a `StateServer` (`DebugBridge` SPM library, `#if DEBUG` only) listening on `::1` + `127.0.0.1` port 9999. Bearer-token gated. The one-use boot token lives in a 0600 file in the app's `tmp/` (never `os_log`); the daemon copies it out and rotates it within ~5 seconds, which deletes the file, so a later copy is a dead credential. If the app cannot write the file, it logs `NOT READY` and `/healthz` carries `boot_token_error`.
 - Mac daemon brokers traffic over the CoreDevice IPv6 tunnel that `xcrun devicectl` opens automatically when a paired device is connected.
 - In Tailscale mode, the daemon exposes a separate listener bound to your tailnet IP, with capability tiers (observe / interact / mutate / restore) enforced per session token. Tokens are minted explicitly by the Mac owner via `gstack-ios-qa-mint`; remote callers never auto-allowlist.
 
 The iOS `StateServer` is loopback-only **always**, even in remote mode. Identity validation happens Mac-side because the iPhone has no way to validate a Tailscale identity.
 
-## Step 1: Add the DebugBridge templates to your iOS app
+## Step 1: Generate the DebugBridge package
 
-The templates live at `~/.claude/skills/gstack/ios-qa/templates/` after `./setup`. The fastest install is to invoke the `/ios-qa` skill in Claude Code from your app's root — it reads your Swift source, codegens typed `@Observable` state accessors, and lays down the templates with your bundle ID. Or do it by hand:
+Run `/ios-qa` from the app root, or invoke the same deterministic regenerator directly:
 
-1. Copy these into a `DebugBridge/` SPM package inside your app workspace:
-   - `Sources/DebugBridgeCore/StateServer.swift` (from `StateServer.swift.template`)
-   - `Sources/DebugBridgeCore/DebugBridgeManager.swift` (from `DebugBridgeManager.swift.template`)
-   - `Sources/DebugBridgeTouch/DebugBridgeTouch.m` + `Sources/DebugBridgeTouch/include/DebugBridgeTouch.h` (from the two `.template` files)
-   - `Sources/DebugBridgeUI/Bridges.swift` (from `Bridges.swift.template`)
-   - `Sources/DebugBridgeUI/DebugOverlay.swift` (from `DebugOverlay.swift.template`)
-   - `Package.swift` (from `Package.swift.template`)
-2. Add the package as a local dependency of your app. Depend on the `DebugBridgeUI` product with `condition: .when(configuration: .debug)`. `DebugBridgeCore` and `DebugBridgeTouch` come in transitively.
-3. In your `@main` App init, gate the wiring on `#if DEBUG`:
+```bash
+gstack-ios-qa-regen \
+  --app-source "$PWD/Sources/YourApp" \
+  --bridge-dir "$PWD/DebugBridge"
+```
+
+The command copies an explicit allowlist of canonical templates into the local
+`DebugBridge/` Swift package, generates
+`DebugBridgeGenerated/StateAccessor.swift`, and writes the installed version to
+`DebugBridgeGenerated/.gstack-version`. It excludes generated output from its
+own schema hash, so rerunning it with unchanged source is a fast, byte-stable
+cache hit. It also removes the explicit legacy generated-file set from older
+flat harness layouts so stale bridge sources cannot shadow the package.
+
+1. Add `DebugBridge/` as a local package dependency. Depend on the
+   `DebugBridgeUI` product only in Debug configuration; `DebugBridgeCore` and
+   `DebugBridgeTouch` come in transitively.
+2. Add `DebugBridgeGenerated/StateAccessor.swift` to the app target.
+3. In your `@main` App init, install the UIKit resolvers before starting the
+   server, then register the generated accessor. Replace the example
+   state/accessor names with the type the generator found:
 
    ```swift
    #if DEBUG
    import DebugBridgeCore
-   StateServer.shared.start()
    #if canImport(UIKit)
    import DebugBridgeUI
+   #endif
+   #endif
+
+   // Inside App.init(), after appState is initialized:
+   #if DEBUG
+   #if canImport(UIKit)
    DebugBridgeUIWiring.installAll()
    #endif
+   DebugBridgeManager.shared.start(
+       appState: appState,
+       register: AppStateAccessor.register
+   )
    #endif
    ```
 
-The three Swift targets split as: `DebugBridgeCore` is cross-platform (so `swift build` on a CI Mac host can validate the bulk of the code without UIKit), `DebugBridgeUI` and `DebugBridgeTouch` are iOS-only (they link UIKit). `DebugBridgeTouch` is Objective-C — it carries the KIF-derived UITouch synthesis with the iOS 18+ `_UIHitTestContext` fix that makes SwiftUI Button taps actually fire.
+The three SwiftPM targets split as: `DebugBridgeCore` is cross-platform (so `swift build` on a CI Mac host can validate the bulk of the code without UIKit), `DebugBridgeUI` and `DebugBridgeTouch` are iOS-only (they link UIKit). `DebugBridgeTouch` is Objective-C — it carries the KIF-derived UITouch synthesis with the iOS 18+ `_UIHitTestContext` fix that makes SwiftUI Button taps actually fire.
 
-The structural Release-build guard is the `.when(configuration: .debug)` clause in `Package.swift`. SwiftPM refuses to link any `DebugBridge*` target in a Release build, so the bridge cannot ship to TestFlight even if you forget to clean up.
+The structural Release-build guard is layered. The `.when(configuration: .debug)` clause in `Package.swift` means SwiftPM refuses to link any `DebugBridge*` target in a Release build, so the bridge cannot ship to TestFlight even if you forget to clean up. On top of that, `DebugBridgeTouch.m`'s private-API touch synthesis is compiled behind `#if TARGET_OS_IOS && DEBUG` (with `DEBUG` defined for that target only in the debug configuration via `cSettings` in `Package.swift`), so a Release compile of the touch bridge emits an empty translation unit — zero private symbols in the binary even if the linker guard were bypassed.
 
 ## Step 2: Build + install to the device
 
@@ -109,7 +130,23 @@ GSTACK_IOS_TARGET_BUNDLE_ID=com.yourorg.yourapp
 GSTACK_IOS_DAEMON_PORT=9099       # loopback listener port; default 9099
 ```
 
-If `GSTACK_IOS_TARGET_UDID` is unset, the daemon picks the first paired connected device.
+If `GSTACK_IOS_TARGET_UDID` is unset, the daemon picks the best paired,
+available iPhone or iPad, preferring a wired device. When two devices tie (an
+iPhone and an iPad both on USB), it refuses to guess: the bootstrap error lists
+each device with its UDID and prints a ready
+`export GSTACK_IOS_TARGET_UDID=<udid>` line.
+The daemon keeps a healthy rotated tunnel for its lifetime. When the CoreDevice
+route drops (`503 device_disconnected` / `504 upstream_timeout`), it re-resolves
+the tunnel address for the same UDID and probes the running app with the bearer
+it already holds, so the app keeps its state. It bootstraps again only when the
+app rejects that bearer (401, the app was relaunched), the app is not running
+(one normal launch), or a different device is now selected; the old bearer is
+never sent to another device. A tap or other mutation whose response was lost
+is never replayed.
+If a newly started daemon reaches an already-running target whose one-use boot
+token was consumed by an earlier daemon, it verifies the bundle owner, force
+relaunches that target once, waits for a fresh token, verifies ownership again,
+and rotates normally.
 
 ## Step 4: Drive the device
 
@@ -123,15 +160,39 @@ Once the daemon is running, you have an HTTP surface at `http://127.0.0.1:9099` 
 | `POST /session/release` | Release the lock. | bearer + session |
 | `GET /screenshot` | Capture a PNG of the active window. Returns `{png_base64: "..."}`. | bearer |
 | `GET /elements` | Accessibility-tree snapshot. | bearer |
-| `GET /state/snapshot` | Dump every `@Snapshotable` field as JSON. | bearer |
-| `POST /state/restore` | Atomically restore a full snapshot. | bearer + session, mutate tier |
+| `GET /state/snapshot` | Dump every `// @Snapshotable` field as JSON. | bearer |
+| `POST /state/restore` | Validate the full snapshot, then restore it on MainActor. | bearer + session, mutate tier |
 | `POST /tap` `{x,y}` | Synthesize a real UITouch at window coordinates. SwiftUI Buttons fire. | bearer + session, interact tier |
 | `POST /swipe` `{from_x,from_y,to_x,to_y}` | Scroll the nearest enclosing UIScrollView. | bearer + session, interact tier |
 | `POST /type` `{text}` | Set text on the current first responder. | bearer + session, interact tier |
 
 Mutating requests require both an `Authorization: Bearer <token>` header AND an `X-Session-Id` header. Read endpoints (`/screenshot`, `/elements`, `GET /state/*`) only need the bearer.
 
-The state snapshot is opt-in per field via a `@Snapshotable` property wrapper on your canonical state struct. Fields you don't annotate never appear in the snapshot, which keeps tokens, PII, and auth state out of recorded fixtures by default.
+The state snapshot is opt-in per field via a standalone generator marker
+comment immediately above a property. It is intentionally not a property
+wrapper, so it compiles cleanly with Observation:
+
+```swift
+@Observable
+final class AppState {
+    // @Snapshotable
+    var username: String = ""
+
+    var authToken: String = "" // never exported
+}
+```
+
+Unmarked fields never appear in the snapshot, which keeps tokens, PII, and
+auth state out of recorded fixtures by default. A marked field must be a
+writable instance `var` on a file-scope observable class, with an explicit type
+and an internal or public setter. Supported snapshot types are JSON-native
+scalars (`String`, `Bool`, signed/unsigned integer widths, `Float`, `Double`,
+`CGFloat`), arrays, String-keyed dictionaries, and Optional compositions of
+those types. Snapshot keys must be unique across observable classes. The
+generator reports and stops on invalid declarations, custom values, implicitly
+unwrapped Optionals, nested observable classes, or duplicate keys instead of
+emitting broken or lossy Swift. Restore uses two phases: every model validates
+the complete input first, and only then are assignments applied on MainActor.
 
 ## Step 5: Make remote agents work (optional)
 
@@ -168,6 +229,9 @@ Before you ship to TestFlight or the App Store, run `/ios-clean`. It removes the
 | First install on a paired device fails with no clear error | The phone needs to Trust the Mac. Open Settings → General → VPN & Device Management on the phone and confirm. |
 | `Developer Mode` toggle missing from Settings → Privacy | Connect the device to Xcode → Window → Devices and Simulators once, or try any `devicectl device install` against it. iOS will surface the toggle after the first attempt. |
 | `xcrun devicectl device copy from` returns ERROR 7000 | The source path is wrong — boot token lives at `tmp/gstack-ios-qa.token` inside the app's data container (NSTemporaryDirectory), not at the path's root. |
+| Bootstrap fails with `multiple_devices` | More than one iPhone/iPad is connected. Run the printed `export GSTACK_IOS_TARGET_UDID=<udid>` and restart the daemon. |
+| `boot_token_unavailable ... could not write tmp/gstack-ios-qa.token` | The app could not write its boot-token file. Fix the app's `tmp/` directory and relaunch the app. |
+| A SwiftUI `DragGesture` or `Canvas` ignores taps and swipes on iOS 26 | Synthesized in-process touches do not reach SwiftUI gesture recognizers on iOS 26, and `/swipe` only scrolls a `UIScrollView`. See "Known limits" in the `/ios-qa` skill for the input-routing workaround. |
 | `/healthz` returns 200 but `/tap` returns ok:true with no UI change | The phone is paired but the StateServer port may have changed across launches. Re-resolve the CoreDevice IPv6 (`dscacheutil -q host -a name '<DeviceName>.coredevice.local'`). |
 | `403 identity_not_allowed` from `/auth/mint` | The remote caller's identity isn't on the Mac's allowlist. Run `gstack-ios-qa-mint grant --remote <identity> --capability interact` on the Mac. |
 | Daemon won't open the tailnet listener | Tailscale isn't installed, or `/var/run/tailscale.sock` is unreadable. Fix Tailscale, then restart the daemon. Loopback still runs in the meantime. |

@@ -14,11 +14,12 @@
  */
 
 import { join } from "path";
-import { homedir } from "os";
 import { randomUUID } from "crypto";
-import { writeFileSync, renameSync, existsSync, readFileSync, appendFileSync, statSync, openSync, closeSync, unlinkSync } from "fs";
+import { existsSync, readFileSync, appendFileSync, statSync, openSync, closeSync, unlinkSync } from "fs";
+import { atomicWriteSync } from "./fs-atomic";
 import { appendJsonl, readJsonl, hasInjection } from "./jsonl-store";
 import { scan } from "./redact-engine";
+import { resolveStateRoot } from "./state-root";
 
 export type DecisionKind = "decide" | "supersede" | "redact";
 export type DecisionScope = "repo" | "branch" | "issue";
@@ -56,7 +57,7 @@ export interface DecisionPaths {
 
 /** Resolve the per-project decision store paths. Bins pass slug + GSTACK_HOME. */
 export function decisionPaths(slug: string, gstackHome?: string): DecisionPaths {
-  const home = gstackHome || process.env.GSTACK_HOME || join(homedir(), ".gstack");
+  const home = gstackHome || resolveStateRoot();
   const dir = join(home, "projects", slug || "unknown");
   return {
     log: join(dir, "decisions.jsonl"),
@@ -224,9 +225,7 @@ export function readEvents(paths: DecisionPaths): DecisionEvent[] {
  * O(active), not O(history).
  */
 export function writeSnapshot(paths: DecisionPaths, active: ActiveDecision[]): void {
-  const tmp = `${paths.snapshot}.tmp.${process.pid}`;
-  writeFileSync(tmp, JSON.stringify(active), "utf-8");
-  renameSync(tmp, paths.snapshot);
+  atomicWriteSync(paths.snapshot, JSON.stringify(active));
 }
 
 /** Read the bounded active snapshot. Returns [] if missing/corrupt (caller may rebuild). */
@@ -308,9 +307,7 @@ export function compact(paths: DecisionPaths): CompactResult {
       appendFileSync(paths.archive, superseded.map((e) => JSON.stringify(e)).join("\n") + "\n", "utf-8");
     }
 
-    const tmp = `${paths.log}.tmp.${process.pid}`;
-    writeFileSync(tmp, active.map((d) => JSON.stringify(d)).join("\n") + (active.length ? "\n" : ""), "utf-8");
-    renameSync(tmp, paths.log);
+    atomicWriteSync(paths.log, active.map((d) => JSON.stringify(d)).join("\n") + (active.length ? "\n" : ""));
     writeSnapshot(paths, active);
 
     return { activeCount: active.length, archivedCount: superseded.length, expungedCount: redactedIds.size };

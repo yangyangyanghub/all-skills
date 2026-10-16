@@ -1,10 +1,13 @@
 # 视频生成器
 
-自动生成视频，支持四种模式：
+自动生成视频，支持五种模式：
 - **新闻简报模式**（口播）：Markdown → 3:4 竖版视频，逐条 TTS 配音（视频号/小红书）
 - **简报模式**（合屏）：Markdown → 3:4 竖版视频，同类新闻合屏展示，无配音 BGM 仅 15s
 - **技术分享模式**（口播）：调研 Markdown → 3:4 竖版视频，按章节组织，支持表格/代码/GitHub截图
 - **系统演示模式**：网页截图 → 16:9 横版视频（B 站/YouTube）
+- **交互课件模式**（口播）：交互式 HTML 课件 → 16:9 横版技术讲解视频，逐页截图 + 按页配音
+
+> ⚠ **开发须知（改本技能脚本前必读）**：HyperFrames 合成有 3 条铁律（禁 `gsap onUpdate` 手动切显隐 / 元素不写内联 `opacity:0` / root timeline 只留 sentinel），违反会产出「只有第一屏有画面」的**静默错片**。完整规范、坑表、抽帧验空法见 [`references/hyperframes-composition.md`](references/hyperframes-composition.md)。
 
 ## 触发词
 
@@ -13,6 +16,7 @@
 - "系统演示视频" / "操作录屏"
 - "视频号视频" / "小红书视频"
 - "技术分享视频" / "调研视频" / "调研转视频"
+- "课件转视频" / "课件变视频" / "技术讲解视频" / "把课件做成视频" / "交互课件转视频"
 
 ## 通用性说明
 
@@ -56,6 +60,12 @@
 1.3 对项目主页 URL 远程截图（视口 1280×800，`fullPage=true`，超时 30s，失败跳过）
 1.4 edge-tts 逐 slide 生成配音 → `audio/seg_*.mp3`
 
+**交互课件模式**（courseware）：
+1.1 Playwright 打开课件（`file://` + `#page=pN` 翻页路由），读 `window.PAGE_IDS/PAGE_LABELS` 拿页面清单
+1.2 逐页 `showPage(i)` → 展开 reveal（`.reveal-hidden`→`.reveal-done`）→ 隐藏 `#navBtns`/`#revealHint` → 截图 1920×1080 → `captures/courseware/seg_*/screenshot.png`
+1.3 按页面类型（cover/teach/quiz/sim/summary）从 DOM 提取文案（`.teach-text`/`.sim-desc`/`.q-stem` 等）
+1.4 edge-tts 逐页生成配音 → `audio/courseware/seg_*.mp3`（封面页=片头、总结页=片尾，无独立 intro/outro）
+
 **简报模式**（brief）：无截图、无配音，跳过 Phase 1
 
 **检查点 B1（截图验证）**：`captures/seg_*/screenshot.png` 数量与 steps/slides 数一致，非空文件
@@ -80,7 +90,8 @@
 | 截图全空白 | 登录态过期 | 重新保存 `login-state.json` |
 | 远程 URL 截图失败/空白 | 网络不可达或仓库 404 | 检查 URL 是否可访问，或手动截图放入 `captures/` 对应目录 |
 | Markdown 解析报错 | 格式不符合要求（缺 `##` 章节、表格行数不一致） | 先通过 `--skip-render` 预览解析结果，调整 Markdown 后重试 |
-| 片头/片尾不显示 | 子 composition 缺少 `data-composition-id` | 检查 compositions/*.html 的 root 元素 |
+| 片头/片尾不显示 | 子 composition 缺少 `data-composition-id`，或包装层写了内联 `opacity:0` | 子 composition 文件根元素须带 `data-composition-id`；静态（无 timeline）的在宿主加 `data-no-timeline` 免 45s 空等；**不要**给元素写内联 `opacity:0`——框架按 `data-start/data-duration` 自动挂载并强制可见 |
+| 视频后半段变空白/只有第一屏有画面 | 用了 `gsap onUpdate` 手动切 `opacity/display` | **禁用** onUpdate 切显隐：改由框架托管——元素只写 `data-start`/`data-duration`/`data-track-index`，root timeline 只留一个 sentinel（`tl.set({},{},<总时长>)`）。`display:none` 一旦被手动设上，框架无法再顶开 |
 | 字幕不同步 | TTS 时长与时间线不匹配 | 删除 `audio/` 重新生成 TTS |
 | render 超时 | HyperFrames 等待子 composition timeline | 确保每个 composition 注册 `window.__timelines[id]` |
 | 脚本运行崩溃 | `build_*.py` 未捕获异常（如 CSS 格式化失败） | 贴出报错信息，检查 CSS 字符串中的 `%` 是否已转义为 `%%` |
@@ -98,6 +109,7 @@ AI: 请选择视频模式：
     2. 系统演示 (16:9 横版) - 从网页截图生成
     3. 简报模式 (合屏, 15s) - 无配音, BGM, 同类新闻合屏展示
     4. 技术分享 (3:4 竖版) - 调研笔记分章节转口播
+    5. 交互课件 (16:9 横版) - 交互课件 HTML 逐页转讲解视频
     
     回复数字，或直接提供输入文件
 ```
@@ -182,6 +194,7 @@ video-generator/
     ├── build_news_video.py       # 口播模式构建器
     ├── build_news_brief.py       # 简报模式构建器（合屏、无配音、BGM）
     ├── build_tech_share.py       # 技术分享模式构建器（表格/代码/GitHub截图混搭）
+    ├── build_courseware.py       # 交互课件模式构建器（课件逐页截图+配音）
     ├── build_walkthrough.py      # 演示模式构建器
     ├── save_login.py             # 保存登录态（演示模式前置脚本）
     ├── example-config.json       # 演示模式配置示例
@@ -200,6 +213,7 @@ video-generator/
 video_generator.py ──mode news ──────→ build_news_video.py
                   │──mode brief ──────→ build_news_brief.py
                   │──mode tech ───────→ build_tech_share.py
+                  │──mode courseware ─→ build_courseware.py
                   └──mode walkthrough → build_walkthrough.py
 ```
 
@@ -209,7 +223,10 @@ video_generator.py ──mode news ──────→ build_news_video.py
 # 系统依赖
 npx hyperframes                     # 视频渲染引擎（需 ≥0.12.0）
 ffmpeg                              # 音轨合成
-playwright install chromium         # 截图（仅演示/技术分享模式需要）
+playwright install chromium         # 截图（演示/技术分享/交互课件模式需要）
+#   注：若未装 Playwright 浏览器，交互课件模式会自动回退系统 Chrome/Edge
+# HyperFrames 首次 render 会自动下载 Chrome Headless Shell（约 114MB）到 ~/.cache/hyperframes；
+#   下载期间 CLI 显示 "Checking browser"，属正常等待，勿中断（中断会残留 .chrome.install.lock）
 
 # Python 依赖（已内置到各脚本中自动安装的运行时依赖）
 pip install edge-tts                # TTS 配音
@@ -220,16 +237,16 @@ pip install playwright              # 浏览器截图
 
 ## 模式对比
 
-| 特性 | 口播模式 | 简报模式 | 技术分享模式 | 演示模式 |
-|------|---------|---------|------------|---------|
-| 输入 | Markdown | Markdown | 调研 Markdown | JSON + 网页 URL |
-| 画面 | HTML 卡片（逐条） | HTML 列表（合屏） | 表格/代码/GitHub截图 | 网页截图 |
-| 比例 | 3:4 竖版 | 3:4 竖版 | 3:4 竖版 | 16:9 横版 |
-| 配音 | 可选 | 无 | 可选 | 可选 |
-| 字幕 | 可选 | 无 | 可选 | 可选 |
-| BGM | 可选 | 必选（预设） | 可选 | 可选 |
-| 时长 | TTS 决定（~1-3min） | 固定 < 15s | 章节数量决定 | 截图数量决定 |
-| 媒体 | 图片+视频混排 | 纯文本 | URL 自动截图 | 网页截图 |
+| 特性 | 口播模式 | 简报模式 | 技术分享模式 | 演示模式 | 交互课件模式 |
+|------|---------|---------|------------|---------|------------|
+| 输入 | Markdown | Markdown | 调研 Markdown | JSON + 网页 URL | 交互课件 HTML |
+| 画面 | HTML 卡片（逐条） | HTML 列表（合屏） | 表格/代码/GitHub截图 | 网页截图 | 课件页面逐页截图 |
+| 比例 | 3:4 竖版 | 3:4 竖版 | 3:4 竖版 | 16:9 横版 | 16:9 横版 |
+| 配音 | 可选 | 无 | 可选 | 可选 | 可选 |
+| 字幕 | 可选 | 无 | 可选 | 可选 | 可选 |
+| BGM | 可选 | 必选（预设） | 可选 | 可选 | 可选 |
+| 时长 | TTS 决定（~1-3min） | 固定 < 15s | 章节数量决定 | 截图数量决定 | 页数 × TTS 时长 |
+| 媒体 | 图片+视频混排 | 纯文本 | URL 自动截图 | 网页截图 | 课件信息图/仿真/reveal |
 
 ## 新闻模式：三段式布局 + 媒体可选
 
@@ -409,6 +426,53 @@ from xxx import X
 - 表格会渲染为可视化表格卡片
 - 代码块会渲染为暗色代码卡片带简单语法高亮
 - 要点列表渲染为编号条目卡片
+
+## 交互课件模式
+
+把 `interactive-courseware-builder` 产出的**静态 HTML 课件**（Step 3 产物）转成 16:9 技术讲解视频：逐页截图 + 逐页配音。
+
+### 命令行
+
+```bash
+# 完整生成（截图 + TTS + 渲染）
+python scripts/video_generator.py --mode courseware --html "path/to/课件.html"
+
+# 先只验证截图与文案提取（不配音不渲染）
+python scripts/build_courseware.py --html "path/to/课件.html" --skip-tts --skip-render
+
+# 跳过测验页 / 仿真页
+python scripts/video_generator.py --mode courseware --html "path/to/课件.html" --skip-quiz --skip-sim
+```
+
+### 参数说明
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `--html` | 必填 | 交互课件 HTML（含翻页系统的 `window.PAGE_IDS`） |
+| `--voice` | zh-CN-YunxiNeural | TTS 语音 |
+| `--rate` | +30% | TTS 语速 |
+| `--output` | courseware-final.mp4 | 输出 MP4 路径 |
+| `--skip-quiz` | 关 | 测验页不进视频 |
+| `--skip-sim` | 关 | 仿真页不进视频 |
+| `--skip-tts` | 关 | 跳过配音（仅截图 + index.html） |
+| `--skip-render` | 关 | 跳过 HyperFrames 渲染 |
+
+### 工作原理
+
+- **输入**：课件 HTML 须含翻页系统（`window.PAGE_IDS` / `PAGE_LABELS` / `showPage()`）——即 interactive-courseware-builder 的产物。
+- **截图**：Playwright 打开 `file://` 课件，逐页 `showPage(i)`；截图前自动**展开 reveal**（`.reveal-hidden`→`.reveal-done`）并隐藏 `#navBtns`/`#revealHint` 等交互控件，得到"完整呈现、无 UI 噪音"的画面。
+- **文案**：按页面类型从 DOM 提取——cover 取标题+副标题+简介；teach 取 `.teach-text`/`.key-box`/`.card`；quiz 取 `.q-stem`（念题目并提示"暂停想一想"）；sim 取 `.sim-title`/`.sim-desc`；summary 取列表要点。
+- **片头片尾**：**封面页即片头、总结页即片尾**，不生成独立 intro/outro，风格与课件完全统一。
+- **比例**：固定 **16:9（1920×1080）**，与课件桌面版芯一致，无需额外适配。
+- **浏览器**：Playwright 自带 chromium 优先；缺失时自动回退系统 Chrome / Edge（免下载）。
+- **健壮性**：某页 TTS 失败只降级为静音停顿，不中断整条视频。
+
+### 前置条件
+
+```bash
+# 课件用 interactive-courseware-builder 产出（Step 3 静态 HTML）
+# 环境依赖：playwright（含浏览器或系统 Chrome/Edge）、edge-tts、hyperframes、ffmpeg
+```
 
 ## 清理
 

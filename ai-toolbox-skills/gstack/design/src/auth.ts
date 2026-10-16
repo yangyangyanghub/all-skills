@@ -99,6 +99,16 @@ export function resolveApiKey(): string | null {
   return resolveApiKeyInfo()?.key ?? null;
 }
 
+/**
+ * OpenAI API URL for one endpoint. OPENAI_BASE_URL (the OpenAI SDK convention)
+ * points every design call at an OpenAI-compatible gateway; egress receipts
+ * record whichever host is used.
+ */
+export function openaiUrl(endpoint: "responses" | "chat/completions"): string {
+  const base = process.env.OPENAI_BASE_URL?.trim().replace(/\/+$/, "") || "https://api.openai.com/v1";
+  return `${base}/${endpoint}`;
+}
+
 export function describeApiKeySource(resolution: ApiKeyResolution): string {
   if (resolution.source === "config") return "~/.gstack/openai.json";
   if (resolution.envFile) return `OPENAI_API_KEY environment variable (matches ${resolution.envFile} in current directory)`;
@@ -111,24 +121,28 @@ export function describeApiKeySource(resolution: ApiKeyResolution): string {
 export function saveApiKey(key: string): void {
   const dir = path.dirname(configPath());
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(configPath(), JSON.stringify({ api_key: key }, null, 2));
+  // Create the file owner-only up front so the API key is never briefly
+  // world/group-readable in the window between write and chmod. The trailing
+  // chmodSync is kept as a backstop to tighten a pre-existing loose file.
+  fs.writeFileSync(configPath(), JSON.stringify({ api_key: key }, null, 2), { mode: 0o600 });
   fs.chmodSync(configPath(), 0o600);
 }
 
 /**
- * Get API key or exit with setup instructions.
+ * Get API key or throw with setup instructions.
  */
 export function requireApiKey(): string {
   const resolution = resolveApiKeyInfo();
   if (!resolution) {
-    console.error("No OpenAI API key found.");
-    console.error("");
-    console.error("Run: $D setup");
-    console.error("  or save to ~/.gstack/openai.json: { \"api_key\": \"sk-...\" }");
-    console.error("  or set OPENAI_API_KEY environment variable");
-    console.error("");
-    console.error("Get a key at: https://platform.openai.com/api-keys");
-    process.exit(1);
+    throw new Error([
+      "No OpenAI API key found.",
+      "",
+      "Run: $D setup",
+      "  or save to ~/.gstack/openai.json: { \"api_key\": \"sk-...\" }",
+      "  or set OPENAI_API_KEY environment variable",
+      "",
+      "Get a key at: https://platform.openai.com/api-keys",
+    ].join("\n"));
   }
   console.error(`Using OpenAI key from ${describeApiKeySource(resolution)}.`);
   if (resolution.warning) console.error(resolution.warning);

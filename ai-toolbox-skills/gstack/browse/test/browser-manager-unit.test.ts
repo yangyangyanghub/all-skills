@@ -192,42 +192,6 @@ describe('resolveDisconnectCause', () => {
   });
 });
 
-// ─── onDisconnect exit-code propagation (regression test) ──────────
-//
-// The contract: BrowserManager.onDisconnect is called with the resolved
-// exit code (0 for clean Cmd+Q, 2 for crash). server.ts then forwards
-// that code to activeShutdown(), which exits the process.
-//
-// Without this propagation, the headed-mode user-visible Cmd+Q respawn
-// bug returns: server.ts hardcoded `activeShutdown?.(2)` ignores the
-// resolved 0 and gbrowser's gbd HealthMonitor treats the clean quit as
-// a crash, restarting the window.
-describe('BrowserManager.onDisconnect exit-code propagation', () => {
-  it('signature accepts an optional exitCode argument', async () => {
-    const { BrowserManager } = await import('../src/browser-manager');
-    const bm = new BrowserManager();
-    const calls: Array<number | undefined> = [];
-    bm.onDisconnect = (code?: number) => { calls.push(code); };
-    bm.onDisconnect(0);
-    bm.onDisconnect(2);
-    bm.onDisconnect(undefined);
-    expect(calls).toEqual([0, 2, undefined]);
-  });
-
-  it('server.ts callback forwards exitCode when provided, falls back to 2', async () => {
-    // Mirror the production wiring in browse/src/server.ts so a refactor
-    // that drops the forward (e.g. reverting to `() => activeShutdown?.(2)`)
-    // fails CI before the user-visible bug returns.
-    const shutdownCalls: number[] = [];
-    const activeShutdown = (code: number) => { shutdownCalls.push(code); };
-    const onDisconnect = (code?: number) => activeShutdown(code ?? 2);
-    onDisconnect(0);
-    onDisconnect(2);
-    onDisconnect(undefined);
-    expect(shutdownCalls).toEqual([0, 2, 2]);
-  });
-});
-
 // ─── Stealth injected on EVERY launch path (regression tripwire) ───
 //
 // applyStealth must run on launch() (headless), launchHeaded(), AND
@@ -301,5 +265,71 @@ describe('stealth injected on every context-creation path', () => {
     const src = readFileSync(join(import.meta.dir, '..', 'src', 'browser-manager.ts'), 'utf-8');
     const sites = src.match(/ignoreDefaultArgs:\s*STEALTH_IGNORE_DEFAULT_ARGS/g) || [];
     expect(sites.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('close() launched-mode SIGKILL fallback', () => {
+  // The wedge this guards against: browser.close() hangs, the race times
+  // out, and pre-fix code nulled this.browser — ABANDONING a live Chromium
+  // whose sockets pinned the caller's event loop forever. The child must be
+  // captured before the race and SIGKILLed when graceful close loses.
+  type FakeChild = { exitCode: number | null; killed: boolean; kill: (sig: string) => void };
+  const makeCloseFakes = (closeBehavior: () => Promise<void>, child?: Partial<FakeChild>) => {
+    const kills: string[] = [];
+    const fakeChild: FakeChild = {
+      exitCode: null,
+      killed: false,
+      kill: (sig: string) => { kills.push(sig); },
+      ...child,
+    };
+    const fakeBrowser = {
+      removeAllListeners: () => fakeBrowser,
+      process: () => fakeChild,
+      close: closeBehavior,
+    };
+    return { kills, fakeBrowser };
+  };
+
+  const managerWith = async (fakeBrowser: unknown) => {
+    const { BrowserManager } = await import('../src/browser-manager');
+    const bm = new BrowserManager();
+    const raw = bm as unknown as { browser: unknown; connectionMode: string; closeRaceMs: number };
+    raw.browser = fakeBrowser;
+    raw.connectionMode = 'launched';
+    raw.closeRaceMs = 20;
+    return { bm, raw };
+  };
+
+  it('SIGKILLs a live child when graceful close exceeds the race window', async () => {
+    const { kills, fakeBrowser } = makeCloseFakes(() => new Promise<void>(() => {}));
+    const { bm, raw } = await managerWith(fakeBrowser);
+    await bm.close();
+    expect(kills).toEqual(['SIGKILL']);
+    expect(raw.browser).toBeNull();
+  });
+
+  it('does not SIGKILL when graceful close finishes in time', async () => {
+    const { kills, fakeBrowser } = makeCloseFakes(async () => {});
+    const { bm, raw } = await managerWith(fakeBrowser);
+    await bm.close();
+    expect(kills).toEqual([]);
+    expect(raw.browser).toBeNull();
+  });
+
+  it('does not SIGKILL a child that already exited', async () => {
+    const { kills, fakeBrowser } = makeCloseFakes(
+      () => new Promise<void>(() => {}),
+      { exitCode: 0 },
+    );
+    const { bm } = await managerWith(fakeBrowser);
+    await bm.close();
+    expect(kills).toEqual([]);
+  });
+
+  it('survives a rejecting close() and still SIGKILLs the live child', async () => {
+    const { kills, fakeBrowser } = makeCloseFakes(() => Promise.reject(new Error('target closed')));
+    const { bm } = await managerWith(fakeBrowser);
+    await bm.close();
+    expect(kills).toEqual(['SIGKILL']);
   });
 });

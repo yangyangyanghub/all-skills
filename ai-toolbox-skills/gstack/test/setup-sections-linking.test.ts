@@ -24,20 +24,26 @@ function fnBody(src: string, name: string): string {
 }
 
 describe('setup links sections/ for cherry-pick install targets', () => {
-  test('link_claude_skill_dirs links sections/ via _link_or_copy', () => {
+  test('link_claude_skill_dirs installs runtime assets (incl. sections/) via the shared helper', () => {
+    // #2317/#2454 generalized the sections/-only install into
+    // _link_skill_runtime_assets, which carries EVERY runtime asset a skill
+    // references (sections/, checklist.md, specialists/, ...). That helper
+    // routes through _link_or_copy internally (windows-safe), so the old
+    // per-directory _link_or_copy assertion moved there.
     const body = fnBody(SETUP, 'link_claude_skill_dirs');
-    expect(body).toContain('sections');
-    // sections install must route through the windows-safe helper, not raw ln.
-    expect(body).toMatch(/_link_or_copy\s+"\$gstack_dir\/\$dir_name\/sections"\s+"\$target\/sections"/);
-    expect(body).toMatch(/if \[ -d "\$gstack_dir\/\$dir_name\/sections" \]/);
+    expect(body).toMatch(/_link_skill_runtime_assets\s+"\$gstack_dir\/\$dir_name"\s+"\$target"/);
+    const helper = fnBody(SETUP, '_link_skill_runtime_assets');
+    expect(helper).toContain('_link_or_copy');
+    expect(helper).not.toMatch(/\bln -s/);
   });
 
-  test('kiro per-skill loop rewrites + copies sections/*', () => {
-    // Kiro builds from the codex output and sed-rewrites paths; sections must get
-    // the same rewrite so they resolve under ~/.kiro, not ~/.codex or ~/.claude.
+  test('Kiro per-skill loop installs native sections/* and preserves foreign files', () => {
+    // The native host render already carries Kiro paths/provider identity.
     expect(SETUP).toMatch(/if \[ -d "\$skill_dir\/sections" \]/);
     expect(SETUP).toMatch(/mkdir -p "\$target_dir\/sections"/);
     expect(SETUP).toContain('$target_dir/sections/$(basename "$section_file")');
+    expect(SETUP).toContain('_link_or_copy "$section_file" "$section_dest"');
+    expect(SETUP).toContain('_gstack_generated_header "$section_dest"');
   });
 
   test('no raw ln introduced (windows-fallback invariant still holds)', () => {

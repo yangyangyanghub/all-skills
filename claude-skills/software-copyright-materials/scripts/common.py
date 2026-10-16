@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 from pathlib import Path
@@ -28,25 +29,6 @@ EXCLUDE_DIRS = {
     "vendor",
     "软件著作权申请资料",
     "software-copyright-materials",
-}
-
-CODE_EXTS = {
-    ".vue",
-    ".ts",
-    ".tsx",
-    ".js",
-    ".jsx",
-    ".mjs",
-    ".cjs",
-    ".css",
-    ".scss",
-    ".sass",
-    ".less",
-    ".html",
-    ".svelte",
-    ".astro",
-    ".json",
-    ".md",
 }
 
 KNOWN_CONFIG_FILES = {
@@ -116,6 +98,7 @@ KNOWN_CONFIG_FILES = {
     "webpack.config.js",
     "webpack.config.ts",
     "workspace.json",
+    ".env.example",
 }
 
 FRONTEND_EXTS = {
@@ -134,23 +117,6 @@ FRONTEND_EXTS = {
     ".astro",
 }
 
-SUPPLEMENT_CODE_EXTS = {
-    ".py",
-    ".java",
-    ".go",
-    ".rs",
-    ".cs",
-    ".php",
-    ".rb",
-    ".kt",
-    ".swift",
-    ".sql",
-    ".sh",
-    ".json",
-}
-
-COPYRIGHT_CODE_EXTS = FRONTEND_EXTS | SUPPLEMENT_CODE_EXTS
-
 LOCK_FILES = {
     "package-lock.json",
     "pnpm-lock.yaml",
@@ -159,14 +125,167 @@ LOCK_FILES = {
     "bun.lock",
 }
 
+# Source discovery intentionally uses a denylist plus content detection instead
+# of an extension allowlist. New languages and engine-specific scripts should be
+# inventoried automatically; the model/user selection gate decides relevance.
+DOCUMENT_EXTS = {
+    ".adoc",
+    ".doc",
+    ".docx",
+    ".md",
+    ".odt",
+    ".pdf",
+    ".rst",
+    ".rtf",
+    ".txt",
+    ".wps",
+}
 
-def repo_root_from_script() -> Path:
-    return Path(__file__).resolve().parents[3]
+BINARY_EXTS = {
+    ".7z",
+    ".a",
+    ".avi",
+    ".bin",
+    ".bmp",
+    ".class",
+    ".db",
+    ".dll",
+    ".dmg",
+    ".eot",
+    ".exe",
+    ".flac",
+    ".gif",
+    ".gz",
+    ".ico",
+    ".iso",
+    ".jar",
+    ".jpeg",
+    ".jpg",
+    ".lib",
+    ".lockb",
+    ".mov",
+    ".mp3",
+    ".mp4",
+    ".o",
+    ".obj",
+    ".ogg",
+    ".otf",
+    ".pdb",
+    ".png",
+    ".pyc",
+    ".rar",
+    ".so",
+    ".sqlite",
+    ".sqlite3",
+    ".tar",
+    ".ttf",
+    ".wav",
+    ".webm",
+    ".webp",
+    ".woff",
+    ".woff2",
+    ".xls",
+    ".xlsx",
+    ".zip",
+}
+
+NON_SOURCE_TEXT_EXTS = {
+    ".csv",
+    ".log",
+    ".tsv",
+}
+
+DOCUMENT_FILE_PREFIXES = (
+    "changelog",
+    "code_of_conduct",
+    "contributing",
+    "license",
+    "readme",
+    "security",
+)
+
+DOCUMENT_DIR_NAMES = {
+    "doc",
+    "docs",
+    "documentation",
+    "spec",
+    "specs",
+    "设计文档",
+    "需求文档",
+}
+
+DOCUMENT_NAME_HINTS = (
+    "architecture",
+    "design",
+    "manual",
+    "prd",
+    "requirement",
+    "设计",
+    "需求",
+    "手册",
+    "文档",
+    "架构",
+    "说明",
+)
+
+# Used only to keep obvious source files out of document evidence when their
+# names contain words such as "design" or "manual". It is not a discovery gate.
+KNOWN_SOURCE_HINT_EXTS = FRONTEND_EXTS | {
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cs",
+    ".cxx",
+    ".dart",
+    ".gd",
+    ".gml",
+    ".go",
+    ".h",
+    ".hh",
+    ".hpp",
+    ".java",
+    ".kt",
+    ".lua",
+    ".php",
+    ".ps1",
+    ".py",
+    ".rb",
+    ".rs",
+    ".sh",
+    ".sql",
+    ".swift",
+}
+
+MAX_SOURCE_FILE_BYTES = 800_000
+
+# Shared code-document layout. The extractor uses the physical-line estimate
+# only to choose enough material; Word still performs the final pagination.
+CODE_FONT_NAME = "Consolas"
+CODE_FONT_SIZE = "8pt"
+CODE_LINE_SPACING = "13pt"
+CODE_LINES_PER_PAGE = 55
+CODE_MAX_COLUMNS = 90
+
+CONFIRMATION_METADATA_KEYS = {
+    "user_confirmed",
+    "confirmation_note",
+    "confirmed_at",
+    "confirmed_content_sha256",
+}
+
+KNOWN_CODE_DRAFTS = {
+    "代码-前30页.md",
+    "代码-后30页.md",
+    "代码-全部.md",
+}
 
 
 def is_excluded(path: Path) -> bool:
-    parts = set(path.parts)
-    if parts & EXCLUDE_DIRS:
+    # iter_project_files checks every directory entry while descending. Looking
+    # at all absolute path parts would wrongly exclude a project merely because
+    # one of its parent folders happens to be named "build" or like this skill,
+    # "software-copyright-materials".
+    if path.name in EXCLUDE_DIRS:
         return True
     name = path.name
     if name.startswith(".") and name not in {".env.example"}:
@@ -196,162 +315,20 @@ def rel(path: Path, root: Path) -> str:
     return path.resolve().relative_to(root.resolve()).as_posix()
 
 
-# 典型乱码字符集（UTF-8 字节被误按 GBK 解码产生的生僻字，用于检测与修复）
-_GARBLED_CHARS = set("瀛楀吀鑴閬鏁鏋鏌鏉鏇鏆")
-
-
-def _has_garbled_text(text: str) -> bool:
-    """检测文本是否含乱码：损坏字符计数 或 可往返还原的乱码行数（双重编码特征）"""
-    if sum(1 for c in text if c in _GARBLED_CHARS or _is_corrupt_char(c)) > 10:
-        return True
-    mojibake_lines = 0
-    for line in text.splitlines():
-        if any("\u4e00" <= c <= "\u9fff" for c in line) and _roundtrip_repair(line) is not None:
-            mojibake_lines += 1
-            if mojibake_lines > 3:
-                return True
-    return False
-
-
-def _is_corrupt_char(c: str) -> bool:
-    """判断字符是否为乱码/损坏字符（典型乱码集、PUA 私用区、替换符）"""
-    if c in _GARBLED_CHARS:
-        return True
-    o = ord(c)
-    return o == 0xFFFD or 0xE000 <= o <= 0xF8FF  # U+FFFD 与 PUA 私用区
-
-
-def _is_clean_chinese_text(cand: str) -> bool:
-    """修复结果必须只含 ASCII、CJK 汉字、CJK 标点、全角符号，且至少含一个汉字。
-
-    这是防止误修复的关键闸门：合法短中文（如"状态""女"）的 GBK 字节虽可能构成
-    合法 UTF-8，但还原结果是希伯来/希腊/组合符号等非 CJK 字符，会被本闸门拒绝，
-    从而保留原行；真正的双重编码乱码还原后是正常中文，可通过闸门。
-    """
-    has_cjk = False
-    for c in cand:
-        o = ord(c)
-        if o < 0x80:
-            continue
-        if 0x4E00 <= o <= 0x9FFF:
-            has_cjk = True
-            continue
-        if 0x3000 <= o <= 0x303F or 0xFF00 <= o <= 0xFFEF:
-            continue
-        return False
-    return has_cjk
-
-
-def _roundtrip_repair(line: str) -> str | None:
-    """尝试把一行按 GBK 编码回原始字节再按 UTF-8 解码；成功且结果为干净中文则返回。
-
-    双重编码乱码的数学特征：乱码文本能完整通过 gbk→utf-8 往返并变成正常中文。
-    验收闸门：结果必须全为 ASCII/CJK 且含汉字（防止把"状态"等合法短中文误修复）。
-    """
-    for enc in ("gbk", "gb18030"):
-        try:
-            candidate = line.encode(enc).decode("utf-8")
-        except (UnicodeEncodeError, UnicodeDecodeError):
-            continue
-        if candidate != line and _is_clean_chinese_text(candidate) and not any(_is_corrupt_char(c) for c in candidate):
-            return candidate
-    return None
-
-
-def _repair_run(part: str) -> str | None:
-    """修复一个非 ASCII 段：整段往返 → 去损坏字符后往返 → 最长可修复前缀（覆盖率≥60%）。"""
-    seg = _roundtrip_repair(part)
-    if seg is not None:
-        return seg
-    cleaned = "".join(c for c in part if not _is_corrupt_char(c))
-    if cleaned and cleaned != part:
-        seg = _roundtrip_repair(cleaned)
-        if seg is not None:
-            return seg
-    # 最长可修复前缀：丢失字节只影响段尾，前缀仍可还原；覆盖率不足则视为非乱码
-    for i in range(len(part) - 1, 1, -1):
-        seg = _roundtrip_repair(part[:i])
-        if seg is not None:
-            if i >= max(2, int(len(part) * 0.6)):
-                return seg
-            return None
-    return None
-
-
-def _repair_mojibake(text: str) -> str:
-    """逐行修复双重编码乱码（UTF-8 字节被误按 GBK 解码后再存为 UTF-8）。
-
-    触发条件：行内含损坏特征字符（乱码集/PUA/替换符），或整行/分段能通过 gbk→utf-8
-    往返还原为干净中文。验收闸门 _is_clean_chinese_text 保证合法短中文（如"状态""女"）
-    不会被误修复（其往返结果是希伯来/希腊字符，被闸门拒绝）。
-    """
-    out = []
-    for line in text.split("\n"):
-        has_corrupt = any(_is_corrupt_char(c) for c in line)
-        if not has_corrupt and not any("\u4e00" <= c <= "\u9fff" for c in line):
-            out.append(line)
-            continue
-        if not has_corrupt:
-            fixed = _roundtrip_repair(line)
-            if fixed is None and any("\u4e00" <= c <= "\u9fff" for c in line):
-                # 整行往返失败（含丢失字节）：尝试分段前缀修复；合法中文段不会命中
-                parts = re.split(r"([\x00-\x7f]+)", line)
-                segs = []
-                hit = False
-                for part in parts:
-                    if not part or all("\x00" <= c <= "\x7f" for c in part):
-                        segs.append(part)
-                        continue
-                    seg = _repair_run(part)
-                    if seg is not None:
-                        hit = True
-                    segs.append(seg if seg is not None else part)
-                if hit:
-                    fixed = "".join(segs)
-            out.append(fixed if fixed is not None else line)
-            continue
-        fixed = _roundtrip_repair(line)
-        if fixed is not None:
-            out.append(fixed)
-            continue
-        # 整行失败：按 ASCII/非ASCII 分段，逐段修复；不可修复段取最长可修复前缀，最后才删除
-        parts = re.split(r"([\x00-\x7f]+)", line)
-        repaired_parts = []
-        for part in parts:
-            if not part or all("\x00" <= c <= "\x7f" for c in part):
-                repaired_parts.append(part)
-                continue
-            seg = _repair_run(part)
-            repaired_parts.append(seg if seg is not None else "")
-        out.append("".join(repaired_parts))
-    return "\n".join(out)
-
-
 def read_text(path: Path, limit: int | None = None) -> str:
     data = path.read_bytes()
     if limit is not None:
         data = data[:limit]
-    # 优先 UTF-8；解码成功但内容乱码时尝试修复双重编码
-    for encoding in ("utf-8", "utf-8-sig"):
+    encodings = ["utf-8", "utf-8-sig", "gb18030", "latin-1"]
+    if data.startswith((b"\xff\xfe", b"\xfe\xff")):
+        encodings.insert(0, "utf-16")
+    if data.startswith((b"\xff\xfe\x00\x00", b"\x00\x00\xfe\xff")):
+        encodings.insert(0, "utf-32")
+    for encoding in encodings:
         try:
-            text = data.decode(encoding)
+            return data.decode(encoding)
         except UnicodeDecodeError:
             continue
-        if _has_garbled_text(text):
-            repaired = _repair_mojibake(text)
-            if not _has_garbled_text(repaired):
-                return repaired
-            text = repaired  # 部分修复：残留乱码行由 should_skip_file 兜底
-        return text
-    # 尝试 GBK/GB18030
-    for encoding in ("gb18030", "gbk"):
-        try:
-            text = data.decode(encoding)
-            if not _has_garbled_text(text):
-                return text
-        except UnicodeDecodeError:
-            continue
-    # 兜底：UTF-8 替换模式
     return data.decode("utf-8", errors="replace")
 
 
@@ -362,6 +339,119 @@ def read_json(path: Path) -> dict[str, Any]:
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def file_sha256(path: Path) -> str:
+    """Return a stable digest used to invalidate stale user confirmations."""
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def confirmation_payload_sha256(data: dict[str, Any]) -> str:
+    """Hash JSON content while excluding confirmation bookkeeping fields."""
+    payload = {key: value for key, value in data.items() if key not in CONFIRMATION_METADATA_KEYS}
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def confirmation_is_current(data: dict[str, Any]) -> bool:
+    expected = str(data.get("confirmed_content_sha256") or "")
+    return bool(expected) and expected == confirmation_payload_sha256(data)
+
+
+def draft_snapshot(workdir: Path) -> dict[str, str]:
+    """Hash user-reviewable drafts plus the selected screenshot inputs."""
+    draft_dir = workdir / "草稿"
+    if not draft_dir.is_dir():
+        return {}
+    paths = [
+        path
+        for path in sorted(draft_dir.rglob("*"))
+        if path.is_file()
+        and path.name != "最终生成确认.json"
+        and path.suffix.lower() in {".md", ".json"}
+    ]
+    screenshot_confirmation = workdir / "截图方式确认.json"
+    if screenshot_confirmation.is_file():
+        paths.append(screenshot_confirmation)
+    screenshot_manifest = workdir / "截图/截图清单.json"
+    if screenshot_manifest.is_file():
+        paths.append(screenshot_manifest)
+        try:
+            entries = read_json(screenshot_manifest).get("screenshots") or []
+            for entry in entries:
+                if not isinstance(entry, dict) or not entry.get("path"):
+                    continue
+                image_path = Path(str(entry["path"]))
+                if not image_path.is_absolute():
+                    image_path = screenshot_manifest.parent / image_path
+                if image_path.is_file():
+                    paths.append(image_path.resolve())
+        except Exception:
+            pass
+    snapshot: dict[str, str] = {}
+    resolved_workdir = workdir.resolve()
+    for index, path in enumerate(paths, start=1):
+        resolved = path.resolve()
+        try:
+            key = resolved.relative_to(resolved_workdir).as_posix()
+        except ValueError:
+            key = f"external-screenshot/{index}-{resolved.name}"
+        snapshot[key] = file_sha256(resolved)
+    return snapshot
+
+
+def draft_completeness_issues(workdir: Path) -> list[str]:
+    """Validate that every draft needed by the final builder exists and is coherent."""
+    draft_dir = workdir / "草稿"
+    required = [
+        "业务理解.md",
+        "业务理解.json",
+        "代码文件选择.json",
+        "代码提取清单.md",
+        "代码提取清单.json",
+        "申请表信息.md",
+        "操作手册.md",
+        "操作手册自检记录.md",
+        "操作手册自检记录.json",
+    ]
+    issues = [f"缺少 草稿/{name}" for name in required if not (draft_dir / name).is_file()]
+    manifest_path = draft_dir / "代码提取清单.json"
+    if not manifest_path.is_file():
+        return issues
+    try:
+        manifest = read_json(manifest_path)
+    except Exception as exc:
+        issues.append(f"草稿/代码提取清单.json 无法读取：{exc}")
+        return issues
+    outputs = manifest.get("outputs") if isinstance(manifest, dict) else None
+    if not isinstance(outputs, list) or not outputs:
+        issues.append("草稿/代码提取清单.json 未声明代码 Markdown 输出")
+        return issues
+    declared = {str(name) for name in outputs}
+    invalid = sorted(declared - KNOWN_CODE_DRAFTS)
+    if invalid:
+        issues.append("代码提取清单包含未知输出：" + "、".join(invalid))
+    for name in sorted(declared & KNOWN_CODE_DRAFTS):
+        if not (draft_dir / name).is_file():
+            issues.append(f"缺少清单声明的 草稿/{name}")
+    stale = sorted(name for name in KNOWN_CODE_DRAFTS - declared if (draft_dir / name).exists())
+    if stale:
+        issues.append("存在与当前代码提取模式冲突的旧草稿：" + "、".join(stale))
+    review_path = draft_dir / "操作手册自检记录.json"
+    if review_path.is_file():
+        try:
+            review = read_json(review_path)
+            rounds = review.get("rounds") if isinstance(review, dict) else None
+            last_issues = rounds[-1].get("issues") if isinstance(rounds, list) and rounds else None
+            if isinstance(last_issues, list) and last_issues:
+                issues.append("操作手册自检仍有未解决问题：" + "；".join(str(item) for item in last_issues[:5]))
+        except Exception as exc:
+            issues.append(f"草稿/操作手册自检记录.json 无法读取：{exc}")
+    return issues
 
 
 def count_text_lines(path: Path, skip_blank: bool = True) -> int:
@@ -383,10 +473,71 @@ def is_known_config_file(path: Path) -> bool:
 
 def looks_binary(path: Path) -> bool:
     try:
-        chunk = path.read_bytes()[:4096]
+        chunk = path.read_bytes()[:8192]
     except Exception:
         return True
-    return b"\x00" in chunk
+    if not chunk:
+        return False
+    if path.suffix.lower() in BINARY_EXTS:
+        return True
+    if chunk.startswith((b"PK\x03\x04", b"%PDF-", b"\x1f\x8b", b"\x89PNG", b"GIF8")):
+        return True
+    if chunk.startswith((b"\xff\xfe", b"\xfe\xff", b"\xff\xfe\x00\x00", b"\x00\x00\xfe\xff")):
+        return False
+    if b"\x00" in chunk:
+        return True
+    control_count = sum(1 for byte in chunk if byte < 32 and byte not in {9, 10, 12, 13})
+    return control_count / len(chunk) > 0.02
+
+
+def is_document_candidate(path: Path, project: Path | None = None) -> bool:
+    """Return True for explicit or strongly signalled project documentation."""
+    suffix = path.suffix.lower()
+    name = path.name.lower()
+    if suffix in DOCUMENT_EXTS or name.startswith(DOCUMENT_FILE_PREFIXES):
+        return True
+    try:
+        display_path = Path(rel(path, project)) if project is not None else path
+    except ValueError:
+        display_path = path
+    directory_names = {part.lower() for part in display_path.parent.parts}
+    in_document_directory = bool(directory_names & DOCUMENT_DIR_NAMES)
+    hinted_name = any(hint in path.stem.lower() for hint in DOCUMENT_NAME_HINTS)
+    return (in_document_directory or (hinted_name and suffix not in KNOWN_SOURCE_HINT_EXTS)) and not looks_binary(path)
+
+
+def is_source_candidate(path: Path) -> bool:
+    """Detect readable source without requiring its language extension to be known."""
+    if not path.is_file() or is_known_config_file(path):
+        return False
+    suffix = path.suffix.lower()
+    name = path.name.lower()
+    if suffix in DOCUMENT_EXTS | BINARY_EXTS | NON_SOURCE_TEXT_EXTS:
+        return False
+    if name.startswith(DOCUMENT_FILE_PREFIXES):
+        return False
+    try:
+        size = path.stat().st_size
+    except OSError:
+        return False
+    if size <= 0 or size > MAX_SOURCE_FILE_BYTES or looks_binary(path):
+        return False
+    try:
+        sample = read_text(path, limit=20_000)
+    except Exception:
+        return False
+    if not sample.strip():
+        return False
+    if any(len(line) > 3000 for line in sample.splitlines()[:80]):
+        return False
+    return any(char.isalnum() for char in sample)
+
+
+def iter_source_files(project: Path) -> Iterable[Path]:
+    """Yield source candidates using content detection, not an extension allowlist."""
+    for path in iter_project_files(project):
+        if is_source_candidate(path):
+            yield path
 
 
 def normalize_title(value: str) -> str:
@@ -403,22 +554,3 @@ def safe_filename(value: str) -> str:
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
-
-
-def ensure_utf8() -> None:
-    """强制当前进程与子进程使用 UTF-8，避免 Windows 默认 GBK 在解码/输出时抛 UnicodeDecodeError。
-
-    在脚本入口调用一次即可：对标准流 reconfigure 为 utf-8，并为子进程设置 PYTHONIOENCODING。
-    配合 subprocess.run(..., encoding="utf-8", errors="replace") 使用可彻底规避 GBK 解码崩溃。
-    """
-    os.environ.setdefault("PYTHONIOENCODING", "utf-8")
-    try:
-        import sys
-
-        for stream in (sys.stdout, sys.stderr):
-            try:
-                stream.reconfigure(encoding="utf-8")
-            except Exception:
-                pass
-    except Exception:
-        pass

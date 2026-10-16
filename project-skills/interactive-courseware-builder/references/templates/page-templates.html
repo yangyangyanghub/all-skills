@@ -1,0 +1,617 @@
+<!--
+  page-templates.html — 交互课件页面模板集
+  这些模板使用 courseware-skeleton.html 中定义的 CSS 类。
+  将相关 <section> HTML 复制到你的课件 page sections 中，然后填入项目具体内容。
+
+  使用说明：
+  1. 每个模板以 <!-- ===== Template Name ===== --> ... <!-- ===== End Template ===== --> 标记
+  2. 复制整个 <section> 到 courseware-skeleton.html 的 <div id="pageContainer"> 中
+  3. 在 <nav id="topNav"> 中添加对应的 chip
+  4. 更新 page-flip-system.js 的 PAGE_IDS 和 PAGE_LABELS
+  5. 替换所有中文占位文本为实际内容
+  6. 确保所有 quiz id、canvas id 与 JS 函数名对齐
+  7. ⚠ 模板中 `<section class="page" id="pN">` 的 **id 均为示例**（沿用默认 PAGE_IDS 顺序）——
+     复制后**必须按你课件的实际页面规划修改 id**，且与 page-flip-system.js 的 PAGE_IDS 一一对应，严禁两个页面同 id
+
+  重要规则：
+  - 所有 JS 使用简单全局函数，不用 ES6/class/模块语法
+  - onclick 使用全局函数名：initQuiz, submitQuiz, retryQuiz 等
+    ⚠ Step 4 提交模式中必须删除所有 retryQuiz 的 onclick 调用和"重做"按钮，改为"提交本页成绩"
+  - CSS 类名必须与 courseware-skeleton.html 中的定义完全一致
+  - Quiz id 格式：quizPre / quizMid1 / quizMid2 / quizPost
+  - Quiz question id 格式：qq_{quizId}_{N}，feedback id 格式：fb_{quizId}_{N}
+  - Score 元素 id 格式：去掉"quiz"前缀 + "Score"，如 quizPre → preScore
+-->
+
+<!-- ===== Cover Page Template ===== -->
+<section class="page" id="p0">
+<div class="cover-page" style="height:100%;background:linear-gradient(135deg, var(--primary), var(--primary-light), var(--accent-soft))">
+  <!-- 大号 Emoji 图标（占位，替换为项目主题图标） -->
+  <div style="font-size:80px;margin-bottom:20px;text-shadow:0 4px 20px rgba(0,0,0,.3)">⚡</div>
+
+  <!-- 课件标题 -->
+  <h1><!-- 课件标题：主题名 --></h1>
+
+  <!-- 副标题 -->
+  <p class="sub"><!-- 副标题 · 年级科目 --></p>
+
+  <!-- 知识点标签 -->
+  <div class="tags">
+    <span class="tag"><!-- 知识点1 --></span>
+    <span class="tag"><!-- 知识点2 --></span>
+    <span class="tag"><!-- 知识点3 --></span>
+  </div>
+
+  <!-- 课件简介 -->
+  <p style="font-size:20px;color:rgba(255,255,255,.85);max-width:500px;line-height:1.8;margin-bottom:0">
+    <!-- 简要描述本课件的学习目标和主要内容，2-3句话即可 -->
+  </p>
+
+  <!-- 操作提示 -->
+  <p class="hint">点击右下角箭头开始 或 点击顶部导航跳转</p>
+</div>
+</section>
+<!-- ===== End Cover Page Template ===== -->
+
+
+<!-- ===== Pre-Test Quiz Page Template ===== -->
+<!-- ⚠ Step 3 使用 retryQuiz（即时反馈模式），Step 4 使用 submitQuiz（提交模式） -->
+<!-- Step 3: isSubmitMode=false，保留"重做"按钮 -->
+<!-- Step 4: isSubmitMode=true，去掉"重做"按钮，改为"提交本页成绩"按钮 -->
+<section class="page" id="p1">
+<div class="quiz-page" id="quizPre">
+  <h2 class="quiz-title">前测 · 摸底检测</h2>
+  <p class="quiz-hint">看看你在学习前对这些知识了解多少，放心作答，不计入成绩</p>
+
+  <!-- 第1题 -->
+  <div class="quiz-q" id="qq_quizPre_0">
+    <p class="q-stem">1. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPre_0"></div>
+  </div>
+
+  <!-- 第2题 -->
+  <div class="quiz-q" id="qq_quizPre_1">
+    <p class="q-stem">2. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPre_1"></div>
+  </div>
+
+  <!-- 第3题 -->
+  <div class="quiz-q" id="qq_quizPre_2">
+    <p class="q-stem">3. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPre_2"></div>
+  </div>
+
+  <!-- 第4题（可选，前测通常3-4题） -->
+  <div class="quiz-q" id="qq_quizPre_3">
+    <p class="q-stem">4. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPre_3"></div>
+  </div>
+
+  <!-- ⚠ Step 3 即时模式：使用重做按钮。Step 4 提交模式：删除此按钮，改为"提交本页成绩"按钮（见 unified-quiz-submit.js） -->
+  <div class="quiz-actions">
+    <button class="btn-retry" onclick="retryQuiz('quizPre')">重做</button>
+  </div>
+
+  <!-- ⚠ Step 4 提交模式：使用提交按钮（去掉重做按钮） -->
+  <!--
+  <div class="quiz-actions">
+    <button id="quizPre_submitBtn" class="btn-submit" onclick="submitQuiz('quizPre','pre')">提交本页成绩</button>
+  </div>
+  -->
+
+  <!-- 分数显示 -->
+  <span id="preScore" class="quiz-score"></span>
+</div>
+</section>
+<!-- ===== End Pre-Test Quiz Page Template ===== -->
+
+
+<!-- ===== Teach Page Template ===== -->
+<!-- ⚠ 每个抽象概念必须配有可视化（图片/Canvas/概念图/对比图），不能只有纯文字 -->
+<!-- ⚠ 有图有文必须图文混排，禁止把图堆到页面底部。两种布局：
+     ① 宽幅信息图 → <img class="page-img"> 紧跟对应段落之后，全宽居中
+     ② 机制图/肖像 → 浮动并排，文字环绕（CSS 已在 courseware-skeleton.html 中定义）：
+     <div class="clearfix">
+       <div class="fig float-r"><img src="IMG_PREFIX+path"><p class="caption">图注</p></div>
+       <p class="teach-text">环绕图片的文字…</p>
+     </div>
+     （float-r 可换 float-l；移动端自动降级为全宽） -->
+<!-- teach-title 自动有 border-bottom accent 装饰线（CSS 已定义） -->
+<section class="page" id="p2">
+<div style="padding:32px 36px 40px">
+
+  <!-- 标题（自带 accent 下边框） -->
+  <h2 class="teach-title"><!-- 讲授页标题 --></h2>
+
+  <!-- 正文段落（用 strong 标记关键术语，会显示为 accent 醒目色） -->
+  <p class="teach-text">
+    <!-- 第一段正文，阐述核心概念。用 <strong>关键术语</strong> 标记重要概念 -->
+  </p>
+  <p class="teach-text">
+    <!-- 第二段正文，进一步展开说明 -->
+  </p>
+
+  <!-- 重要概念高亮框 -->
+  <div class="key-box">
+    <strong><!-- 概念名称 --></strong>：<!-- 概念定义或核心要点，2-3行 -->
+  </div>
+
+  <!-- 特征列表 -->
+  <ul class="feature-list">
+    <li><!-- 特征要点1 --></li>
+    <li><!-- 特征要点2 --></li>
+    <li><!-- 特征要点3 --></li>
+    <li><!-- 特征要点4 --></li>
+  </ul>
+
+  <!-- 两栏对比卡片 -->
+  <div class="card-grid">
+    <div class="card">
+      <h4><!-- 概念A标题 --></h4>
+      <p><!-- 概念A说明，可与 B 形成对比 --></p>
+    </div>
+    <div class="card">
+      <h4><!-- 概念B标题 --></h4>
+      <p><!-- 概念B说明，可与 A 形成对比 --></p>
+    </div>
+  </div>
+
+  <!-- 关键数字/编号高亮 -->
+  <p class="teach-text">
+    <span class="highlight-num">1</span><!-- 第一步说明 -->
+  </p>
+  <p class="teach-text">
+    <span class="highlight-num">2</span><!-- 第二步说明 -->
+  </p>
+  <p class="teach-text">
+    <span class="highlight-num">3</span><!-- 第三步说明 -->
+  </p>
+
+  <!-- ⚠ 此处应插入可视化内容：Canvas概念图、静态图片或SVG图解 -->
+  <!--
+  <div class="canvas-box" style="margin:20px 0">
+    <canvas id="diagramP2" width="640" height="320"></canvas>
+    <p class="cap"><!-- 图解标题 --></p>
+  </div>
+  -->
+
+</div>
+</section>
+<!-- ===== End Teach Page Template ===== -->
+
+
+<!-- ===== Simulation Page Template ===== -->
+<!-- ⚠ Canvas id 必须与 drawXxx() 函数名和 onPageEnter() 调用同步对齐 -->
+<!-- ⚠ 使用 diagramDrawn 对象防止重复绘制 -->
+<!-- ⚠ Canvas 中颜色必须使用 hex 字符串，不能用 CSS 变量 -->
+<!-- ⚠ 共享状态变量必须在 <script> 顶层声明，不能在函数内部 -->
+<section class="page" id="p3">
+<div class="sim-page">
+
+  <h2 class="sim-title"><!-- 仿真实验标题 --></h2>
+  <p class="sim-desc"><!-- 实验简介：拖动滑块调整参数，观察变化 --></p>
+
+  <!-- 控件区：range 滑块 + 实时数值显示 -->
+  <div class="sim-controls">
+    <label><!-- 参数1名称 --></label>
+    <input type="range" id="slider1" min="0" max="100" value="50" oninput="onSlider1Change()">
+    <span class="val-display" id="val1">50</span>
+  </div>
+  <div class="sim-controls">
+    <label><!-- 参数2名称 --></label>
+    <input type="range" id="slider2" min="0" max="100" value="50" oninput="onSlider2Change()">
+    <span class="val-display" id="val2">50</span>
+  </div>
+
+  <!-- Canvas 绘制区 -->
+  <div class="sim-canvas-wrap">
+    <div class="canvas-box">
+      <canvas id="canvasP3" width="640" height="400"></canvas>
+      <p class="cap"><!-- 图解标题：说明Canvas展示的内容 --></p>
+    </div>
+  </div>
+
+</div>
+</section>
+<!-- ===== End Simulation Page Template ===== -->
+
+<!-- ⚠ 仿真页配套 JS 模板（复制到 <script> 中） -->
+<!--
+var simStateP3 = { param1: 50, param2: 50 };
+
+function onSlider1Change() {
+  simStateP3.param1 = parseInt(document.getElementById('slider1').value);
+  document.getElementById('val1').textContent = simStateP3.param1;
+  drawSimP3();
+}
+function onSlider2Change() {
+  simStateP3.param2 = parseInt(document.getElementById('slider2').value);
+  document.getElementById('val2').textContent = simStateP3.param2;
+  drawSimP3();
+}
+
+function drawSimP3() {
+  var c = document.getElementById('canvasP3');
+  if (!c || diagramDrawn.p3) return; // ⚠ diagramDrawn 防重复绘制（仅用于静态概念图）
+  // 仿真类Canvas不需要diagramDrawn守卫——每次滑块变化都要重新绘制
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  // 绘制逻辑... 使用 simStateP3.param1, simStateP3.param2
+  // ⚠ 颜色用 hex: '#8D6E63' 而非 'var(--primary)'
+}
+
+// onPageEnter 中调用：
+// if (id === 'p3') drawSimP3();
+-->
+
+
+<!-- ===== Mid-Test Quiz Page Template (quizMid1) ===== -->
+<!-- 中测1：与前测结构相同，使用 quizMid1 作为 quizId -->
+<!-- ⚠ Step 3 使用 retryQuiz，Step 4 使用 submitQuiz -->
+<section class="page" id="p5">
+<div class="quiz-page" id="quizMid1">
+  <h2 class="quiz-title">中测1 · 阶段检测</h2>
+  <p class="quiz-hint">检验一下刚才学到的知识，看看掌握程度如何</p>
+
+  <!-- 第1题 -->
+  <div class="quiz-q" id="qq_quizMid1_0">
+    <p class="q-stem">1. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizMid1_0"></div>
+  </div>
+
+  <!-- 第2题 -->
+  <div class="quiz-q" id="qq_quizMid1_1">
+    <p class="q-stem">2. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizMid1_1"></div>
+  </div>
+
+  <!-- 第3题 -->
+  <div class="quiz-q" id="qq_quizMid1_2">
+    <p class="q-stem">3. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizMid1_2"></div>
+  </div>
+
+  <!-- ⚠ Step 3 即时模式 -->
+  <div class="quiz-actions">
+    <button class="btn-retry" onclick="retryQuiz('quizMid1')">重做</button>
+  </div>
+
+  <!-- ⚠ Step 4 提交模式 -->
+  <!--
+  <div class="quiz-actions">
+    <button id="quizMid1_submitBtn" class="btn-submit" onclick="submitQuiz('quizMid1','mid1')">提交本页成绩</button>
+  </div>
+  -->
+
+  <span id="mid1Score" class="quiz-score"></span>
+</div>
+</section>
+<!-- ===== End Mid-Test Quiz Page Template (quizMid1) ===== -->
+
+
+<!-- ===== Mid-Test Quiz Page Template (quizMid2) ===== -->
+<!-- 中测2：如有多个中测页，复制此模板并更改 quizId 和 id 编号 -->
+<section class="page" id="p10">
+<div class="quiz-page" id="quizMid2">
+  <h2 class="quiz-title">中测2 · 阶段检测</h2>
+  <p class="quiz-hint">继续检验新学到的知识</p>
+
+  <!-- 第1题 -->
+  <div class="quiz-q" id="qq_quizMid2_0">
+    <p class="q-stem">1. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizMid2_0"></div>
+  </div>
+
+  <!-- 第2题 -->
+  <div class="quiz-q" id="qq_quizMid2_1">
+    <p class="q-stem">2. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizMid2_1"></div>
+  </div>
+
+  <!-- 第3题 -->
+  <div class="quiz-q" id="qq_quizMid2_2">
+    <p class="q-stem">3. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizMid2_2"></div>
+  </div>
+
+  <!-- ⚠ Step 3 即时模式 -->
+  <div class="quiz-actions">
+    <button class="btn-retry" onclick="retryQuiz('quizMid2')">重做</button>
+  </div>
+
+  <!-- ⚠ Step 4 提交模式 -->
+  <!--
+  <div class="quiz-actions">
+    <button id="quizMid2_submitBtn" class="btn-submit" onclick="submitQuiz('quizMid2','mid2')">提交本页成绩</button>
+  </div>
+  -->
+
+  <span id="mid2Score" class="quiz-score"></span>
+</div>
+</section>
+<!-- ===== End Mid-Test Quiz Page Template (quizMid2) ===== -->
+
+
+<!-- ===== Post-Test Quiz Page Template ===== -->
+<!-- 后测：题目数量5-8道，覆盖全部知识点，使用 quizPost 作为 quizId -->
+<!-- ⚠ Step 3 使用 retryQuiz，Step 4 使用 submitQuiz -->
+<section class="page" id="p13">
+<div class="quiz-page" id="quizPost">
+  <h2 class="quiz-title">后测 · 综合检测</h2>
+  <p class="quiz-hint">检测你对本课件全部知识的掌握程度，加油！</p>
+
+  <!-- 第1题 -->
+  <div class="quiz-q" id="qq_quizPost_0">
+    <p class="q-stem">1. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPost_0"></div>
+  </div>
+
+  <!-- 第2题 -->
+  <div class="quiz-q" id="qq_quizPost_1">
+    <p class="q-stem">2. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPost_1"></div>
+  </div>
+
+  <!-- 第3题 -->
+  <div class="quiz-q" id="qq_quizPost_2">
+    <p class="q-stem">3. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPost_2"></div>
+  </div>
+
+  <!-- 第4题 -->
+  <div class="quiz-q" id="qq_quizPost_3">
+    <p class="q-stem">4. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPost_3"></div>
+  </div>
+
+  <!-- 第5题 -->
+  <div class="quiz-q" id="qq_quizPost_4">
+    <p class="q-stem">5. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPost_4"></div>
+  </div>
+
+  <!-- 第6题（可选） -->
+  <div class="quiz-q" id="qq_quizPost_5">
+    <p class="q-stem">6. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPost_5"></div>
+  </div>
+
+  <!-- 第7题（可选） -->
+  <div class="quiz-q" id="qq_quizPost_6">
+    <p class="q-stem">7. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPost_6"></div>
+  </div>
+
+  <!-- 第8题（可选） -->
+  <div class="quiz-q" id="qq_quizPost_7">
+    <p class="q-stem">8. <!-- 题目文本 --></p>
+    <div class="opts">
+      <div class="opt" data-idx="0"><span class="badge">A</span><!-- 选项A文本 --></div>
+      <div class="opt" data-idx="1"><span class="badge">B</span><!-- 选项B文本 --></div>
+      <div class="opt" data-idx="2"><span class="badge">C</span><!-- 选项C文本 --></div>
+      <div class="opt" data-idx="3"><span class="badge">D</span><!-- 选项D文本 --></div>
+    </div>
+    <div class="feedback" id="fb_quizPost_7"></div>
+  </div>
+
+  <!-- ⚠ Step 3 即时模式 -->
+  <div class="quiz-actions">
+    <button class="btn-retry" onclick="retryQuiz('quizPost')">重做</button>
+  </div>
+
+  <!-- ⚠ Step 4 提交模式 -->
+  <!--
+  <div class="quiz-actions">
+    <button id="quizPost_submitBtn" class="btn-submit" onclick="submitQuiz('quizPost','post')">提交本页成绩</button>
+  </div>
+  -->
+
+  <span id="postScore" class="quiz-score"></span>
+</div>
+</section>
+<!-- ===== End Post-Test Quiz Page Template ===== -->
+
+
+<!-- ===== Summary Page Template（旧版） ===== -->
+<!-- ⚠⚠ DEPRECATED — 旧版"要点卡片+口诀+分数对比"总结页模板已彻底废除（硬规约12），
+     其 CSS（.summary-grid/.summary-item/.mantra/.score-compare）与 JS（showSummaryComparison）
+     在骨架中已不再提供，复制旧内容将无样式可用。
+     一律改用 4 套新总结框架之一（Step 1 确认框架、Step 3 从对应文件复制）：
+       summary-v1-panorama-graph.html / summary-v2-question-chain.html /
+       summary-v3-dual-panel-tree.html / summary-v4-card-reveal.html
+     本占位块仅为提醒，无可用代码。 -->
+<!-- ===== End Summary Page Template（旧版·已废除） ===== -->
+
+<!-- ===== Mindmap Page Template ===== -->
+<!-- 知识结构树：HTML 可折叠树形结构（对应 SKILL.md §1.5 图片类型 e「知识结构图」）。
+     注意：这是"知识结构图"页（Type e），**不是总结页**——总结页一律用 4 套新框架（summary-vN）。
+     若课件只需一张知识结构图，可作独立页或并入总结页之前；默认 PAGE_IDS 中为 p15（思维导图）。 -->
+<!-- 点击节点调用 toggleBranch() 展开/收起子分支 -->
+<section class="page" id="p15">
+<div class="mindmap" style="padding:32px 36px 40px">
+
+  <h2 class="summary-title">知识结构图</h2>
+
+  <!-- 第一层：根节点 -->
+  <div class="node" onclick="toggleBranch('branch_root')">
+    <span class="icon">📂</span><!-- 课件主题名称 -->
+    <span class="brief"><!-- 主题简述 --></span>
+  </div>
+  <div class="branch" id="branch_root">
+
+    <!-- 第二层：分支1 -->
+    <div class="node" onclick="toggleBranch('branch_1')">
+      <span class="icon">📁</span><!-- 分支1名称 -->
+      <span class="brief"><!-- 分支1简述 --></span>
+    </div>
+    <div class="branch collapsed" id="branch_1">
+
+      <!-- 第三层：叶子节点 -->
+      <div class="node">
+        <span class="icon">📄</span><!-- 知识点1-1 -->
+        <span class="brief"><!-- 知识点1-1简述 --></span>
+      </div>
+      <div class="node">
+        <span class="icon">📄</span><!-- 知识点1-2 -->
+        <span class="brief"><!-- 知识点1-2简述 --></span>
+      </div>
+
+    </div><!-- /branch_1 -->
+
+    <!-- 第二层：分支2 -->
+    <div class="node" onclick="toggleBranch('branch_2')">
+      <span class="icon">📁</span><!-- 分支2名称 -->
+      <span class="brief"><!-- 分支2简述 --></span>
+    </div>
+    <div class="branch collapsed" id="branch_2">
+
+      <div class="node">
+        <span class="icon">📄</span><!-- 知识点2-1 -->
+        <span class="brief"><!-- 知识点2-1简述 --></span>
+      </div>
+      <div class="node">
+        <span class="icon">📄</span><!-- 知识点2-2 -->
+        <span class="brief"><!-- 知识点2-2简述 --></span>
+      </div>
+
+    </div><!-- /branch_2 -->
+
+    <!-- 第二层：分支3 -->
+    <div class="node" onclick="toggleBranch('branch_3')">
+      <span class="icon">📁</span><!-- 分支3名称 -->
+      <span class="brief"><!-- 分支3简述 --></span>
+    </div>
+    <div class="branch collapsed" id="branch_3">
+
+      <div class="node">
+        <span class="icon">📄</span><!-- 知识点3-1 -->
+        <span class="brief"><!-- 知识点3-1简述 --></span>
+      </div>
+      <div class="node">
+        <span class="icon">📄</span><!-- 知识点3-2 -->
+        <span class="brief"><!-- 知识点3-2简述 --></span>
+      </div>
+
+    </div><!-- /branch_3 -->
+
+  </div><!-- /branch_root -->
+
+</div>
+</section>
+<!-- ===== End Mindmap Page Template ===== -->
+
+<!-- ⚠ 思维导图折叠函数（复制到 <script> 中） -->
+<!--
+function toggleBranch(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (el.classList.contains('collapsed')) {
+    el.classList.remove('collapsed');
+  } else {
+    el.classList.add('collapsed');
+  }
+}
+-->

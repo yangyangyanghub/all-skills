@@ -65,7 +65,7 @@ export interface RedactPattern {
    * (crypto wallets), RFC1918-exclusion (public IPs), etc. Receives the
    * matched secret span (group 1 or match[0]) and the full match array.
    */
-  validate?: (span: string, match: RegExpExecArray) => boolean;
+  validate?: (span: string, match: RegExpExecArray, opts?: { sourcePath?: string }) => boolean;
   /**
    * Proximity requirement: the pattern only counts if `nearRegex` also matches
    * within `nearWindow` chars of the match. Used for AWS secret keys (need
@@ -108,6 +108,39 @@ export function shannonEntropy(s: string): number {
   return h;
 }
 
+// env.kv name-shape calibration: the regex's zero-or-more-prefix net matches
+// ANY identifier ending in a credential suffix, so `cacheKey:`, `sortKey:`,
+// `partitionKey:`, `hotkey:`, even `monkey:` with an 8+-char entropic value
+// all hit a MEDIUM confirm prompt — a gate that cries wolf gets ignored.
+// A matched name only counts when its shape is credential-semantic:
+//   (i)   suffix separated from the prefix by _ / - / .  (api_key, x-access-key,
+//         AUTH.TOKEN)
+//   (ii)  the whole name IS the bare suffix              (key:, token:)
+//   (iii) the name is ALL-CAPS env style                 (APIKEY=, MY_APIKEY=)
+//   (iv)  a lowercase/camel compound whose prefix ends in a credential word
+//         (apiKey, authToken, clientSecret, stripeApiKey) — cacheKey/sortKey/
+//         monkey have no credential prefix and are rejected.
+const ENV_KV_NAME =
+  /^[ \t]*(?:export[ \t]+)?["']?([A-Za-z0-9_.-]*?(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIALS?|DSN|AUTH|COOKIE|SESSION|PRIVATE))["']?[ \t]*[:=]/i;
+const ENV_KV_SUFFIX =
+  /(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIALS?|DSN|AUTH|COOKIE|SESSION|PRIVATE)$/i;
+const ENV_KV_CRED_PREFIX =
+  /(api|auth|access|secret|private|app|client|server|master|admin|signing|encryption|session|csrf|jwt|oauth|bearer)$/i;
+
+/** True when the full env.kv match starts with a credential-shaped name. */
+export function isCredentialShapedEnvName(fullMatch: string): boolean {
+  const nameMatch = ENV_KV_NAME.exec(fullMatch);
+  if (!nameMatch) return false;
+  const name = nameMatch[1];
+  const suffixMatch = ENV_KV_SUFFIX.exec(name);
+  if (!suffixMatch) return false;
+  const prefix = name.slice(0, name.length - suffixMatch[1].length);
+  if (prefix === "") return true; // (ii) bare suffix
+  if (/[_.\-]$/.test(prefix)) return true; // (i) separator before suffix
+  if (!/[a-z]/.test(name)) return true; // (iii) ALL-CAPS env style
+  return ENV_KV_CRED_PREFIX.test(prefix); // (iv) credential-semantic compound
+}
+
 /** True when an IPv4 string is a public address (not RFC1918/loopback/etc). */
 export function isPublicIPv4(ip: string): boolean {
   const m = ip.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
@@ -138,6 +171,197 @@ function looksLikeWallet(span: string): boolean {
   return span.length >= 26 && span.length <= 62;
 }
 
+// Compact log/backup stamps (`20260727202423` = YYYYMMDDHHMMSS) are bare digit
+// runs that the phone regex happily eats. Only a SEPARATOR-FREE 14-digit span
+// qualifies: E.164 tops out at 15 digits and real numbers carry a + or spacing,
+// so rejecting this shape costs no phone coverage.
+function looksLikeCompactTimestamp(span: string): boolean {
+  if (!/^\d{14}$/.test(span)) {
+    return false;
+  }
+  const n = (from: number, to: number) => Number(span.slice(from, to));
+  const [year, month, day, hour, minute, second] = [
+    n(0, 4),
+    n(4, 6),
+    n(6, 8),
+    n(8, 10),
+    n(10, 12),
+    n(12, 14),
+  ];
+  return (
+    year >= 1900 &&
+    year <= 2999 &&
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= 31 &&
+    hour <= 23 &&
+    minute <= 59 &&
+    second <= 59
+  );
+}
+
+/** Context window for pairing a normalized parcel ID with its punctuated form. */
+const PARCEL_CONTEXT_CHARS = 400;
+
+/**
+ * County tax-map parcel ID (APN). Ohio's dominant form is NN-NNNNNNN.NNN, and
+ * some counties use a hyphen before the 3-4 digit suffix instead of a dot.
+ */
+const PARCEL_PUNCT_RE = /\b\d{2}-\d{4,8}[.\-]\d{3,4}\b/g;
+
+/**
+ * A parcel ID reads as a national-format phone number to pii.phone.e164 — the
+ * same collision class as the digit-only UUID that `insideUuid` already guards.
+ * Land/title repos carry these by the hundred, so the false positives are not
+ * incidental: they arrive on every branch that touches title, and a guardrail
+ * that cries wolf on the domain's primary identifier trains people to wave the
+ * warning through, which is how a real HIGH finding eventually gets ignored.
+ *
+ * Deliberately narrow, in two tiers:
+ *
+ * 1. The DOTTED form is exempt on its own shape. No phone convention places a
+ *    dot before a trailing 3-4 digit group after a 4-8 digit middle, so this
+ *    cannot swallow a real number. The hyphen-only variants (22-0001-000) are
+ *    NOT exempted by shape — those genuinely are phone-shaped.
+ *
+ * 2. A DIGITS-ONLY span is phone-shaped in isolation, so it earns the exemption
+ *    only by evidence: it must be the exact digit-normalization of a punctuated
+ *    parcel ID within the surrounding window. Fixtures and marts always carry
+ *    the pair ({parcel_id: "12-3456789.000", norm: "123456789000"}), and a bare
+ *    phone number has no such twin nearby — so this reads the document's own
+ *    evidence rather than guessing from digits.
+ */
+export function looksLikeParcelId(span: string, match: RegExpExecArray): boolean {
+  if (/^\d{2}-\d{4,8}\.\d{3,4}$/.test(span)) return true;
+  if (!/^\d{10,14}$/.test(span)) return false;
+
+  const input = match.input ?? "";
+  const spanStartInMatch = match[1] !== undefined ? match[0].indexOf(match[1]) : 0;
+  const spanStart = match.index + Math.max(0, spanStartInMatch);
+  const spanEnd = spanStart + span.length;
+  const window = input.slice(
+    Math.max(0, spanStart - PARCEL_CONTEXT_CHARS),
+    spanEnd + PARCEL_CONTEXT_CHARS,
+  );
+
+  PARCEL_PUNCT_RE.lastIndex = 0;
+  let p: RegExpExecArray | null;
+  while ((p = PARCEL_PUNCT_RE.exec(window)) !== null) {
+    if (p[0].replace(/\D/g, "") === span) return true;
+  }
+  return false;
+}
+
+/**
+ * Vector geometry reads as a phone number to pii.phone.e164 (#2885, #2827).
+ * The pattern accepts `.` as a group separator, so a single float
+ * (`viewBox="0 0 581.66796875 695.65625"`) parses as 581 · 6679 · 6875, and a
+ * run of path coordinates (`37.6188 101.694`, `100 64.5326 100`) as four
+ * spaced groups. One rendered /diagram SVG carried 18 of these; a Figma icon
+ * carries dozens per path.
+ *
+ * Phone conventions put a separator between EVERY group, so a token with
+ * digits, one dot and digits is a decimal number, never a dotted phone
+ * (415.555.0123 has two dots in one token and stays flagged). Exempt a span
+ * whose space-separated tokens include at least one decimal and none with two
+ * dots. A leading `+` is the E.164 marker, so a span starting with it is a
+ * phone context and never exempt.
+ */
+export function looksLikeDecimalCoordinates(span: string): boolean {
+  if (span.startsWith("+")) return false;
+  const tokens = span.split(" ");
+  if (tokens.some((t) => t.split(".").length > 2)) return false;
+  return tokens.some((t) => /^\d+\.\d+$/.test(t));
+}
+
+/** Span start/end in `match.input`, derived exactly as redact-engine.ts does. */
+function spanBounds(match: RegExpExecArray): { start: number; end: number } {
+  const spanStartInMatch = match[1] !== undefined ? match[0].indexOf(match[1]) : 0;
+  const start = match.index + Math.max(0, spanStartInMatch);
+  return { start, end: start + (match[1] ?? match[0]).length };
+}
+
+/**
+ * True when a digit span is one side of a decimal number: `<digit>.` sits
+ * immediately before it or `.<digit>` immediately after. pii.cc's `\b` stops
+ * at the dot, so the 14-digit fraction of `492.34399999999994` in an
+ * .excalidraw scene is a Luhn candidate, and a random digit run passes Luhn
+ * about one time in ten (#2827). A card number in prose is never glued to a
+ * decimal point; a sentence-ending period has no digit after it and stays
+ * flagged.
+ */
+export function insideDecimalNumber(match: RegExpExecArray): boolean {
+  const input = match.input ?? "";
+  const { start, end } = spanBounds(match);
+  const digit = (i: number) => i >= 0 && i < input.length && input[i] >= "0" && input[i] <= "9";
+  return (input[start - 1] === "." && digit(start - 2)) || (input[end] === "." && digit(end + 1));
+}
+
+/**
+ * JSON keys whose unquoted integer value is a random seed, nonce or epoch
+ * timestamp. Excalidraw writes three per element (`"seed":1808177121`,
+ * `"versionNonce":1365644783`, `"updated":1791059590857`), and pii.phone.e164
+ * reads each as a bare 10-13 digit number: 92 per /diagram scene (#2827).
+ */
+const NUMERIC_METADATA_KEY =
+  /"[A-Za-z0-9_]*(?:seed|nonce|updated|created|timestamp)(?:at|_at|ms|_ms)?"[ \t]*:[ \t]*$/i;
+
+/**
+ * True when a digit-only span is the unquoted JSON value of a seed, nonce or
+ * timestamp key. The evidence is the key, not the digits: the same number
+ * under `"phone":` still reports.
+ */
+export function isNumericMetadataValue(span: string, match: RegExpExecArray): boolean {
+  if (!/^\d+$/.test(span)) return false;
+  const input = match.input ?? "";
+  const { start } = spanBounds(match);
+  const lineStart = input.lastIndexOf("\n", start - 1) + 1;
+  return NUMERIC_METADATA_KEY.test(input.slice(Math.max(lineStart, start - 80), start));
+}
+
+/**
+ * GitHub Actions run and job ids are bare 10-12 digit integers, so
+ * pii.phone.e164 reads them as phone numbers. A published eval report prints
+ * the run id inside the command the reader copies
+ * (`bun run eval:pass-rates --run 37235771700`), and redacting it breaks that
+ * command. Only the position decides: a run/job flag (`--run 37235771700`,
+ * `--job=111534615007`), a `gh run view|watch|rerun|download|cancel`
+ * argument, an `actions/runs/<id>` or `/job/<id>` URL segment, or a
+ * `run_id` / `job_id` key. The same digits anywhere else still report.
+ */
+const CI_ID_POSITION_BEFORE =
+  /(?:--(?:run|job)(?:-id)?(?:[ \t]+|[ \t]*=[ \t]*)|\bgh[ \t]+run[ \t]+(?:view|watch|rerun|download|cancel)[ \t]+|\/actions\/runs\/|\/jobs?\/|(?:run|job)_id["']?[ \t]*[:=][ \t]*["']?)$/i;
+export function isCiRunIdentifier(span: string, match: RegExpExecArray): boolean {
+  if (!/^\d+$/.test(span)) return false;
+  const input = match.input ?? "";
+  const { start } = spanBounds(match);
+  const lineStart = input.lastIndexOf("\n", start - 1) + 1;
+  return CI_ID_POSITION_BEFORE.test(input.slice(Math.max(lineStart, start - 80), start));
+}
+
+/**
+ * A four-part version (MAJOR.MINOR.PATCH.BUILD: .NET assembly versions,
+ * gstack's own VERSION) is byte-for-byte a dotted quad, and `1.128.1.0` is a
+ * public address, so `"version": "1.128.1.0"` raised pii.ip_public on every
+ * release (#2784). The value cannot decide it, so only the declaration
+ * immediately before it on the same line can: a `version` key or word
+ * (`"version": "`, `app_version = `, `<Version>`, `AssemblyVersion("`,
+ * `version `), or a Keep a Changelog heading `## [1.2.3.4]`. The same digits
+ * after `host:`, `server = ` or in prose that merely mentions a version still
+ * report, and the pre-push hook's VERSION-file rule (#2856) is unchanged.
+ */
+const VERSION_DECLARATION_BEFORE =
+  /(?:\b[Vv]ersion|\bVERSION|[a-z0-9_]Version|[_-][Vv]ersion|_VERSION)["'\]]?(?:[ \t]*[:=(>][ \t]*|[ \t]+)["']?$/;
+const CHANGELOG_HEADING_BEFORE = /^#{1,6}[ \t]+\[$/;
+export function isDeclaredVersion(match: RegExpExecArray): boolean {
+  const input = match.input ?? "";
+  const { start, end } = spanBounds(match);
+  const lineStart = input.lastIndexOf("\n", start - 1) + 1;
+  if (VERSION_DECLARATION_BEFORE.test(input.slice(Math.max(lineStart, start - 48), start))) return true;
+  return CHANGELOG_HEADING_BEFORE.test(input.slice(lineStart, start)) && input[end] === "]";
+}
+
 // ── Placeholder suppression (per-matched-span, NOT per-line) ─────────────────
 
 /**
@@ -159,6 +383,7 @@ const PLACEHOLDER_STRUCTURAL = [
 // keys like AKIAIOSFODNN7EXAMPLE are bare tokens, so the guard still catches them.
 const PLACEHOLDER_SUBSTRING = [
   /example/i, // AKIAIOSFODNN7EXAMPLE etc — AWS docs convention
+  /^pass(word)?$/i, // literal PASSWORD/pass in URL-format doc comments
   /^changeme$/i,
   /^redacted/i,
   /^placeholder/i,
@@ -174,7 +399,222 @@ export function isPlaceholderSpan(span: string): boolean {
   return false;
 }
 
+/** Canonical 8-4-4-4-12 hex UUID. Global: a line may hold several. */
+const UUID_RE = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
+
+/** How far either side of a span to look for an enclosing UUID. A UUID is 36
+ * chars, so 40 covers one that starts immediately before the span. Bounded so
+ * this stays cheap on a multi-megabyte buffer. */
+const UUID_CONTEXT_CHARS = 40;
+
+/**
+ * True when an `internal.hostname` span is really the tail of a dotenv
+ * FILENAME (`.env.local`, `.env.staging`, `.env.prod`) rather than a host.
+ *
+ * The hostname pattern ends in `.local|.prod|.staging|…`, so `.env.local`
+ * matches on `env.local` — a false positive on one of the most commonly
+ * committed filenames there is. It arrives via npm scripts
+ * (`--env-file=.env.local`), READMEs, `.gitignore` and setup docs, i.e. on
+ * ordinary branches that leak nothing, which is the noise that teaches people
+ * to skim past MEDIUM findings.
+ *
+ * Deliberately narrow, in the same spirit as `insideUuid`: it exempts ONLY a
+ * span beginning `env.` that is immediately preceded by a dot — the literal
+ * `.env.<suffix>` form. A real host still reports, `api.corp` and
+ * `build-7.internal` included, and so does `myenv.local`, which is not a
+ * dotenv file.
+ */
+export function isDotenvFilename(match: RegExpExecArray): boolean {
+  const input = match.input ?? "";
+  const span = match[1] ?? match[0];
+  if (!/^env\./i.test(span)) return false;
+  // Mirror the engine: capture group 1 when present, else the whole match.
+  const spanStartInMatch = match[1] !== undefined ? match[0].indexOf(match[1]) : 0;
+  const spanStart = match.index + Math.max(0, spanStartInMatch);
+  return spanStart > 0 && input[spanStart - 1] === ".";
+}
+
+/** Extensions that mark a `<name>.local.<ext>` span as a file. Closed on
+ * purpose: `.md` is also Moldova's TLD, but no internal suffix sits in front
+ * of a public one, so after `.local` it can only be an extension. */
+const LOCAL_CONFIG_EXTENSIONS = /^\.(?:md|json|jsonc|ya?ml|toml|ini|conf|txt)\b/i;
+
+/**
+ * True when an `internal.hostname` span is the stem of a per-machine config
+ * FILENAME (`CLAUDE.local.md`, `settings.local.json`, `values.staging.yaml`)
+ * rather than a host (#2962). The pattern's `\b` stops at the dot before the
+ * extension, so `CLAUDE.local.md` reported `CLAUDE.local`. Claude Code's own
+ * per-user files are named this way, so any decision or doc that mentions
+ * them failed closed in the non-interactive stores.
+ *
+ * Exempts ONLY a span immediately followed by `.<known extension>` and a word
+ * boundary. `printer.local.` at the end of a sentence still reports, and so
+ * do `printer.local`, `printer.local/md` and `printer.local.mdx`.
+ */
+export function isLocalConfigFilename(match: RegExpExecArray): boolean {
+  const { end } = spanBounds(match);
+  return LOCAL_CONFIG_EXTENSIONS.test((match.input ?? "").slice(end, end + 8));
+}
+
+/**
+ * True when the matched span sits ENTIRELY inside a UUID.
+ *
+ * Digit-only UUIDs — `00000000-0000-0000-0000-000000000000`,
+ * `11111111-1111-…` — are the standard fixture shape in test suites, and their
+ * digit runs collide with both the credit-card and phone patterns: a 16-digit
+ * slice of one is Luhn-valid often enough to matter, and the hyphen groups read
+ * as national phone formatting. Observed live: 14 of 21 MEDIUM findings on one
+ * ordinary branch were this, all from test files. That volume is what stops
+ * people reading MEDIUM output at all, so it costs real detection elsewhere.
+ *
+ * Containment must be TOTAL, deliberately. A span merely adjacent to or
+ * overlapping a UUID still reports — suppression is the exception, so it may
+ * only fire when the whole match is demonstrably UUID interior.
+ *
+ * Takes the match (not just the span) because the decision needs surrounding
+ * context; span offset is derived exactly as redact-engine.ts derives it, so
+ * the two cannot disagree about where the span begins.
+ */
+export function insideUuid(match: RegExpExecArray): boolean {
+  const input = match.input ?? "";
+  // Mirror the engine: capture group 1 when present, else the whole match.
+  const spanStartInMatch = match[1] !== undefined ? match[0].indexOf(match[1]) : 0;
+  const spanStart = match.index + Math.max(0, spanStartInMatch);
+  const spanEnd = spanStart + (match[1] ?? match[0]).length;
+
+  const from = Math.max(0, spanStart - UUID_CONTEXT_CHARS);
+  const window = input.slice(from, spanEnd + UUID_CONTEXT_CHARS);
+
+  UUID_RE.lastIndex = 0;
+  let u: RegExpExecArray | null;
+  while ((u = UUID_RE.exec(window)) !== null) {
+    const uuidStart = from + u.index;
+    const uuidEnd = uuidStart + u[0].length;
+    if (spanStart >= uuidStart && spanEnd <= uuidEnd) return true;
+  }
+  return false;
+}
+
 // ── The taxonomy ─────────────────────────────────────────────────────────────
+
+/**
+ * URL-embedded passwords that are interpolation forms, not credentials:
+ * `${identifier}` (bash or JS template, any case) or bare `$UPPER_SNAKE`
+ * (shell convention). Bare lowercase `$word` stays BLOCKED — a real password
+ * that merely starts with `$` (e.g. `$` + a dictionary word) must not slip
+ * through the HIGH gate just because it looks vaguely variable-shaped.
+ * Shared by db.url_with_password and creds.basic_auth_url so the two
+ * validators cannot drift.
+ */
+// Fully-braced `${...}` spanning the whole password segment is template code
+// regardless of content — `${dbPass}` and `${encodeURIComponent(dbPass)}`
+// alike (the identifier-only form flagged the DSN-encoding call site as a
+// pushed secret). Bare `$word` stays uppercase-only: `$hunter2` must block.
+const INTERPOLATED_PASSWORD_RE = /^(\$\{.+\}|\$[A-Z_][A-Z0-9_]*)$/;
+// URL-password placeholders are matched by EXACT token, never by shape or
+// substring. A shape rule (`/^[A-Z][A-Z0-9_]*$/`) waved through real all-caps
+// secrets like `PROD2026SECRET`; a substring rule would let `PROD2026SECRET`
+// slip because it contains `SECRET`. So this is an anchored, hand-curated set
+// of the doc-comment conventions (postgres://USER:PASSWORD@host) only. Compared
+// case-sensitively against the raw span: the convention is ALL CAPS, and a
+// lowercase `password`/`pass` at this position is a real (terrible) credential
+// that must still block.
+export const URL_PASSWORD_PLACEHOLDER_WORDS = new Set([
+  "PASSWORD",
+  "PASS",
+  "PASSWD",
+  "YOUR_PASSWORD",
+  "DB_PASSWORD",
+  "MY_PASSWORD",
+  "CHANGEME",
+  "CHANGE_ME",
+  "PLACEHOLDER",
+  "REDACTED",
+  "EXAMPLE",
+]);
+function urlPasswordIsPlaceholder(span: string): boolean {
+  const m = span.match(/:\/\/[^:]+:([^@]+)@/);
+  const pw = m?.[1] ?? "";
+  if (pw === "") return true;
+  if (INTERPOLATED_PASSWORD_RE.test(pw)) return true;
+  if (URL_PASSWORD_PLACEHOLDER_WORDS.has(pw)) return true;
+  return PLACEHOLDER_STRUCTURAL.some((re) => re.test(pw));
+}
+
+/**
+ * #2913: `postgres:postgres` is the official postgres image's default pair,
+ * committed in compose files and CI DATABASE_URLs. It is exempt only on a
+ * loopback host (`localhost` or `127.0.0.1`, optional port), never on a
+ * single-label host such as `db`: a compose service name says nothing about
+ * where the same URL is also deployed, and a weak default on a reachable host
+ * is exactly the leak to report. Exact user and password, case-sensitive;
+ * the host must end at a port, path, query, quote or the span's end.
+ */
+const POSTGRES_LOOPBACK_DEFAULT =
+  /^postgres(?:ql)?:\/\/postgres:postgres@(?:localhost|127\.0\.0\.1)(?::\d{1,5})?(?![\w.:@%-])/;
+
+/** A value span that is only an environment-variable read expression (#2912). */
+const ENV_READ_SPAN =
+  /^(?:os\.environ\[|os\.environ\.get\(|os\.getenv\(|getenv\(|ENV\[|process\.env\.[A-Za-z_$][\w$]*[;,)]?)$/;
+function isBareEnvRead(span: string, match: RegExpExecArray): boolean {
+  if (!ENV_READ_SPAN.test(span)) return false;
+  return !carriesSecretLiteral(match.input.slice(match.index + match[0].length).split("\n", 1)[0]);
+}
+
+/** True when `text` holds a quoted, non-placeholder, high-entropy literal. */
+function carriesSecretLiteral(text: string): boolean {
+  for (const [, literal] of text.matchAll(/["']([^\s'"]{8,})["']/g))
+    if (!isPlaceholderSpan(literal) && shannonEntropy(literal) >= 3.0) return true;
+  return false;
+}
+
+/**
+ * #2899: the value capture is any non-space run, so it swallows code:
+ * `session = _FlakySession(responses=[...])`, `token = make_token(user,`,
+ * `password = getpass.getpass()`. A bare credential name plus mixed-case code
+ * clears the entropy gate. The span alone cannot tell `Abc123(xyz` (a real
+ * password) from a call, so the exemption needs the line's evidence: the
+ * value is unquoted, starts with an identifier or dotted path followed by
+ * `(`, and that call closes on the line or opens a multi-line argument list.
+ * A quoted value is a literal, and a call whose arguments carry a
+ * high-entropy literal (`decrypt("<secret>")`) still reports.
+ */
+const CALL_SHAPED_VALUE = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\(/;
+function isCallExpression(span: string, match: RegExpExecArray): boolean {
+  if (!CALL_SHAPED_VALUE.test(span)) return false;
+  const { start } = spanBounds(match);
+  if (match.input[start - 1] === '"' || match.input[start - 1] === "'") return false;
+  const call = match.input.slice(start + span.indexOf("(")).split("\n", 1)[0];
+  if (!call.includes(")") && call.trim() !== "(") return false;
+  return !carriesSecretLiteral(call);
+}
+
+/**
+ * #3048: in a TypeScript/JSX file, an unquoted value after `:` is a type or an
+ * expression, never a string literal (`session: SessionState,`), and a JSX
+ * brace holding only names and property reads (`key={turn.requestId + turn.role}`)
+ * is an expression. Decided by file context, not by how the value looks:
+ * `API_KEY=VelvetRiverOrbitSunset;` in a .env or YAML file is still a literal.
+ * Without a known TS/JSX path nothing is exempt.
+ */
+const TS_SOURCE = /\.(?:[cm]?tsx?|jsx)$/i;
+const CODE_NAME_CHAIN = /^[A-Za-z_$][\w$]*(?:\??\.[A-Za-z_$][\w$]*)*(?:<[\w$.,\s<>[\]|]*>)?(?:\[\])*$/;
+
+function isSourceExpression(span: string, match: RegExpExecArray, sourcePath: string | undefined): boolean {
+  if (!sourcePath || !TS_SOURCE.test(sourcePath)) return false;
+  const { start } = spanBounds(match);
+  const before = match.input[start - 1];
+  if (before === '"' || before === "'" || before === "`") return false;
+  if (span.startsWith("{")) {
+    const line = match.input.slice(start + 1).split("\n", 1)[0];
+    const close = line.indexOf("}");
+    if (close < 0 || /["'`]/.test(line.slice(0, close))) return false;
+    return line.slice(0, close).split("+").every(term => CODE_NAME_CHAIN.test(term.trim()));
+  }
+  const separator = match[0].slice(0, match[0].length - span.length).trimEnd().slice(-1);
+  if (separator !== ":") return false;
+  return CODE_NAME_CHAIN.test(span.replace(/[,;)=|]+$/, ""));
+}
 
 export const PATTERNS: RedactPattern[] = [
   // ===== HIGH — genuinely-secret credentials (block) =====
@@ -230,6 +670,33 @@ export const PATTERNS: RedactPattern[] = [
     // glpat- personal access, glptt- pipeline trigger, gldt- deploy token.
     // gstack drives glab first-class — these were a coverage gap (#1946).
     regex: /\b(gl(?:pat|ptt|dt)-[A-Za-z0-9_-]{20,})\b/,
+  },
+  {
+    id: "groq.key",
+    tier: "HIGH",
+    category: "secret",
+    description: "Groq API key",
+    regex: /\b(gsk_[A-Za-z0-9]{20,})\b/,
+  },
+  {
+    id: "tavily.key",
+    tier: "HIGH",
+    category: "secret",
+    description: "Tavily API key (incl. tvly-dev-/tvly-prod-)",
+    // Explicit environment infixes rather than a globally-optional segment,
+    // which would also match separator-less tvly-devabc… (same reasoning as
+    // openai.key above).
+    regex: /\b(tvly-(?:dev-|prod-)?[A-Za-z0-9]{16,})\b/,
+  },
+  {
+    id: "notion.token",
+    tier: "HIGH",
+    category: "secret",
+    description: "Notion integration token (ntn_ current, secret_ legacy)",
+    // Two explicit shapes. The legacy `secret_` form keeps a high {40,} floor
+    // because the prefix is an ordinary English word — the length is what makes
+    // it a credential rather than prose.
+    regex: /\b(ntn_[A-Za-z0-9]{40,}|secret_[A-Za-z0-9]{40,})\b/,
   },
   {
     id: "huggingface.token",
@@ -328,6 +795,25 @@ export const PATTERNS: RedactPattern[] = [
     nearWindow: 200,
   },
   {
+    id: "google.oauth_client_secret",
+    tier: "HIGH",
+    category: "secret",
+    // Distinct from google.api_key (MEDIUM): an AIza key is often a public
+    // client key, but a GOCSPX- client secret is never publishable — leaking
+    // it lets anyone impersonate the OAuth app's token exchange.
+    description: "Google OAuth client secret (GOCSPX-…)",
+    regex: /\b(GOCSPX-[A-Za-z0-9_-]{20,40})(?![A-Za-z0-9_-])/,
+    validate: (span) => !isPlaceholderSpan(span),
+  },
+  {
+    id: "telegram.bot_token",
+    tier: "HIGH",
+    category: "secret",
+    description: "Telegram bot token (<bot-id>:AA…)",
+    regex: /\b([0-9]{6,16}:A[A-Za-z0-9_-]{34})(?![A-Za-z0-9_-])/,
+    validate: (span) => !isPlaceholderSpan(span),
+  },
+  {
     id: "pem.private_key",
     tier: "HIGH",
     category: "secret",
@@ -340,12 +826,9 @@ export const PATTERNS: RedactPattern[] = [
     category: "secret",
     description: "Database URL with embedded password",
     regex: /\b((?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|amqp):\/\/[^:\s/@]+:[^@\s/]+@[^\s/]+)/,
-    // Skip when the password segment is itself a placeholder.
-    validate: (span) => {
-      const m = span.match(/:\/\/[^:]+:([^@]+)@/);
-      const pw = m?.[1] ?? "";
-      return !isPlaceholderSpan(pw) && pw !== "" && !/^\$\{?[A-Z_]+\}?$/.test(pw);
-    },
+    // Skip when the password segment is itself a placeholder/interpolation,
+    // or the URL is postgres's default pair on a loopback host.
+    validate: (span) => !urlPasswordIsPlaceholder(span) && !POSTGRES_LOOPBACK_DEFAULT.test(span),
   },
   {
     id: "creds.basic_auth_url",
@@ -353,11 +836,8 @@ export const PATTERNS: RedactPattern[] = [
     category: "secret",
     description: "HTTP(S) URL with embedded basic-auth credentials",
     regex: /(https?:\/\/[^:\s/@]+:[^@\s/]+@[^\s/]+)/,
-    validate: (span) => {
-      const m = span.match(/:\/\/[^:]+:([^@]+)@/);
-      const pw = m?.[1] ?? "";
-      return !isPlaceholderSpan(pw) && pw !== "" && !/^\$\{?[A-Z_]+\}?$/.test(pw);
-    },
+    // Skip when the password segment is itself a placeholder/interpolation.
+    validate: (span) => !urlPasswordIsPlaceholder(span),
   },
 
   // ===== MEDIUM — demoted credential-shaped (high-FP / context-variable) =====
@@ -386,12 +866,38 @@ export const PATTERNS: RedactPattern[] = [
     id: "env.kv",
     tier: "MEDIUM",
     category: "secret",
-    description: "Env-style SECRET assignment with high-entropy value",
-    regex: /^[ \t]*(?:export[ \t]+)?[A-Z][A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIALS?|DSN|AUTH|COOKIE|SESSION|PRIVATE)[ \t]*=[ \t]*['"]?([^\s'"]{8,})['"]?/,
-    // Only fire on high-entropy values — kills `FOO_KEY=changeme` FPs.
-    validate: (span) =>
+    description: "Secret-named assignment (env/YAML/JSON) with high-entropy value",
+    // #1946 gap 3: the original shape required an UPPERCASE name and an `=`
+    // assignment, so `api_key=…`, `apiKey: "…"`, and `password: …` (YAML/JSON
+    // colon form) produced NO finding at all — a detection fail-open on the
+    // most common config shapes. Now case-insensitive with `:` or `=`
+    // assignment and optional quotes around the key (JSON). Still MEDIUM and
+    // entropy-gated: this is the calibrated generic net, not a blocker.
+    // The name part is `[A-Za-z0-9_.-]*` + suffix (zero-or-more prefix, not
+    // one-or-more): a mandatory first char would swallow the suffix's own
+    // first letter and bare names like `password:` / `key:` would never match.
+    // The wide net is then calibrated by isCredentialShapedEnvName in
+    // validate — without it, any identifier that merely ENDS in a suffix
+    // (cacheKey:, sortKey:, monkey:) fires a MEDIUM confirm on entropic
+    // values. The value must stay capture group 1 (the engine masks group 1),
+    // so name-shape checking lives in validate, not in a second group.
+    regex: /^[ \t]*(?:export[ \t]+)?["']?[A-Za-z0-9_.-]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIALS?|DSN|AUTH|COOKIE|SESSION|PRIVATE)["']?[ \t]*[:=][ \t]*["']?([^\s'"]{8,})["']?/i,
+    // Only fire on credential-shaped names with high-entropy values — kills
+    // `FOO_KEY=changeme` and `cacheKey: <entropic-id>` FPs. #2912: a value
+    // that is exactly an environment read (`os.environ["X"]`,
+    // `os.getenv("X")`, `process.env.X`, `ENV["X"]`) names a secret without
+    // holding one, unless the rest of its line carries a high-entropy quoted
+    // literal (`os.getenv("X", "<secret>")`). A literal appended to the read
+    // itself (`process.env.X||"…"`) is not an exact read and still fires.
+    // #2899: a function call assigned to the name is code, not a value (see
+    // isCallExpression). #3048: so is a TS/JSX type or expression (isSourceExpression).
+    validate: (span, match, opts) =>
+      isCredentialShapedEnvName(match[0]) &&
       !isPlaceholderSpan(span) &&
       !/^\$\{?[A-Za-z_]/.test(span) &&
+      !isBareEnvRead(span, match) &&
+      !isCallExpression(span, match) &&
+      !isSourceExpression(span, match, opts?.sourcePath) &&
       shannonEntropy(span) >= 3.0,
   },
   {
@@ -431,7 +937,19 @@ export const PATTERNS: RedactPattern[] = [
     regex: /(?<![\w.])(\+?[1-9]\d{0,2}[ \-.]?\(?\d{2,4}\)?[ \-.]?\d{3,4}[ \-.]?\d{3,4})(?![\w.])/,
     autoRedactable: true,
     redactToken: "<REDACTED-PHONE>",
-    validate: (span) => span.replace(/\D/g, "").length >= 10,
+    // A digit-only UUID's hyphen groups read as national phone formatting, and
+    // so do a county tax-map parcel ID (see looksLikeParcelId), vector
+    // coordinates (looksLikeDecimalCoordinates) and seed/nonce/timestamp JSON
+    // values (isNumericMetadataValue), and GitHub Actions run and job ids in
+    // their id positions (isCiRunIdentifier).
+    validate: (span, match) =>
+      !insideUuid(match) &&
+      span.replace(/\D/g, "").length >= 10 &&
+      !looksLikeCompactTimestamp(span) &&
+      !looksLikeParcelId(span, match) &&
+      !looksLikeDecimalCoordinates(span) &&
+      !isNumericMetadataValue(span, match) &&
+      !isCiRunIdentifier(span, match),
   },
   {
     id: "pii.ssn",
@@ -455,7 +973,9 @@ export const PATTERNS: RedactPattern[] = [
     regex: /\b((?:\d[ \-]?){13,19})\b/,
     autoRedactable: true,
     redactToken: "<REDACTED-CC>",
-    validate: (span) => luhnValid(span),
+    // A 13-19 digit slice of a digit-only UUID or of a decimal number passes
+    // Luhn often enough to matter; both context checks run before Luhn.
+    validate: (span, match) => !insideUuid(match) && !insideDecimalNumber(match) && luhnValid(span),
   },
   {
     id: "pii.ip_public",
@@ -463,7 +983,7 @@ export const PATTERNS: RedactPattern[] = [
     category: "pii",
     description: "Public IPv4 address",
     regex: /\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/,
-    validate: (span) => isPublicIPv4(span),
+    validate: (span, match) => isPublicIPv4(span) && !isDeclaredVersion(match),
   },
   {
     id: "pii.wallet",
@@ -481,6 +1001,9 @@ export const PATTERNS: RedactPattern[] = [
     category: "internal",
     description: "Internal hostname (*.internal/.corp/.local/.prod/.staging)",
     regex: /\b([a-z0-9][a-z0-9\-]*\.(?:internal|corp|local|lan|prod|staging))\b/i,
+    // `.env.local`, `CLAUDE.local.md` and friends are filenames, not hosts.
+    // See isDotenvFilename and isLocalConfigFilename.
+    validate: (_span, match) => !isDotenvFilename(match) && !isLocalConfigFilename(match),
   },
   {
     id: "internal.url_private",

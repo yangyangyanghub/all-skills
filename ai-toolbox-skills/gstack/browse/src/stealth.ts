@@ -137,12 +137,6 @@ export function buildStealthScript(hw: HostProfile): string {
                      MAC: 'mac', OPENBSD: 'openbsd', WIN: 'win' },
         RequestUpdateCheckStatus: { NO_UPDATE: 'no_update', THROTTLED: 'throttled',
                                    UPDATE_AVAILABLE: 'update_available' },
-        connect: markNative(function connect() {
-          throw new TypeError('Error in invocation of runtime.connect: No matching signature.');
-        }, 'connect'),
-        sendMessage: markNative(function sendMessage() {
-          throw new TypeError('Error in invocation of runtime.sendMessage: No matching signature.');
-        }, 'sendMessage'),
         id: undefined,
       };
     }
@@ -460,14 +454,6 @@ export async function applyStealth(context: BrowserContext): Promise<void> {
     await context.addInitScript({ content: EXTENDED_STEALTH_SCRIPT });
   }
 }
-
-/**
- * The legacy single-line webdriver mask, exported for backwards
- * compatibility with any caller that uses it directly. New callers
- * should use applyStealth() which includes this plus the Layer C
- * additions.
- */
-export const WEBDRIVER_MASK_SCRIPT = `Object.defineProperty(navigator, 'webdriver', { get: () => false });`;
 
 /**
  * Args added to chromium.launch's `args` to suppress the

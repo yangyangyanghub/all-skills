@@ -10,8 +10,8 @@ import * as path from 'path';
 // load-bearing properties: identity-based liveness check (not name match),
 // crash-loop guard, gated on ownsTerminalAgent, and cleared on shutdown.
 
-const SERVER_TS = path.resolve(new URL(import.meta.url).pathname, '..', '..', 'src', 'server.ts');
-const CONTROL_TS = path.resolve(new URL(import.meta.url).pathname, '..', '..', 'src', 'terminal-agent-control.ts');
+const SERVER_TS = path.resolve(import.meta.path, '..', '..', 'src', 'server.ts');
+const CONTROL_TS = path.resolve(import.meta.path, '..', '..', 'src', 'terminal-agent-control.ts');
 
 describe('terminal-agent watchdog (v1.44+)', () => {
   test('1. spawnTerminalAgent helper exists with PID return type', () => {
@@ -19,8 +19,8 @@ describe('terminal-agent watchdog (v1.44+)', () => {
     expect(src).toMatch(/export function spawnTerminalAgent\(/);
     // Must clean up prior PID before spawning (no zombies).
     expect(src).toContain('readAgentRecord(stateDir)');
-    expect(src).toContain('killAgentByRecord(prior');
-    expect(src).toContain('clearAgentRecord(stateDir)');
+    expect(src).toContain('stopAgentByRecord(prior)');
+    expect(src).toContain('clearAgentRecord(stateDir, prior)');
   });
 
   test('2. watchdog is gated on ownsTerminalAgent', () => {
@@ -39,7 +39,11 @@ describe('terminal-agent watchdog (v1.44+)', () => {
     // identity-based liveness. Slow-but-alive agents must NOT trigger
     // respawn (split-brain defense).
     expect(block).toContain('readAgentRecord(stateDir)');
-    expect(block).toContain('isProcessAlive(record.pid)');
+    expect(block).toContain('isAgentRecordGone(record)');
+    const control = fs.readFileSync(CONTROL_TS, 'utf-8');
+    expect(control).toContain('if (result.status === 0) state = result.stdout?.trim()?.[0];');
+    expect(control).toContain("if (state === 'Z') return 'gone'");
+    expect(control.indexOf("if (state === 'Z') return 'gone'")).toBeLessThan(control.indexOf('return actual.commandLine.split'));
     // Negative: no executable name-based process lookup. Allow the strings
     // to appear in prose comments (the watchdog doc explains what it
     // replaces), reject only actual invocations.
@@ -50,7 +54,13 @@ describe('terminal-agent watchdog (v1.44+)', () => {
   test('4. crash-loop guard with rolling window', () => {
     const src = fs.readFileSync(SERVER_TS, 'utf-8');
     const block = sliceBetween(src, '─── Terminal-Agent Watchdog', 'Factory-scoped validateAuth');
-    expect(block).toContain('RESPAWN_GUARD_WINDOW_MS = 60_000');
+    // The window MUST be derived from the tick, not a fixed 60_000. It was
+    // hardcoded to 60_000 against a 60_000ms tick, so at most ONE respawn
+    // could ever sit inside the window and the `>= RESPAWN_GUARD_MAX` trip
+    // was unreachable — a steady one-respawn-per-tick leak ran unbounded
+    // instead of self-limiting after 3. Pinning the literal is what let that
+    // ship, so pin the relationship instead.
+    expect(block).toMatch(/RESPAWN_GUARD_WINDOW_MS =[\s\S]{0,200}AGENT_WATCHDOG_TICK_MS/);
     expect(block).toContain('RESPAWN_GUARD_MAX = 3');
     expect(block).toContain('respawnHistory');
     expect(block).toContain('agentRespawnGuardTripped');
@@ -72,7 +82,7 @@ describe('terminal-agent watchdog (v1.44+)', () => {
 
   test('7. CLI cold-start path uses the same spawnTerminalAgent helper', () => {
     const cli = fs.readFileSync(
-      path.resolve(new URL(import.meta.url).pathname, '..', '..', 'src', 'cli.ts'),
+      path.resolve(import.meta.path, '..', '..', 'src', 'cli.ts'),
       'utf-8',
     );
     // Otherwise the CLI and watchdog could drift on spawn env/cwd, and

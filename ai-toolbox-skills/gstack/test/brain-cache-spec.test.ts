@@ -11,7 +11,10 @@
  * Gate-tier, free, pure import + assertion. Runs in <100ms.
  */
 
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect, afterAll } from 'bun:test';
+import { mkdtempSync, writeFileSync, rmSync } from 'fs';
+import { join } from 'path';
+import { tmpdir } from 'os';
 import {
   BRAIN_CACHE_ENTITIES,
   SKILL_DIGEST_SUBSETS,
@@ -19,12 +22,10 @@ import {
   AUTOPLAN_PREFLIGHT_BUDGET_BYTES,
   SALIENCE_DEFAULT_ALLOWLIST,
   SKILL_CALIBRATION_WEIGHTS,
-  TRANSPORT_DEFAULT_POLICY,
   USER_SLUG_RESOLUTION_ORDER,
   GSTACK_SCHEMA_PACK_NAME,
   GSTACK_SCHEMA_PACK_VERSION,
   CACHE_REFRESH_LOCK_TIMEOUT_MS,
-  SKILL_RUN_RETENTION_DAYS,
   getCacheFile,
   getSkillSubset,
   getSkillBudget,
@@ -108,18 +109,6 @@ describe('brain-cache-spec internal consistency', () => {
     }
   });
 
-  test('transport policy defaults exist for all transport modes', () => {
-    const required = ['local-pglite', 'local-stdio', 'remote-http-single-tenant', 'remote-http-ambiguous'];
-    for (const transport of required) {
-      expect(TRANSPORT_DEFAULT_POLICY[transport]).toBeDefined();
-    }
-    // Local transports must default personal (D4 / Phase 1.5 default rule)
-    expect(TRANSPORT_DEFAULT_POLICY['local-pglite']).toBe('personal');
-    expect(TRANSPORT_DEFAULT_POLICY['local-stdio']).toBe('personal');
-    // Ambiguous remote MUST require explicit ask (never silent default)
-    expect(TRANSPORT_DEFAULT_POLICY['remote-http-ambiguous']).toBe('unset');
-  });
-
   test('user-slug resolution chain has 4 deterministic fallbacks ending in non-empty', () => {
     expect(USER_SLUG_RESOLUTION_ORDER.length).toBe(4);
     expect(USER_SLUG_RESOLUTION_ORDER[USER_SLUG_RESOLUTION_ORDER.length - 1]).toBe('anonymous_hostname_sha8');
@@ -132,10 +121,6 @@ describe('brain-cache-spec internal consistency', () => {
 
   test('refresh lock timeout matches /sync-gbrain convention (5 min)', () => {
     expect(CACHE_REFRESH_LOCK_TIMEOUT_MS).toBe(5 * 60_000);
-  });
-
-  test('skill-run retention is 90 days per D10 lifecycle policy', () => {
-    expect(SKILL_RUN_RETENTION_DAYS).toBe(90);
   });
 
   test('invalidation graph: every "skill-run-write" target also depends on it', () => {
@@ -165,5 +150,61 @@ describe('brain-cache-spec internal consistency', () => {
   test('all 5 preflight skills are real planning-skill names', () => {
     const expected = ['office-hours', 'plan-ceo-review', 'plan-eng-review', 'plan-design-review', 'plan-devex-review'];
     expect(getPreflightSkills().sort()).toEqual(expected.sort());
+  });
+});
+
+describe('brain-cache MCP scope precedence (C15 pin)', () => {
+  // Claude Code resolves a same-name MCP conflict in favor of the
+  // PROJECT-LOCAL entry (.projects[cwd].mcpServers) over the user-scope
+  // entry (.mcpServers). Verified empirically against claude 2.1.233 with a
+  // hermetic fake $HOME: `claude mcp get gbrain` reported "Scope: Local
+  // config" and the project-local URL when both scopes defined gbrain.
+  // detectEndpointHash must hash the endpoint the project actually talks
+  // to, or a brain switch would never invalidate the cache.
+  const TMP = mkdtempSync(join(tmpdir(), 'brain-cache-precedence-'));
+  afterAll(() => rmSync(TMP, { recursive: true, force: true }));
+
+  const cache = () => import('../bin/gstack-brain-cache');
+  const writeFixture = (name: string, cfg: object): string => {
+    const p = join(TMP, name);
+    writeFileSync(p, JSON.stringify(cfg));
+    return p;
+  };
+  const USER_URL = { type: 'http', url: 'https://user.example/mcp' };
+  const PROJ_URL = { type: 'http', url: 'https://proj.example/mcp' };
+
+  test('project-local gbrain entry beats user scope for a cwd inside the project', async () => {
+    const mod = await cache();
+    const conflict = writeFixture('claude-conflict.json', {
+      mcpServers: { gbrain: USER_URL },
+      projects: { '/w/repo': { mcpServers: { gbrain: PROJ_URL } } },
+    });
+    const conflictHash = mod.detectEndpointHash(conflict, '/w/repo/src');
+    // Same hash as the project entry alone → the project-local entry won.
+    const projOnly = writeFixture('claude-proj-only.json', {
+      projects: { '/w/repo': { mcpServers: { gbrain: PROJ_URL } } },
+    });
+    expect(conflictHash).toBe(mod.detectEndpointHash(projOnly, '/w/repo/src'));
+    // And NOT the user entry's hash.
+    const userOnly = writeFixture('claude-user-only.json', {
+      mcpServers: { gbrain: USER_URL },
+    });
+    expect(conflictHash).not.toBe(mod.detectEndpointHash(userOnly, '/w/repo/src'));
+  });
+
+  test('user scope still resolves when the cwd has no project-local entry', async () => {
+    const mod = await cache();
+    const cj = writeFixture('claude-user-fallback.json', {
+      mcpServers: { gbrain: USER_URL },
+      projects: { '/other/repo': { mcpServers: { gbrain: PROJ_URL } } },
+    });
+    const hash = mod.detectEndpointHash(cj, '/w/unrelated');
+    expect(hash).toHaveLength(8);
+    // Matches the user-only hash — the OTHER project's entry is invisible
+    // outside its own tree.
+    const userOnly = writeFixture('claude-user-only-2.json', {
+      mcpServers: { gbrain: USER_URL },
+    });
+    expect(hash).toBe(mod.detectEndpointHash(userOnly, '/w/unrelated'));
   });
 });

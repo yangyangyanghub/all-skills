@@ -14,9 +14,12 @@
  */
 
 import { describe, it, expect, afterEach } from "bun:test";
-import { mkdtempSync, existsSync, writeFileSync, utimesSync, rmSync } from "fs";
+import { mkdtempSync, existsSync, writeFileSync, utimesSync, rmSync, mkdirSync, readFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
+import { usePrivateStateRoot } from "./helpers/private-state-root";
+
+usePrivateStateRoot();
 import { spawnSync } from "child_process";
 
 import {
@@ -44,6 +47,7 @@ function args(overrides: Partial<CliArgs> = {}): CliArgs {
     codeOnly: false,
     dream: false,
     noDream: false,
+    allowReclone: false,
     ...overrides,
   };
 }
@@ -160,14 +164,30 @@ describe("CLI gate wiring (dry-run subprocess — never spawns a real dream)", (
 // Canned `gbrain dream` cycle logs (verbatim shapes observed against a real
 // 0.41.x brain). These let us test the post-flight guard WITHOUT a real cycle.
 const LOG = {
-  // Pack lacks the code-symbol phase: extract_atoms is undeclared AND the edge
-  // resolver matches nothing. Both signals present — pack message must win.
-  notCodeAware:
+  // #2341: the DEFAULT base packs legitimately skip the CONTENT phases
+  // (extract_atoms, synthesize_concepts) while resolve_symbol_edges still runs
+  // — gbrain's only emitters of "does not declare this phase" are those
+  // content phases, so the bare-phrase match fired on EVERY base-pack brain
+  // and told users to churn schema packs for nothing. This shape (content
+  // phase undeclared, resolver ran, resolved 0) must classify as the 0-edge
+  // outcome, not the pack-capability one.
+  basePackZeroEdges:
     "[cycle.extract] done\n" +
     "  - extract_atoms  extract_atoms: active pack does not declare this phase\n" +
     "[cycle.resolve_symbol_edges] start\n" +
     "[cycle.resolve_symbol_edges] done\n" +
     "  ✓ resolve_symbol_edges  3864 chunk(s) walked; resolved 0, ambiguous 0, unmatched 0\n" +
+    "  totals: extracted=0 embedded=1\n",
+  // #2341 headline shape: base pack skips content phases AND the graph built
+  // fine — a healthy run that used to WARN.
+  basePackBuiltEdges:
+    "  - extract_atoms  extract_atoms: active pack does not declare this phase\n" +
+    "  ✓ resolve_symbol_edges  6001 chunk(s) walked; resolved 42, ambiguous 0, unmatched 0\n" +
+    "  - synthesize_concepts  synthesize_concepts: active pack does not declare this phase\n",
+  // The GRAPH phase itself is undeclared: the one shape where the
+  // pack-capability WARN is the right diagnosis.
+  graphPhaseUndeclared:
+    "  - resolve_symbol_edges  resolve_symbol_edges: active pack does not declare this phase\n" +
     "  totals: extracted=0 embedded=1\n",
   // Embed phase failed for a missing key (isolated: no pack-capability line).
   embedFailed:
@@ -202,8 +222,19 @@ describe("parseResolvedEdges", () => {
 });
 
 describe("classifyDreamOutcome — post-flight truth guard", () => {
-  it("flags a non-code-aware schema pack (wins over the 0-edge signal)", () => {
-    const w = classifyDreamOutcome(LOG.notCodeAware);
+  it("base-pack content-phase skips classify as 0-edge, NOT pack-capability (#2341)", () => {
+    const w = classifyDreamOutcome(LOG.basePackZeroEdges);
+    expect(w).not.toBeNull();
+    expect(w).toContain("resolved 0");
+    expect(w).not.toContain("code-aware");
+  });
+
+  it("a healthy base-pack run with a built graph is clean (#2341 headline)", () => {
+    expect(classifyDreamOutcome(LOG.basePackBuiltEdges)).toBeNull();
+  });
+
+  it("flags pack capability only when the GRAPH phase itself is undeclared", () => {
+    const w = classifyDreamOutcome(LOG.graphPhaseUndeclared);
     expect(w).not.toBeNull();
     expect(w).toContain("schema pack");
     expect(w).toContain("code-aware");
@@ -247,4 +278,55 @@ describe("formatStage — WARN render", () => {
   it("renders SKIP for a !ran stage", () => {
     expect(formatStage({ ...base, ran: false, ok: true })).toContain("SKIP");
   });
+});
+
+// A7 (#2783): the forced dream runs only the resolve_symbol_edges phase, and
+// only when the installed gbrain can scope it (detected, not assumed).
+describe("dream stage scopes gbrain dream to resolve_symbol_edges (A7)", () => {
+  function sandbox(phaseSupport: "phase" | "no-phase-flag" | "unknown-phase") {
+    const home = mkdtempSync(join(tmpdir(), "gstack-dream-phase-"));
+    const bin = join(home, "bin");
+    const cwd = join(home, "not-a-repo");
+    mkdirSync(join(home, ".gbrain"), { recursive: true });
+    mkdirSync(bin, { recursive: true });
+    mkdirSync(cwd, { recursive: true });
+    writeFileSync(join(home, ".gbrain", "config.json"), JSON.stringify({ engine: "pglite", database_path: join(home, ".gbrain", "brain.pglite") }));
+    const help = phaseSupport === "no-phase-flag" ? "Usage: gbrain dream [--source <id>]" : "  --phase <name>      Run only the named phase(s).";
+    writeFileSync(join(bin, "gbrain"), `#!/bin/sh
+echo "$*" >> "${home}/calls.log"
+case "$1" in
+  --version) echo "gbrain 0.60.37.0" ;;
+  sources) echo '{"sources":[]}' ;;
+  dream)
+    if [ "${phaseSupport}" = "unknown-phase" ]; then echo 'Unknown phase "resolve_symbol_edges".' >&2; exit 1; fi
+    case " $* " in *" --help "*) echo "${help}"; exit 0 ;; esac
+    echo "[cycle] resolve_symbol_edges: resolved 4 edges" ;;
+  *) exit 1 ;;
+esac
+`, { mode: 0o755 });
+    const r = spawnSync(process.execPath, [SCRIPT, "--dream", "--no-code", "--no-memory", "--no-brain-sync"], {
+      cwd,
+      encoding: "utf-8",
+      timeout: 60_000,
+      env: { ...process.env, HOME: home, GSTACK_HOME: join(home, ".gstack"), GBRAIN_HOME: "", PATH: `${bin}:/usr/bin:/bin` },
+    });
+    const calls = readFileSync(join(home, "calls.log"), "utf-8").trim().split("\n").filter((l) => l.startsWith("dream"));
+    rmSync(home, { recursive: true, force: true });
+    return { out: (r.stdout || "") + (r.stderr || ""), calls };
+  }
+
+  it("runs `gbrain dream --phase resolve_symbol_edges` when gbrain supports it, never the full cycle", () => {
+    const { calls } = sandbox("phase");
+    const cycles = calls.filter((c) => !c.includes("--help"));
+    expect(cycles).toEqual(["dream --phase resolve_symbol_edges"]);
+  });
+
+  for (const kind of ["no-phase-flag", "unknown-phase"] as const) {
+    it(`skips the forced dream and names the 35-minute full cycle when gbrain cannot scope it (${kind})`, () => {
+      const { out, calls } = sandbox(kind);
+      expect(calls.every((c) => c.includes("--help"))).toBe(true);
+      expect(out).toContain("full dream cycle costs about 35 minutes");
+      expect(out).toContain("gstack-gbrain-install");
+    });
+  }
 });

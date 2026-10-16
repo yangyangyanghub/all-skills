@@ -21,7 +21,9 @@
 # derive all apply uniformly.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-GSTACK_HOME="${GSTACK_STATE_ROOT:-${GSTACK_HOME:-$HOME/.gstack}}"
+. "$(dirname "$0")/gstack-state-root.sh" 2>/dev/null || { echo "$0: cannot resolve the gstack state root: $(dirname "$0")/gstack-state-root.sh is missing. fix: reinstall with ./setup or /gstack-upgrade (docs/state-root.md)" >&2; exit 1; }
+gstack_state_root_select
+GSTACK_HOME="$_gstack_sr_root"
 CODEX_SESSIONS_ROOT="${CODEX_SESSIONS_ROOT:-$HOME/.codex/sessions}"
 
 MODE="latest"
@@ -64,8 +66,11 @@ case "$MODE" in
       echo "NO_SESSIONS: $CODEX_SESSIONS_ROOT does not exist"
       exit 0
     fi
+    # xargs -r: GNU xargs runs `ls -t` once even on EMPTY input (listing the
+    # cwd and producing a bogus LATEST); BSD xargs skips it. -r pins the
+    # BSD behavior on both.
     LATEST=$(find "$CODEX_SESSIONS_ROOT" -type f -name "rollout-*.jsonl" -print 2>/dev/null \
-      | xargs ls -t 2>/dev/null | head -1 || true)
+      | xargs -r ls -t 2>/dev/null | head -1 || true)
     if [ -z "$LATEST" ]; then
       echo "NO_SESSIONS: no rollout-*.jsonl files under $CODEX_SESSIONS_ROOT"
       exit 0

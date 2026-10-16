@@ -39,7 +39,14 @@
     ended: document.getElementById('terminal-ended'),
     restart: document.getElementById('terminal-restart'),
     restartNow: document.getElementById('terminal-restart-now'),
+    fontSize: document.getElementById('terminal-fontsize'),
   };
+
+  // Toolbar text-size picker. 'sm' (13px) stays the default; a picked size
+  // persists in chrome.storage.local.
+  const FONT_SIZES = { xs: 11, sm: 13, md: 15, lg: 17, xl: 20 };
+  const FONT_SIZE_KEY = 'terminalFontSize';
+  let fontSize = 'sm';
 
   /** State machine. */
   const STATE = {
@@ -391,8 +398,14 @@
   function ensureXterm() {
     if (term) return;
     term = new Terminal({
-      fontFamily: '"JetBrains Mono", "SF Mono", Menlo, "Noto Sans Mono CJK KR", "Malgun Gothic", monospace',
-      fontSize: 13,
+      // Windows Latin monospace (Consolas, always present; Cascadia ships with Terminal/VS)
+      // MUST precede the CJK fallbacks: xterm sizes the character cell from the first
+      // resolved font's advance width, and Malgun Gothic (the Windows Korean UI font, the
+      // first that resolves here when the Mac/Linux fonts are absent) advances Latin glyphs
+      // in a full-width CJK cell — doubling every cell into spaced-out text. The CJK fonts
+      // stay last for actual CJK glyph coverage.
+      fontFamily: '"JetBrains Mono", "SF Mono", "Cascadia Mono", "Cascadia Code", Consolas, Menlo, "DejaVu Sans Mono", "Noto Sans Mono CJK KR", "Malgun Gothic", monospace',
+      fontSize: FONT_SIZES[fontSize],
       theme: { background: '#0a0a0a', foreground: '#e5e5e5' },
       cursorBlink: true,
       scrollback: 5000,
@@ -433,25 +446,15 @@
     });
     ro.observe(els.mount);
 
-    // IME composition handling for Korean/CJK input (issue #1272).
-    // Suppress partial jamo during composition; only send the final
-    // composed string on compositionend. Without this, Korean IME
-    // sends fragmented input or doubles characters.
-    let composing = false;
-    const ta = term.textarea;
-    if (ta) {
-      ta.addEventListener('compositionstart', () => { composing = true; });
-      ta.addEventListener('compositionend', (e) => {
-        composing = false;
-        if (e.data && ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(new TextEncoder().encode(e.data));
-        }
-      });
-    }
-
+    // IME composition (Korean/CJK, issue #1272) is handled by xterm.js
+    // itself: partial jamo are suppressed while _isComposing, and the final
+    // composed string is emitted through onData once, asynchronously
+    // (setTimeout in _finalizeComposition). A previous local workaround
+    // sent e.data manually on compositionend — but xterm emits the same
+    // string one macrotask later, so every composed syllable went out
+    // TWICE. Do not re-add a manual compositionend send.
 
     term.onData((data) => {
-      if (composing) return;  // suppress partial input events during IME composition
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(new TextEncoder().encode(data));
       }
@@ -504,7 +507,8 @@
   window.gstackScanForPTYInject = async function (text, origin) {
     if (!text) return { allow: false, verdict: 'BLOCK', reasons: ['empty-text'] };
     try {
-      const resp = await fetch('http://127.0.0.1:34567/pty-inject-scan', {
+      const serverPort = getServerPort() || 34567;
+      const resp = await fetch(`http://127.0.0.1:${serverPort}/pty-inject-scan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -529,21 +533,13 @@
   };
 
   // The auth token for /pty-inject-scan comes from the same source the
-  // sidepanel uses for /pty-session — a runtime fetch from /health (which
-  // already returns AUTH_TOKEN in headed mode per CLAUDE.md's v1.1 TODO).
-  // We don't echo the token here; this helper is a thin proxy around the
-  // existing pattern.
+  // sidepanel uses for /pty-session — window.gstackAuthToken, set by
+  // sidepanel.js after the pinned-origin POST /extension-token bootstrap.
+  // The old fallback here fetched /health and read token keys the server
+  // never sent (AUTH_TOKEN/authToken) — dead code since /health stopped
+  // carrying any token.
   async function getAuthTokenForScan() {
-    if (window.__gstackPtyScanToken) return window.__gstackPtyScanToken;
-    try {
-      const resp = await fetch('http://127.0.0.1:34567/health');
-      const body = await resp.json();
-      const token = body.AUTH_TOKEN || body.authToken || '';
-      if (token) window.__gstackPtyScanToken = token;
-      return token;
-    } catch {
-      return '';
-    }
+    return getAuthToken() || '';
   }
 
   async function connect() {
@@ -931,6 +927,30 @@
     els.restart?.addEventListener('click', forceRestart);
     els.restartNow?.addEventListener('click', forceRestart);
 
+    // xterm re-measures its character cell on the next render frame, so a
+    // live size change fits and tells the PTY its new cols/rows two frames
+    // later; fitting in the same tick reads the old cell size.
+    const applyFontSize = (size, persist) => {
+      fontSize = FONT_SIZES[size] ? size : 'sm';
+      if (els.fontSize) els.fontSize.value = fontSize;
+      if (persist) {
+        try { chrome.storage.local.set({ [FONT_SIZE_KEY]: fontSize }); } catch {}
+      }
+      if (!term) return;
+      term.options.fontSize = FONT_SIZES[fontSize];
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        try {
+          fitAddon && fitAddon.fit();
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+          }
+        } catch {}
+      }));
+    };
+    els.fontSize?.addEventListener('change', (e) => applyFontSize(e.target.value, true));
+    try {
+      chrome.storage.local.get([FONT_SIZE_KEY], (r) => applyFontSize(r && r[FONT_SIZE_KEY], false));
+    } catch {}
 
     // Live browser-tab state. background.js → sidepanel.js → us. We
     // forward over the live PTY WebSocket; terminal-agent.ts writes

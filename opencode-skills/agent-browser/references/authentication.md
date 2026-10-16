@@ -7,6 +7,7 @@ Login flows, session persistence, OAuth, 2FA, and authenticated browsing.
 - [Import Auth from Your Browser](#import-auth-from-your-browser)
 - [Persistent Profiles](#persistent-profiles)
 - [Session Persistence](#session-persistence)
+- [Auth Vault](#auth-vault)
 - [Basic Login Flow](#basic-login-flow)
 - [Saving Authentication State](#saving-authentication-state)
 - [Restoring Authentication](#restoring-authentication)
@@ -60,12 +61,16 @@ This works for any site, including those with complex OAuth flows, SSO, or 2FA -
 
 > **Security note:** State files contain session tokens in plaintext. Add them to `.gitignore`, delete when no longer needed, and set `AGENT_BROWSER_ENCRYPTION_KEY` for encryption at rest. See [Security Best Practices](#security-best-practices).
 
-**Tip:** Combine with `--session-name` so the imported auth auto-persists across restarts:
+**Tip:** Combine with `--restore` so the imported auth auto-persists across restarts:
 
 ```bash
-agent-browser --session-name myapp state load ./my-auth.json
+agent-browser --session myapp --restore state load ./my-auth.json
 # From now on, state is auto-saved/restored for "myapp"
 ```
+
+> You can also import cookies from a cURL command, a JSON export, or a raw
+> Cookie header without a running Chrome: `agent-browser cookies set --curl <file>`.
+> Auto-detects the file format.
 
 ## Persistent Profiles
 
@@ -96,23 +101,68 @@ agent-browser open https://app.example.com/dashboard
 
 ## Session Persistence
 
-Use `--session-name` to auto-save and restore cookies + localStorage by name, without managing files:
+Use `--restore` to auto-save and restore cookies + localStorage by name, without managing files:
 
 ```bash
-# Auto-saves state on close, auto-restores on next launch
-agent-browser --session-name twitter open https://twitter.com
+# Auto-saves state, auto-restores on next launch
+agent-browser --session twitter --restore open https://twitter.com
 # ... login flow ...
-agent-browser close  # state saved to ~/.agent-browser/sessions/
 
 # Next time: state is automatically restored
-agent-browser --session-name twitter open https://twitter.com
+agent-browser --session twitter --restore open https://twitter.com
+```
+
+`--session-name` is a legacy alias for `--restore`; prefer `--restore`.
+Validate restored state against the page:
+
+```bash
+agent-browser --session twitter --restore \
+  --restore-check-url "**/home" open https://twitter.com
 ```
 
 Encrypt state at rest:
 
 ```bash
 export AGENT_BROWSER_ENCRYPTION_KEY=$(openssl rand -hex 32)
-agent-browser --session-name secure open https://app.example.com
+agent-browser --session secure --restore open https://app.example.com
+```
+
+Manage saved states with `state list`, `state show <file>`,
+`state rename <old> <new>`, and `state clean --older-than <days>` (expired
+states auto-delete after 30 days by default; tune with
+`AGENT_BROWSER_STATE_EXPIRE_DAYS`).
+
+## Auth Vault
+
+Store credentials once, replay login automatically. Credentials are encrypted
+at rest (auto-generated key on first save; set `AGENT_BROWSER_ENCRYPTION_KEY`
+to control it):
+
+```bash
+# Save credentials for a site
+agent-browser auth save myapp --url https://app.example.com/login \
+  --username user@example.com --password-stdin
+
+# Replay login: fills fields, clicks submit, waits for the form
+agent-browser auth login myapp
+
+# Use the already-open page instead of navigating (validates origin first)
+agent-browser auth login myapp --no-navigate
+
+# Override selectors for one login on a non-standard form
+agent-browser auth login myapp \
+  --username-selector "input[name=mail]" --password-selector "input[name=pw]"
+
+agent-browser auth list      # list saved profiles
+agent-browser auth show myapp   # metadata only, never passwords
+agent-browser auth delete myapp
+```
+
+Resolve credentials from a plugin (e.g. a password manager) instead of the
+vault:
+
+```bash
+agent-browser auth login myapp --credential-provider <plugin> [--item <ref>]
 ```
 
 ## Basic Login Flow

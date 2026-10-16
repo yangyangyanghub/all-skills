@@ -3,28 +3,28 @@
 
 import { mkdir, appendFile, stat, rename, readFile } from 'fs/promises';
 import { join, dirname } from 'path';
-import { homedir } from 'os';
 import { createHash } from 'crypto';
 import type { AuditRow, AttemptRow } from './types';
+import { resolveStateRoot } from '../../../lib/state-root';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_GENS = 5;
 
 export function defaultAuditPath(): string {
   return process.env.GSTACK_IOS_AUDIT_PATH
-    ?? join(homedir(), '.gstack', 'security', 'ios-qa-audit.jsonl');
+    ?? join(resolveStateRoot(), 'security', 'ios-qa-audit.jsonl');
 }
 
 export function defaultAttemptsPath(): string {
   return process.env.GSTACK_IOS_ATTEMPTS_PATH
-    ?? join(homedir(), '.gstack', 'security', 'attempts.jsonl');
+    ?? join(resolveStateRoot(), 'security', 'attempts.jsonl');
 }
 
 let _saltCache: string | null = null;
 
 async function loadDeviceSalt(): Promise<string> {
   if (_saltCache) return _saltCache;
-  const path = join(homedir(), '.gstack', 'security', 'device-salt');
+  const path = join(resolveStateRoot(), 'security', 'device-salt');
   try {
     _saltCache = (await readFile(path, 'utf-8')).trim();
   } catch {
@@ -60,14 +60,20 @@ export async function writeAudit(row: AuditRow, path: string = defaultAuditPath(
   await appendFile(path, JSON.stringify(row) + '\n', { mode: 0o600 });
 }
 
+// Non-reversible identifier for tokens/identities in logs and API responses.
+// Same device salt as the attempts log, so ids correlate across both.
+export async function saltedHash(raw: string): Promise<string> {
+  const salt = await loadDeviceSalt();
+  return createHash('sha256').update(salt + ':' + raw).digest('hex').slice(0, 16);
+}
+
 export async function writeAttempt(opts: {
   rawIdentity: string;
   endpoint: string;
   reason: AttemptRow['reason'];
   path?: string;
 }): Promise<void> {
-  const salt = await loadDeviceSalt();
-  const hash = createHash('sha256').update(salt + ':' + opts.rawIdentity).digest('hex').slice(0, 16);
+  const hash = await saltedHash(opts.rawIdentity);
   const row: AttemptRow = {
     ts: new Date().toISOString(),
     identity_canon: hash,

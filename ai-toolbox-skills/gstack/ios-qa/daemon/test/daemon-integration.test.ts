@@ -8,6 +8,7 @@
 //   - Rate limit on /auth/mint
 //   - Tailnet listener never binds 0.0.0.0
 //   - Boot token never leaks in responses
+//   - Route-drop recovery against a simulated device (#1975): no app relaunch
 
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'bun:test';
 import { createServer } from 'http';
@@ -15,7 +16,8 @@ import type { Server, IncomingMessage } from 'http';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { startDaemon, type RunningDaemon } from '../src/index';
+import { startDaemon, deviceTunnelSource, type RunningDaemon } from '../src/index';
+import { startFakeDevice, type FakeDevice } from './fake-device';
 import { grantIdentity } from '../src/allowlist';
 import type { DeviceTunnel } from '../src/proxy';
 
@@ -24,7 +26,7 @@ const STATE_SERVER_TOKEN = 'rotated-mock-token-XXXXXXXX';
 
 // Stub iOS StateServer running on loopback. Mimics the real Swift server's
 // behavior for the integration test.
-function startStubStateServer(): Promise<{ server: Server; port: number; receivedRequests: Array<{ method: string; path: string; headers: Record<string, string | string[] | undefined>; body: string }> }> {
+function startStubStateServer(opts: { onUnauthorized?: (reply: () => void) => void } = {}): Promise<{ server: Server; port: number; receivedRequests: Array<{ method: string; path: string; headers: Record<string, string | string[] | undefined>; body: string }> }> {
   return new Promise((resolve) => {
     const received: Array<{ method: string; path: string; headers: Record<string, string | string[] | undefined>; body: string }> = [];
     const server = createServer((req, res) => {
@@ -37,8 +39,12 @@ function startStubStateServer(): Promise<{ server: Server; port: number; receive
         const auth = req.headers['authorization'];
         // Validate the bearer is our rotated token.
         if (!auth || auth !== `Bearer ${STATE_SERVER_TOKEN}`) {
-          res.writeHead(401, { 'content-type': 'application/json' });
-          res.end(JSON.stringify({ error: 'unauthorized' }));
+          const reply = () => {
+            res.writeHead(401, { 'content-type': 'application/json' });
+            res.end(JSON.stringify({ error: 'unauthorized' }));
+          };
+          if (opts.onUnauthorized) opts.onUnauthorized(reply);
+          else reply();
           return;
         }
 
@@ -107,6 +113,83 @@ describe('daemon — loopback listener', () => {
     rmSync(workDir, { recursive: true, force: true });
   });
 
+  test('/auth/sessions returns salted-hash ids and metadata, never raw tokens', async () => {
+    const minted = daemon.tokenStore.mint({
+      identity: 'owner@example.com',
+      capability: 'interact',
+      deviceUdid: 'STUB-UDID',
+      origin: 'owner_granted',
+    });
+    if ('error' in minted) throw new Error(minted.error);
+    try {
+      const r = await fetchWith('GET', `http://127.0.0.1:${daemon.loopbackPort}/auth/sessions`);
+      expect(r.status).toBe(200);
+      // The harvest-and-replay primitive: any local process could read live
+      // bearer tokens off this endpoint. The raw token must never appear.
+      expect(r.bodyText).not.toContain(minted.token);
+
+      const { sessions } = JSON.parse(r.bodyText) as { sessions: Array<Record<string, unknown>> };
+      const row = sessions.find(s => s.identity === 'owner@example.com');
+      expect(row).toMatchObject({
+        capability: 'interact',
+        device_udid: 'STUB-UDID',
+        origin: 'owner_granted',
+        expires_at: minted.expires_at,
+      });
+      expect(row?.token_id).toMatch(/^[0-9a-f]{16}$/);
+      expect(row?.token).toBeUndefined();
+    } finally {
+      daemon.tokenStore.revoke(minted.token);
+    }
+  });
+
+  test('revoke by token_id from the hash-only list still works (list→revoke)', async () => {
+    const minted = daemon.tokenStore.mint({
+      identity: 'revoke-by-id@example.com',
+      capability: 'observe',
+      origin: 'owner_granted',
+    });
+    if ('error' in minted) throw new Error(minted.error);
+
+    const list = await fetchWith('GET', `http://127.0.0.1:${daemon.loopbackPort}/auth/sessions`);
+    const { sessions } = JSON.parse(list.bodyText) as { sessions: Array<Record<string, unknown>> };
+    const row = sessions.find(s => s.identity === 'revoke-by-id@example.com');
+    expect(row?.token_id).toBeDefined();
+
+    const revoke = await fetchWith('POST', `http://127.0.0.1:${daemon.loopbackPort}/auth/revoke`, {
+      body: JSON.stringify({ token_id: row!.token_id }),
+    });
+    expect(revoke.status).toBe(200);
+    expect(JSON.parse(revoke.bodyText).revoked).toBe(1);
+    expect(daemon.tokenStore.list().some(s => s.identity === 'revoke-by-id@example.com')).toBe(false);
+  });
+
+  test('revoke with an unknown token_id revokes nothing and leaves live sessions untouched', async () => {
+    const minted = daemon.tokenStore.mint({
+      identity: 'unknown-id-survivor@example.com',
+      capability: 'observe',
+      origin: 'owner_granted',
+    });
+    if ('error' in minted) throw new Error(minted.error);
+    try {
+      // Well-formed (16 hex chars) but matches no session's salted hash.
+      const revoke = await fetchWith('POST', `http://127.0.0.1:${daemon.loopbackPort}/auth/revoke`, {
+        body: JSON.stringify({ token_id: '0'.repeat(16) }),
+      });
+      expect(revoke.status).toBe(200);
+      expect(JSON.parse(revoke.bodyText).revoked).toBe(0);
+
+      // The minted session must survive: still in the token store...
+      expect(daemon.tokenStore.list().some(s => s.identity === 'unknown-id-survivor@example.com')).toBe(true);
+      // ...and still visible on the list endpoint.
+      const list = await fetchWith('GET', `http://127.0.0.1:${daemon.loopbackPort}/auth/sessions`);
+      const { sessions } = JSON.parse(list.bodyText) as { sessions: Array<Record<string, unknown>> };
+      expect(sessions.some(s => s.identity === 'unknown-id-survivor@example.com')).toBe(true);
+    } finally {
+      daemon.tokenStore.revoke(minted.token);
+    }
+  });
+
   test('healthz returns 200 with mode=loopback', async () => {
     const r = await fetchWith('GET', `http://127.0.0.1:${daemon.loopbackPort}/healthz`);
     expect(r.status).toBe(200);
@@ -132,12 +215,291 @@ describe('daemon — loopback listener', () => {
     expect(lastReq?.headers['x-session-id']).toBe('sess-loopback-1');
   });
 
+  test('concurrent first requests share one tunnel bootstrap', async () => {
+    let bootstraps = 0;
+    let releaseBootstrap!: () => void;
+    let markBootstrapStarted!: () => void;
+    const bootstrapStarted = new Promise<void>((resolve) => { markBootstrapStarted = resolve; });
+    const bootstrapGate = new Promise<void>((resolve) => { releaseBootstrap = resolve; });
+    const tunnel: DeviceTunnel = {
+      udid: 'STUB-UDID',
+      ipv6Addr: '127.0.0.1',
+      port: stub.port,
+      bootTokenRotated: STATE_SERVER_TOKEN,
+    };
+    const d = await startDaemon({
+      loopbackPort: 0,
+      tailnetEnabled: false,
+      pidfilePath: join(workDir, 'daemon-concurrent-bootstrap.pid'),
+      tunnelProvider: async () => {
+        bootstraps++;
+        markBootstrapStarted();
+        await bootstrapGate;
+        return tunnel;
+      },
+    });
+    if ('error' in d) throw new Error(d.error);
+
+    try {
+      const base = `http://127.0.0.1:${d.loopbackPort}`;
+      const requests = [
+        fetchWith('GET', `${base}/screenshot`),
+        fetchWith('GET', `${base}/screenshot`),
+        fetchWith('GET', `${base}/screenshot`),
+      ];
+      await bootstrapStarted;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      releaseBootstrap();
+      const responses = await Promise.all(requests);
+      expect(responses.map((response) => response.status)).toEqual([200, 200, 200]);
+      expect(bootstraps).toBe(1);
+    } finally {
+      releaseBootstrap();
+      await d.close();
+    }
+  });
+
+  test('reuses a healthy rotated tunnel beyond the old 30-second boundary', async () => {
+    let bootstraps = 0;
+    const tunnel: DeviceTunnel = {
+      udid: 'STUB-UDID',
+      ipv6Addr: '127.0.0.1',
+      port: stub.port,
+      bootTokenRotated: STATE_SERVER_TOKEN,
+    };
+    const d = await startDaemon({
+      loopbackPort: 0,
+      tailnetEnabled: false,
+      pidfilePath: join(workDir, 'daemon-one-shot-bootstrap.pid'),
+      tunnelProvider: async () => {
+        bootstraps++;
+        if (bootstraps > 1) throw new Error('one-shot boot token was already consumed');
+        return tunnel;
+      },
+    });
+    if ('error' in d) throw new Error(d.error);
+
+    const realNow = Date.now;
+    const firstRequestAt = realNow();
+    try {
+      const base = `http://127.0.0.1:${d.loopbackPort}`;
+      const first = await fetchWith('GET', `${base}/screenshot`);
+      expect(first.status).toBe(200);
+
+      Date.now = () => firstRequestAt + 30_001;
+      const later = await fetchWith('GET', `${base}/screenshot`);
+      expect(later.status).toBe(200);
+      expect(bootstraps).toBe(1);
+    } finally {
+      Date.now = realNow;
+      await d.close();
+    }
+  });
+
+  test('401 after app relaunch invalidates the token and concurrent requests share one rebootstrap', async () => {
+    let bootstraps = 0;
+    let markRefreshStarted!: () => void;
+    let releaseRefresh!: () => void;
+    const refreshStarted = new Promise<void>((resolve) => { markRefreshStarted = resolve; });
+    const refreshGate = new Promise<void>((resolve) => { releaseRefresh = resolve; });
+    // Hold the actual 401 responses until all three stale attempts arrive.
+    // Otherwise a later request can correctly join the refresh without ever
+    // using the expired token, so elapsed time cannot establish concurrency.
+    let markFirstStale!: () => void;
+    let markAllStale!: () => void;
+    const firstStale = new Promise<void>((resolve) => { markFirstStale = resolve; });
+    const allStale = new Promise<void>((resolve) => { markAllStale = resolve; });
+    const staleReplies: Array<() => void> = [];
+    const releaseStale = () => { for (const reply of staleReplies.splice(0)) reply(); };
+    const relaunchStub = await startStubStateServer({
+      onUnauthorized: (reply) => {
+        staleReplies.push(reply);
+        if (staleReplies.length === 1) markFirstStale();
+        if (staleReplies.length === 3) markAllStale();
+      },
+    });
+    const staleTunnel: DeviceTunnel = {
+      udid: 'STUB-UDID',
+      ipv6Addr: '127.0.0.1',
+      port: relaunchStub.port,
+      bootTokenRotated: 'expired-after-relaunch',
+    };
+    const refreshedTunnel: DeviceTunnel = {
+      ...staleTunnel,
+      bootTokenRotated: STATE_SERVER_TOKEN,
+    };
+    let d: RunningDaemon | undefined;
+    try {
+      const started = await startDaemon({
+        loopbackPort: 0,
+        tailnetEnabled: false,
+        pidfilePath: join(workDir, 'daemon-relaunch-refresh.pid'),
+        tunnelProvider: async () => {
+          bootstraps++;
+          if (bootstraps === 1) return staleTunnel;
+          if (bootstraps === 2) {
+            markRefreshStarted();
+            await refreshGate;
+            return refreshedTunnel;
+          }
+          throw new Error('concurrent 401s caused duplicate bootstraps');
+        },
+      });
+      if ('error' in started) throw new Error(started.error);
+      d = started;
+      const base = `http://127.0.0.1:${d.loopbackPort}`;
+      const first = fetchWith('GET', `${base}/screenshot`);
+      await firstStale;
+      const requests = [
+        first,
+        fetchWith('GET', `${base}/screenshot`),
+        fetchWith('GET', `${base}/screenshot`),
+      ];
+      await allStale;
+      expect(bootstraps).toBe(1);
+      releaseStale();
+      await refreshStarted;
+      expect(bootstraps).toBe(2);
+      releaseRefresh();
+
+      const responses = await Promise.all(requests);
+      expect(responses.map((response) => response.status)).toEqual([200, 200, 200]);
+      const attempts = relaunchStub.receivedRequests;
+      expect(attempts.filter((request) => request.headers.authorization === 'Bearer expired-after-relaunch')).toHaveLength(3);
+      expect(attempts.filter((request) => request.headers.authorization === `Bearer ${STATE_SERVER_TOKEN}`)).toHaveLength(3);
+
+      const healthyReuse = await fetchWith('GET', `${base}/screenshot`);
+      expect(healthyReuse.status).toBe(200);
+      expect(bootstraps).toBe(2);
+    } finally {
+      releaseStale();
+      releaseRefresh();
+      try { await d?.close(); }
+      finally { await new Promise<void>((resolve, reject) => relaunchStub.server.close((error) => error ? reject(error) : resolve())); }
+    }
+  });
+
+  test('connection failure after redeploy reboots the tunnel once and keeps the replacement cached', async () => {
+    const deadPort = await new Promise<number>((resolve, reject) => {
+      const reservation = createServer();
+      reservation.once('error', reject);
+      reservation.listen(0, '127.0.0.1', () => {
+        const address = reservation.address();
+        const port = typeof address === 'object' && address ? address.port : 0;
+        reservation.close((err) => err ? reject(err) : resolve(port));
+      });
+    });
+    let bootstraps = 0;
+    const d = await startDaemon({
+      loopbackPort: 0,
+      tailnetEnabled: false,
+      pidfilePath: join(workDir, 'daemon-redeploy-refresh.pid'),
+      tunnelProvider: async () => {
+        bootstraps++;
+        if (bootstraps === 1) {
+          return {
+            udid: 'STUB-UDID',
+            ipv6Addr: '127.0.0.1',
+            port: deadPort,
+            bootTokenRotated: 'old-deploy-token',
+          };
+        }
+        if (bootstraps === 2) {
+          return {
+            udid: 'STUB-UDID',
+            ipv6Addr: '127.0.0.1',
+            port: stub.port,
+            bootTokenRotated: STATE_SERVER_TOKEN,
+          };
+        }
+        throw new Error('healthy replacement tunnel was not reused');
+      },
+    });
+    if ('error' in d) throw new Error(d.error);
+
+    try {
+      const base = `http://127.0.0.1:${d.loopbackPort}`;
+      const recovered = await fetchWith('GET', `${base}/screenshot`);
+      expect(recovered.status).toBe(200);
+      expect(JSON.parse(recovered.bodyText)).toEqual({ png_base64: 'abc=' });
+      expect(bootstraps).toBe(2);
+
+      const healthyReuse = await fetchWith('GET', `${base}/screenshot`);
+      expect(healthyReuse.status).toBe(200);
+      expect(bootstraps).toBe(2);
+    } finally {
+      await d.close();
+    }
+  });
+
+  test('connection failure refreshes but never replays an ambiguous tap', async () => {
+    const deadPort = await new Promise<number>((resolve, reject) => {
+      const reservation = createServer();
+      reservation.once('error', reject);
+      reservation.listen(0, '127.0.0.1', () => {
+        const address = reservation.address();
+        const port = typeof address === 'object' && address ? address.port : 0;
+        reservation.close((err) => err ? reject(err) : resolve(port));
+      });
+    });
+    let bootstraps = 0;
+    const d = await startDaemon({
+      loopbackPort: 0,
+      tailnetEnabled: false,
+      pidfilePath: join(workDir, 'daemon-mutation-no-replay.pid'),
+      tunnelProvider: async () => {
+        bootstraps++;
+        return bootstraps === 1
+          ? {
+              udid: 'STUB-UDID',
+              ipv6Addr: '127.0.0.1',
+              port: deadPort,
+              bootTokenRotated: 'old-deploy-token',
+            }
+          : {
+              udid: 'STUB-UDID',
+              ipv6Addr: '127.0.0.1',
+              port: stub.port,
+              bootTokenRotated: STATE_SERVER_TOKEN,
+            };
+      },
+    });
+    if ('error' in d) throw new Error(d.error);
+
+    const beforeTaps = stub.receivedRequests.filter((request) => request.path === '/tap').length;
+    try {
+      const base = `http://127.0.0.1:${d.loopbackPort}`;
+      const ambiguous = await fetchWith('POST', `${base}/tap`, {
+        headers: { 'x-session-id': 'old-session', 'content-type': 'application/json' },
+        body: JSON.stringify({ x: 10, y: 20 }),
+      });
+      expect(ambiguous.status).toBe(503);
+      expect(bootstraps).toBe(2);
+      expect(stub.receivedRequests.filter((request) => request.path === '/tap')).toHaveLength(beforeTaps);
+
+      const explicitRetry = await fetchWith('POST', `${base}/tap`, {
+        headers: { 'x-session-id': 'new-session', 'content-type': 'application/json' },
+        body: JSON.stringify({ x: 10, y: 20 }),
+      });
+      expect(explicitRetry.status).toBe(200);
+      expect(stub.receivedRequests.filter((request) => request.path === '/tap')).toHaveLength(beforeTaps + 1);
+      expect(bootstraps).toBe(2);
+    } finally {
+      await d.close();
+    }
+  });
+
   test('returns 503 when no device tunnel is provided', async () => {
     // Force tunnel provider to return null by closing + restarting with null provider.
     await daemon.close();
     pidPath = join(workDir, 'daemon-2.pid');
     const d2 = await startDaemon({
-      loopbackPort: daemon.loopbackPort + 1,
+      // OS-assigned like every other start in this file — the old
+      // `daemon.loopbackPort + 1` bound a fixed neighbor port and flaked
+      // whenever another shard/TIME_WAIT socket held it (windows-free-tests:
+      // "Is port 55738 in use?"). The fetch below reads d2.loopbackPort, so
+      // nothing needs a predictable number.
+      loopbackPort: 0,
       tailnetEnabled: false,
       pidfilePath: pidPath,
       tunnelProvider: async () => null,
@@ -149,6 +511,149 @@ describe('daemon — loopback listener', () => {
     } finally {
       await d2.close();
     }
+  });
+});
+
+// Route-drop recovery (#1975 finding 1) through the production wiring
+// (deviceTunnelSource = bootstrapTunnel + recoverTunnel) against a simulated
+// device. A black-holed request times out after PROXY_TIMEOUT_MS, which is how
+// a dropped CoreDevice route looks to the daemon (504 upstream_timeout).
+describe('daemon — route-drop recovery (simulated device)', () => {
+  const BUNDLE = 'com.test.recovery';
+  const PROXY_TIMEOUT_MS = 300;
+  let recoveryDir: string;
+  const cleanups: Array<() => Promise<void>> = [];
+
+  beforeAll(() => { recoveryDir = mkdtempSync(join(tmpdir(), 'ios-qa-daemon-recovery-')); });
+  afterAll(async () => {
+    for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
+    rmSync(recoveryDir, { recursive: true, force: true });
+  });
+
+  async function startSession(name: string, fake: FakeDevice) {
+    const logs: string[] = [];
+    const source = deviceTunnelSource({
+      bundleId: BUNDLE,
+      port: fake.port,
+      spawnImpl: fake.spawn,
+      keepalive: () => ({ stop() {} }),
+      log: (line) => logs.push(line),
+    });
+    let recoveries = 0;
+    const d = await startDaemon({
+      loopbackPort: 0,
+      tailnetEnabled: false,
+      pidfilePath: join(recoveryDir, `${name}.pid`),
+      proxyTimeoutMs: PROXY_TIMEOUT_MS,
+      tunnelProvider: source.tunnelProvider,
+      tunnelRecovery: async (failed) => { recoveries++; return source.tunnelRecovery(failed); },
+    });
+    if ('error' in d) throw new Error(d.error);
+    cleanups.push(() => d.close());
+    return { base: `http://127.0.0.1:${d.loopbackPort}`, logs, recoveries: () => recoveries };
+  }
+
+  async function device(udid = 'FAKE-UDID-1', deviceType: 'iPhone' | 'iPad' = 'iPhone') {
+    const fake = await startFakeDevice({ bundleId: BUNDLE, udid, deviceType });
+    cleanups.push(() => fake.close());
+    return fake;
+  }
+
+  const terminations = (fake: FakeDevice) => fake.calls.filter((c) => c.includes('--terminate-existing')).length;
+  const bootTokenReads = (fake: FakeDevice) => fake.calls.filter((c) => c.includes('device copy from')).length;
+
+  test('live app: a route drop keeps the bearer and the app state, with no relaunch', async () => {
+    const fake = await device();
+    const session = await startSession('live-route-drop', fake);
+    expect((await fetchWith('POST', `${session.base}/tap`, { body: '{}' })).status).toBe(200);
+    const bearer = fake.requests.at(-1)?.authorization;
+
+    fake.dropConnections(1);
+    const after = await fetchWith('GET', `${session.base}/state/snapshot`);
+    expect(after.status).toBe(200);
+    expect(JSON.parse(after.bodyText).state).toEqual({ generation: 1, marker: 'tapped' });
+    expect(terminations(fake)).toBe(0);
+    expect(bootTokenReads(fake)).toBe(1);
+    expect(session.recoveries()).toBe(1);
+    expect(fake.requests.at(-1)?.authorization).toBe(bearer);
+    expect(session.logs.some((l) => l.startsWith('tunnel recovered: kept the session'))).toBe(true);
+  });
+
+  test('a tap whose response was lost is not replayed; the recovered session takes the next tap', async () => {
+    const fake = await device();
+    const session = await startSession('ambiguous-tap', fake);
+    expect((await fetchWith('GET', `${session.base}/screenshot`)).status).toBe(200);
+
+    fake.dropConnections(1);
+    const lost = await fetchWith('POST', `${session.base}/tap`, { body: '{}' });
+    expect(lost.status).toBe(504);
+    expect(fake.requests.filter((r) => r.path === '/tap')).toHaveLength(0);
+
+    expect((await fetchWith('POST', `${session.base}/tap`, { body: '{}' })).status).toBe(200);
+    expect(fake.requests.filter((r) => r.path === '/tap')).toHaveLength(1);
+    expect(terminations(fake)).toBe(0);
+    expect(fake.appState.generation).toBe(1);
+  });
+
+  test('concurrent requests during a route drop share one recovery', async () => {
+    const fake = await device();
+    const session = await startSession('concurrent-recovery', fake);
+    expect((await fetchWith('GET', `${session.base}/screenshot`)).status).toBe(200);
+    const listingsBefore = fake.calls.filter((c) => c.includes('list devices')).length;
+
+    fake.dropConnections(3);
+    const responses = await Promise.all([1, 2, 3].map(() => fetchWith('GET', `${session.base}/screenshot`)));
+    expect(responses.map((r) => r.status)).toEqual([200, 200, 200]);
+    expect(session.recoveries()).toBe(1);
+    expect(fake.calls.filter((c) => c.includes('list devices')).length - listingsBefore).toBe(1);
+    expect(fake.requests.filter((r) => r.path === '/state/snapshot')).toHaveLength(1);
+    expect(terminations(fake)).toBe(0);
+  });
+
+  test('stopped app: one normal launch, never --terminate-existing', async () => {
+    const fake = await device();
+    const session = await startSession('stopped-app', fake);
+    expect((await fetchWith('GET', `${session.base}/screenshot`)).status).toBe(200);
+
+    fake.stopApp();
+    const after = await fetchWith('GET', `${session.base}/screenshot`);
+    expect(after.status).toBe(200);
+    expect(fake.calls.filter((c) => c.includes('device process launch'))).toHaveLength(2);
+    expect(terminations(fake)).toBe(0);
+    expect(fake.appState.generation).toBe(2);
+    expect(session.logs.some((l) => l.includes(`${BUNDLE} is not running`))).toBe(true);
+  });
+
+  test('app relaunched from Xcode during a drop: the probe gets 401 and bootstraps from the fresh token', async () => {
+    const fake = await device();
+    const session = await startSession('relaunched-app', fake);
+    expect((await fetchWith('GET', `${session.base}/screenshot`)).status).toBe(200);
+
+    fake.dropConnections(1);
+    fake.relaunchExternally();
+    expect((await fetchWith('GET', `${session.base}/screenshot`)).status).toBe(200);
+    expect(bootTokenReads(fake)).toBe(2);
+    expect(terminations(fake)).toBe(0);
+    expect(session.logs.some((l) => l.includes('rejected the session bearer'))).toBe(true);
+  });
+
+  test('target device changed: full bootstrap on the new device, old bearer never sent to it', async () => {
+    const fake = await device('PHONE-UDID', 'iPhone');
+    const session = await startSession('udid-change', fake);
+    expect((await fetchWith('GET', `${session.base}/screenshot`)).status).toBe(200);
+    const oldBearer = fake.requests.at(-1)?.authorization;
+
+    fake.dropConnections(1);
+    fake.replaceDevice('PAD-UDID', 'iPad');
+    const after = await fetchWith('GET', `${session.base}/screenshot`);
+    expect(after.status).toBe(200);
+    expect(session.logs.some((l) => l.includes('target device changed from PHONE-UDID to PAD-UDID'))).toBe(true);
+    const padRequests = fake.requests.filter((r) => r.udid === 'PAD-UDID');
+    expect(padRequests.length).toBeGreaterThan(0);
+    expect(padRequests.some((r) => r.authorization === oldBearer)).toBe(false);
+    expect(padRequests.at(-1)).toMatchObject({ path: '/screenshot' });
+    expect(fake.calls.some((c) => c.includes('device copy from --device PAD-UDID'))).toBe(true);
+    expect(terminations(fake)).toBe(0);
   });
 });
 

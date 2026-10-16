@@ -19,17 +19,18 @@ MAX_MAIN_FUNCTION_CHARS = 1300
 
 
 FIELD_ORDER = [
-    "软件取得方式",
     "软件全称",
     "软件简称",
     "版本号",
-    "权利范围",
     "软件分类",
-    "软件说明",
-    "开发方式",
     "开发完成日期",
+    "开发方式",
+    "软件说明",
     "发表状态",
+    "首次发表日期",
     "著作权人",
+    "权利范围",
+    "权利取得方式",
     "开发的硬件环境",
     "运行的硬件环境",
     "开发该软件的操作系统",
@@ -42,6 +43,7 @@ FIELD_ORDER = [
     "面向领域 / 行业",
     "软件的主要功能",
     "软件的技术特点",
+    "页数",
 ]
 
 
@@ -255,6 +257,25 @@ def humanize_feature(name: str) -> str:
     return mapping.get(key, value.title() if re.search(r"[A-Za-z]", value) else value)
 
 
+def total_source_line_count(analysis: dict[str, Any], manifest: dict[str, Any]) -> int | str:
+    source = analysis.get("source") if isinstance(analysis.get("source"), dict) else {}
+    value = source.get("total_line_count") or source.get("line_count")
+    if value:
+        return int(value)
+    fallback = manifest.get("source_line_count") or manifest.get("selected_source_line_count")
+    return int(fallback) if fallback else "待用户确认"
+
+
+def submitted_code_page_count(manifest: dict[str, Any]) -> int | str:
+    value = manifest.get("submitted_page_count")
+    if value:
+        return int(value)
+    total = manifest.get("total_pages")
+    if not total:
+        return "待用户确认"
+    return 60 if manifest.get("mode") == "front30_back30" else int(total)
+
+
 def build_fields(
     analysis: dict[str, Any],
     manifest: dict[str, Any],
@@ -273,18 +294,18 @@ def build_fields(
     software_name_hint = f"待用户确认（建议：{software_name}；请确认最终软件全称）"
 
     defaults = {
-        "软件取得方式": (business.get("rights_acquisition") or "原始取得") if business else "原始取得",
         "软件全称": software_name_hint,
         "软件简称": "",
         "版本号": version_hint,
-        "权利范围": (business.get("rights_scope") or "全部权利") if business else "全部权利",
         "软件分类": (business.get("software_category") or "应用软件") if business else "应用软件",
-        "软件说明": "原创",
-        "开发方式": (business.get("development_situation") or "单独开发") if business else "单独开发",
         "开发完成日期": "待用户确认（YYYY-MM-DD）",
+        "开发方式": (business.get("development_situation") or "单独开发") if business else "单独开发",
+        "软件说明": "原创",
         "发表状态": "待用户确认（已发表/未发表）",
         "首次发表日期": "待用户确认（YYYY-MM-DD，未发表则留空）",
         "著作权人": "待用户确认",
+        "权利范围": (business.get("rights_scope") or "全部权利") if business else "全部权利",
+        "权利取得方式": (business.get("rights_acquisition") or "原始取得") if business else "原始取得",
         "开发的硬件环境": hardware_hint,
         "运行的硬件环境": hardware_hint,
         "开发该软件的操作系统": dev_os_hint,
@@ -292,12 +313,12 @@ def build_fields(
         "该软件的运行平台 / 操作系统": infer_runtime_os(analysis),
         "软件运行支撑环境 / 支持软件": infer_runtime_support(analysis, project),
         "编程语言": language,
-        "源程序量": str(manifest.get("source_line_count") or manifest.get("selected_source_line_count") or "待用户确认"),
+        "源程序量": str(total_source_line_count(analysis, manifest)),
         "开发目的": (business.get("application_purpose") or f"待用户确认（≤50字符，需说明开发目的，不能只写软件名称）") if business else "待用户确认（≤50字符，需说明开发目的，不能只写软件名称）",
         "面向领域 / 行业": (business.get("industry") or "待用户确认") if business else "待用户确认",
         "软件的主要功能": (business.get("main_functions") or summarize_features(analysis, software_name, business)) if business else summarize_features(analysis, software_name, business),
         "软件的技术特点": (business.get("technical_characteristics") or f"系统采用{framework_text}构建前端界面，结合模块化组件、路由组织、接口封装和状态管理实现业务功能") if business else f"系统采用{framework_text}构建前端界面，结合模块化组件、路由组织、接口封装和状态管理实现业务功能",
-        "页数": str(manifest.get("total_pages") or "待用户确认"),
+        "页数": str(submitted_code_page_count(manifest)),
     }
     defaults.update({k: v for k, v in answers.items() if v})
 
@@ -585,9 +606,9 @@ def write_application_md(path: Path, fields: dict[str, str], analysis: dict[str,
             raw_name = clean_name.split("建议：")[1].rstrip("）").split("；")[0].strip()
         except (IndexError, ValueError):
             raw_name = clean_name
-    for suffix in ["软件", "平台"]:
-        if raw_name.endswith(suffix):
-            warnings.append(f"软件全称以「{suffix}」结尾，存在被驳回风险。建议考虑去掉「{suffix}」后缀或改用其他命名方式。")
+    recommended_suffixes = ("软件", "平台", "系统")
+    if raw_name and not raw_name.endswith(recommended_suffixes):
+        warnings.append("软件全称未以「软件」「平台」或「系统」结尾，建议结合实际命名补充软件属性后缀。")
 
     main_func = fields.get("软件的主要功能", "")
     if main_func and "待用户确认" not in main_func:
@@ -619,28 +640,24 @@ def write_application_md(path: Path, fields: dict[str, str], analysis: dict[str,
             "",
             "## 字段填写口径",
             "",
-            "- 软件取得方式：原始取得/继受取得，默认原始取得。",
-            "- 软件全称：必填，必须由用户确认；最终正式资料文件名、代码页眉和操作手册中的软件名称均以本字段为准。",
+            "- 软件全称：必须由用户确认；最终正式资料文件名、代码页眉和操作手册中的软件名称均以本字段为准。",
             "- 软件简称：可选；如有常用简称则填写。",
             "- 版本号：必须由用户确认；如果项目版本小于 V1.0，软著首次提交通常建议使用 V1.0，也可按实际项目版本填写，最终以本字段为准。",
-            "- 权利范围：全部权利/部分权利，默认全部权利。",
-            "- 软件分类：应用软件/嵌入式软件/中间件/操作系统，默认为应用软件。",
-            "- 软件说明：原创 / 修改（含翻译软件、合成软件），默认原创。",
-            "- 开发方式：单独开发/合作开发/委托开发/下达任务开发，多个著作权人单位时通常为合作开发。",
-            "- 开发完成日期：指软件开发者将该软件全部固定在某种有形物体上的日期，使用 YYYY-MM-DD 格式。",
-            "- 发表状态：已发表或未发表，默认未发表；已发表需附首次发表日期。",
-            "- 著作权人：单位名称和统一社会信用代码证书号，不能只写单位名称。",
+            "- 软件分类：应用软件/嵌入式软件/中间件/系统软件/其他。",
+            "- 开发完成日期、首次发表日期：必须使用 YYYY-MM-DD 格式。",
+            "- 开发方式：单独开发/合作开发/委托开发/下达任务开发。",
+            "- 软件说明：原创 / 修改（含翻译软件、合成软件）。",
+            "- 发表状态：已发表或未发表；已发表需附首次发表日期。",
             "- 软件开发环境 / 开发工具：≤50字符，格式 `开发环境: <OS>/开发工具: <IDE名称>`。",
             "- 开发该软件的操作系统：≤50字符，填写实际开发电脑的操作系统版本。",
             "- 该软件的运行平台 / 操作系统：≤50字符，填写软件运行所在的操作系统或浏览器环境。",
             "- 软件运行支撑环境 / 支持软件：≤50字符，直接列出运行依赖（如 Node.js、npm、浏览器），不加格式前缀。",
             "- 开发的硬件环境和运行的硬件环境：≤50字符，可使用检测到的电脑配置作为建议值。",
-            "- 编程语言：从列表选择开发登记软件用到的所有编程语言。",
             "- 源程序量：纯数字（不含'行'字），指全部源程序的总行数。",
             "- 开发目的：≤50字符，用一句话说明目的，不能只写软件名称。",
             "- 面向领域 / 行业：≤50字符。",
             "- 软件的主要功能：500~1300字。",
-            "- 软件的技术特点：≤100字符，准确描述技术特点。",
+            "- 软件的技术特点：多选标签（APP/游戏软件/教育软件/金融软件/医疗软件/地理信息软件/云计算软件/信息安全软件/大数据软件/人工智能软件/VR软件/5G软件/小程序/物联网软件/智慧城市软件）+ 文本描述≤100字符。",
             "",
             "## 项目分析摘要",
             "",
@@ -648,7 +665,8 @@ def write_application_md(path: Path, fields: dict[str, str], analysis: dict[str,
             f"- 框架：{'、'.join(analysis.get('frameworks') or []) or '未识别'}",
             f"- 源码文件数：{analysis.get('source', {}).get('total_file_count', analysis.get('source', {}).get('file_count', 0))}",
             f"- 源程序量（含空行）：{analysis.get('source', {}).get('total_line_count', analysis.get('source', {}).get('line_count', 0))}",
-            f"- 代码材料页数：{manifest.get('total_pages', 0)}",
+            f"- 已选源码估算总页数：{manifest.get('total_pages', 0)}",
+            f"- 实际提交代码材料页数：{submitted_code_page_count(manifest)}",
             f"- 代码输出模式：{manifest.get('mode', '')}",
             f"- 业务理解：{'已读取 草稿/业务理解.json' if business else '未提供，使用项目分析兜底'}",
             "",

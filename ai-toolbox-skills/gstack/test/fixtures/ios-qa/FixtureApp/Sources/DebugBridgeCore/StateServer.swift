@@ -6,8 +6,8 @@
 //
 // Threat model: this surface is reachable from the local Mac via the CoreDevice
 // IPv6 tunnel. It MUST refuse any caller without a current bearer token. The
-// boot token is rotated within ~5 seconds of daemon spawn so anything scraping
-// os_log past that window sees a dead credential.
+// boot token is rotated within ~5 seconds of daemon spawn, and rotation deletes
+// its file, so a copy taken past that window is a dead credential.
 
 import Foundation
 import Network
@@ -34,9 +34,11 @@ public final class StateServer {
     private var ipv6Listener: NWListener?
     private var ipv4Listener: NWListener?
 
-    // Auth state. The boot token is what we wrote to os_log on first launch.
-    // It exists ONLY long enough for the daemon to call /auth/rotate.
+    // Auth state. The boot token is written to a 0600 file in tmp/ on launch
+    // (never to os_log). It exists ONLY long enough for the daemon to call
+    // /auth/rotate. A failed write is kept here and reported on /healthz.
     private var bootToken: String
+    private var bootTokenWriteError: String?
     private var rotatedToken: String?  // set after first /auth/rotate
     private var bootTokenValid: Bool = true
 
@@ -59,18 +61,20 @@ public final class StateServer {
     private var writeHandlers: [String: WriteHandler] = [:]
     private var typeNames: [String: TypeName] = [:]
 
-    // Atomic-restore hook. Codegen wires this to the canonical AppState struct.
-    // Restore replaces the entire struct in one assignment so SwiftUI's Combine
-    // pipeline observes exactly one change notification — true observable
-    // atomicity. @MainActor alone doesn't guarantee that.
-    public typealias AtomicRestoreFn = (JSONDict) -> RestoreResult
+    // Validated-restore hooks. Every generated model registers one two-phase
+    // handler. The server validates all models before it lets any model mutate,
+    // so invalid input can never cause a cross-model partial restore.
+    // Valid restores apply properties on MainActor; observers may receive one
+    // change notification per property because arbitrary @Observable models do
+    // not expose a general single-assignment transaction API.
+    public typealias AtomicRestoreFn = (JSONDict, Bool) -> RestoreResult
     public enum RestoreResult {
         case ok
         case missingKey(String)
         case typeMismatch(String)
         case schemaMismatch(expected: String, got: String)
     }
-    private var atomicRestore: AtomicRestoreFn?
+    private var atomicRestores: [AtomicRestoreFn] = []
 
     // Snapshot schema hash — written by codegen, stable across builds with
     // identical accessor signatures.
@@ -90,15 +94,28 @@ public final class StateServer {
     }
 
     public func start() {
-        // 1. Persist boot token to a 0600 file (best-effort fallback for the
-        //    daemon if os_log scrape misses).
-        try? bootToken.write(toFile: bootTokenPath, atomically: true, encoding: .utf8)
-        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: bootTokenPath)
+        // 1. Persist the boot token to a 0600 file. This is the ONLY way the
+        //    daemon can authenticate (devicectl copies it out of tmp/), so a
+        //    failed write is an error, not a silent skip.
+        let tokenFile = bootTokenPath
+        do {
+            try bootToken.write(toFile: tokenFile, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: tokenFile)
+        } catch {
+            bootTokenWriteError = error.localizedDescription
+            logger.error("Boot token file write failed at \(tokenFile, privacy: .public): \(error.localizedDescription, privacy: .public). No daemon can authenticate until the app relaunches with a writable tmp/.")
+        }
 
-        // 2. Log the boot token EXACTLY ONCE so the daemon can scrape it.
-        //    The daemon will rotate immediately; this log line is dead within
-        //    seconds.
-        logger.notice("gstack-ios-qa-bootstrap token=\(self.bootToken, privacy: .public) port=\(self.port, privacy: .public) build=\(self.appBuildId, privacy: .public)")
+        // 2. Announce bootstrap WITHOUT the token. The daemon reads the boot
+        //    token from the 0600 file above (copyFileFromAppContainer); the
+        //    os_log line that used to carry it had no consumer and handed a
+        //    live credential to anything reading the unified log during the
+        //    launch window. Port/build stay for diagnostics.
+        if let failure = bootTokenWriteError {
+            logger.error("gstack-ios-qa-bootstrap NOT READY port=\(self.port, privacy: .public): boot token file unwritable (\(failure, privacy: .public))")
+        } else {
+            logger.notice("gstack-ios-qa-bootstrap port=\(self.port, privacy: .public) build=\(self.appBuildId, privacy: .public)")
+        }
 
         // 3. Bind both IPv6 and IPv4 loopback. CoreDevice tunnel uses IPv6;
         //    local tooling may use IPv4. Never bind 0.0.0.0 or ::.
@@ -109,7 +126,7 @@ public final class StateServer {
     public func register(buildId: String, accessorHash: String, atomicRestore: @escaping AtomicRestoreFn) {
         self.appBuildId = buildId
         self.accessorHash = accessorHash
-        self.atomicRestore = atomicRestore
+        self.atomicRestores.append(atomicRestore)
     }
 
     public func registerAccessor(key: String, type: String, read: @escaping ReadHandler, write: @escaping WriteHandler) {
@@ -147,7 +164,19 @@ public final class StateServer {
             let params = NWParameters.tcp
             params.allowLocalEndpointReuse = true
 
-            let listener = try NWListener(using: params, on: NWEndpoint.Port(rawValue: port)!)
+            // IPv4 has no CoreDevice tunnel path, so it binds strictly to
+            // loopback at the socket level; IPv6 keeps the wildcard bind and
+            // relies on the per-connection peer check below for tunnel peers.
+            let listener: NWListener
+            switch family {
+            case .ipv4:
+                params.requiredLocalEndpoint = NWEndpoint.hostPort(
+                    host: NWEndpoint.Host("127.0.0.1"),
+                    port: NWEndpoint.Port(rawValue: port)!)
+                listener = try NWListener(using: params)
+            case .ipv6:
+                listener = try NWListener(using: params, on: NWEndpoint.Port(rawValue: port)!)
+            }
             listener.stateUpdateHandler = { [weak self] state in
                 Task { @MainActor in
                     if case .ready = state {
@@ -280,11 +309,14 @@ public final class StateServer {
 
         // 1. Public on loopback: /healthz.
         if request.method == "GET" && path == "/healthz" {
-            send(connection: connection, status: 200, body: [
+            var health: JSONDict = [
                 "version": "1.0.0",
                 "build": appBuildId,
                 "accessor_hash": accessorHash,
-            ])
+                "bundle_id": Bundle.main.bundleIdentifier ?? "unknown",
+            ]
+            if let failure = bootTokenWriteError { health["boot_token_error"] = failure }
+            send(connection: connection, status: 200, body: health)
             return
         }
 
@@ -476,22 +508,36 @@ public final class StateServer {
             send(connection: connection, status: 400, body: ["error": "missing_keys"])
             return
         }
-        guard let restore = atomicRestore else {
+        guard !atomicRestores.isEmpty else {
             send(connection: connection, status: 503, body: ["error": "atomic_restore_not_registered"])
             return
         }
-        // Validate-then-apply via the codegen-supplied closure. The closure does
-        // a single struct-assignment so SwiftUI sees one change notification.
-        switch restore(keys) {
-        case .ok:
-            send(connection: connection, status: 200, body: ["ok": true])
-        case .missingKey(let k):
-            send(connection: connection, status: 400, body: ["error": "validation_failed", "key": k, "reason": "missing"])
-        case .typeMismatch(let k):
-            send(connection: connection, status: 400, body: ["error": "validation_failed", "key": k, "reason": "type-mismatch"])
-        case .schemaMismatch(let expected, let got):
-            send(connection: connection, status: 409, body: ["error": "schema_mismatch", "expected_hash": expected, "got_hash": got])
+        // Phase one validates every registered model without assignment.
+        for restore in atomicRestores {
+            switch restore(keys, false) {
+            case .ok:
+                continue
+            case .missingKey(let k):
+                send(connection: connection, status: 400, body: ["error": "validation_failed", "key": k, "reason": "missing"])
+                return
+            case .typeMismatch(let k):
+                send(connection: connection, status: 400, body: ["error": "validation_failed", "key": k, "reason": "type-mismatch"])
+                return
+            case .schemaMismatch(let expected, let got):
+                send(connection: connection, status: 409, body: ["error": "schema_mismatch", "expected_hash": expected, "got_hash": got])
+                return
+            }
         }
+
+        // Phase two applies only after every model accepted the immutable input.
+        // A valid multi-field restore may notify once per property.
+        for restore in atomicRestores {
+            guard case .ok = restore(keys, true) else {
+                send(connection: connection, status: 500, body: ["error": "restore_apply_failed"])
+                return
+            }
+        }
+        send(connection: connection, status: 200, body: ["ok": true])
     }
 
     // MARK: Stubs (real impls live in DebugBridgeManager + UIKit)
@@ -522,9 +568,19 @@ public final class StateServer {
     // MARK: Response
 
     private func send(connection: NWConnection, status: Int, body: JSONDict) {
-        let json = (try? JSONSerialization.data(withJSONObject: body)) ?? Data("{}".utf8)
+        let responseStatus: Int
+        let json: Data
+        if JSONSerialization.isValidJSONObject(body),
+           let encoded = try? JSONSerialization.data(withJSONObject: body) {
+            responseStatus = status
+            json = encoded
+        } else {
+            logger.error("Refusing to send a non-JSON response body")
+            responseStatus = 500
+            json = Data("{\"error\":\"response_not_json_serializable\"}".utf8)
+        }
         let statusText: String
-        switch status {
+        switch responseStatus {
         case 200: statusText = "OK"
         case 400: statusText = "Bad Request"
         case 401: statusText = "Unauthorized"
@@ -537,7 +593,7 @@ public final class StateServer {
         case 503: statusText = "Service Unavailable"
         default: statusText = "Status"
         }
-        let header = "HTTP/1.1 \(status) \(statusText)\r\nContent-Type: application/json\r\nContent-Length: \(json.count)\r\nConnection: close\r\n\r\n"
+        let header = "HTTP/1.1 \(responseStatus) \(statusText)\r\nContent-Type: application/json\r\nContent-Length: \(json.count)\r\nConnection: close\r\n\r\n"
         var packet = Data(header.utf8)
         packet.append(json)
         connection.send(content: packet, completion: .contentProcessed { _ in

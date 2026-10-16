@@ -2,12 +2,14 @@
 
 ## Instructions
 
-Review the `git diff origin/main` output for the issues listed below. Be specific — cite `file:line` and suggest fixes. Skip anything that's fine. Only flag real problems.
+Review the merge-base diff from the caller, including its selected uncommitted and new source. Use the caller's detected base, not a hardcoded branch. Cite `file:line` and suggest fixes. Only flag real problems.
 
 **Two-pass review:**
 - **Pass 1 (CRITICAL):** Run SQL & Data Safety, Race Conditions, LLM Output Trust Boundary, Shell Injection, and Enum Completeness first. Highest severity.
 - **Pass 2 (INFORMATIONAL):** Run remaining categories below. Lower severity but still actioned.
-- **Specialist categories (handled by parallel subagents, NOT this checklist):** Test Gaps, Dead Code, Magic Numbers, Conditional Side Effects, Performance & Bundle Impact, Crypto & Entropy. See `review/specialists/` for these.
+- **Specialist categories (handled by parallel subagents, NOT this checklist):** Test Gaps, Dead Code, Magic Numbers, Conditional Side Effects, Performance & Bundle Impact, Crypto & Entropy, Simplification (unrequested structure). See `review/specialists/` for these.
+
+Completeness Gaps and Simplification are orthogonal, not contradictory: Completeness pushes coverage UP (tests, edge cases, error paths), Simplification pushes unrequested structure DOWN (one-implementation abstractions, hand-rolled stdlib, dead flexibility). The same diff can legitimately receive both.
 
 All findings get action via Fix-First Review: obvious mechanical fixes are applied automatically,
 genuinely ambiguous issues are batched into a single user question.
@@ -59,10 +61,11 @@ Be terse. For each issue: one line describing the problem, one line with the fix
 - `eval()` / `exec()` on LLM-generated code without sandboxing
 
 #### Enum & Value Completeness
-When the diff introduces a new enum value, status string, tier name, or type constant:
+When the diff introduces a new enum value, status string, tier name, or type constant, or loosens what an input accepts (a new MIME type, extension or flag, or a widened validator/parser/guard):
 - **Trace it through every consumer.** Read (don't just grep — READ) each file that switches on, filters by, or displays that value. If any consumer doesn't handle the new value, flag it. Common miss: adding a value to the frontend dropdown but the backend model/compute method doesn't persist it.
 - **Check allowlists/filter arrays.** Search for arrays or `%w[]` lists containing sibling values (e.g., if adding "revise" to tiers, find every `%w[quick lfg mega]` and verify "revise" is included where needed).
 - **Check `case`/`if-elsif` chains.** If existing code branches on the enum, does the new value fall through to a wrong default?
+- **Loosened acceptance breaks unchanged consumers.** Grep every consumer of the same field and confirm each handles the newly accepted shape; the broken code is usually outside the diff.
 To do this: use Grep to find all references to the sibling values (e.g., grep for "lfg" or "mega" to find all tier consumers). Read each match. This step requires reading code OUTSIDE the diff.
 
 ### Pass 2 — INFORMATIONAL
@@ -129,8 +132,8 @@ CRITICAL (highest severity):      INFORMATIONAL (main agent):      SPECIALIST (p
 ├─ Shell Injection                ├─ LLM Prompt Issues             ├─ Performance specialist
 └─ Enum & Value Completeness      ├─ Completeness Gaps             ├─ Data Migration specialist
                                    ├─ Time Window Safety            ├─ API Contract specialist
-                                   ├─ Type Coercion at Boundaries   └─ Red Team (conditional)
-                                   ├─ View/Frontend
+                                   ├─ Type Coercion at Boundaries   ├─ Simplification (advisory)
+                                   ├─ View/Frontend                 └─ Red Team (conditional)
                                    └─ Distribution & CI/CD Pipeline
 
 All findings are actioned via Fix-First Review. Severity determines
@@ -169,6 +172,8 @@ the fix, it's ASK.
 
 ## Suppressions — DO NOT flag these
 
+Zero findings is a valid outcome. Flag only what a senior engineer on this team would change in review; if the diff is clean, say so.
+
 - "X is redundant with Y" when the redundancy is harmless and aids readability (e.g., `present?` redundant with `length > 20`)
 - "Add a comment explaining why this threshold/constant was chosen" — thresholds change during tuning, comments rot
 - "This assertion could be tighter" when the assertion already covers the behavior
@@ -178,3 +183,10 @@ the fix, it's ASK.
 - Eval threshold changes (max_actionable, min scores) — these are tuned empirically and change constantly
 - Harmless no-ops (e.g., `.reject` on an element that's never in the array)
 - ANYTHING already addressed in the diff you're reviewing — read the FULL diff before commenting
+- "Consider adding error handling" on a call whose errors the caller or framework already owns (error middleware, an error boundary, a top-level try/catch, an upstream `.catch`)
+- "Function too long" for an exhaustive `switch`, a config object, a test table or generated code — length is not complexity
+- "Possible null dereference" when a type guard or `if` check in scope already narrows the value — trace the type flow
+- "N+1 query" on a loop with a small fixed cardinality, or on a path that is already batched
+- "Hardcoded value" in test fixtures, example code or docs — tests are supposed to hardcode their expectations
+- `Math.random()` in a non-cryptographic context (jitter, sampling, animation) — security-sensitive randomness is still flagged
+- A gap covered by a `gstack-shortcut(dec-*)` marker naming a ceiling and upgrade trigger — that is acknowledged debt with a ledger entry, not a Completeness Gaps finding. **Verify before honoring:** resolve the id with `~/.claude/skills/gstack/bin/gstack-decision-search --query "<dec-id>"` — a marker whose decision id has no ledger entry is UNVERIFIED (any diff author can type a marker); report the gap normally and flag the orphan marker itself

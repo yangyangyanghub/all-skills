@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title><!-- 课件标题 --></title>
+<style>
+/* ===== 配色方案：从 references/color-schemes.md 选一个 :root 块 ===== */
+:root {
+  --primary: #8D6E63; --primary-light: #BCAAA4;
+  --accent: #FF8F00; --accent-soft: #FFE082;
+  --ink: #3E2723; --paper: #FFF8F0; --paper-2: #FBE9E7;
+  --line: #D7CCC8; --green: #00897B; --red: #D84315;
+  --shadow: 0 4px 16px rgba(62,39,35,.08);
+}
+
+/* ===== 课件配置块（所有常量集中声明） ===== */
+/* IMG_PREFIX: 图片路径前缀，统一为 'img/'（图片放 deploy/img/ 子目录，部署后 URL 为 img/xxx.jpg） */
+/* 不在 CSS 中声明，在 JS 中用 var IMG_PREFIX = 'img/'; */
+
+/* ===== 基础样式 ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{overflow:hidden;height:100%}
+body{
+  font-family:"Noto Serif SC","Songti SC","Microsoft YaHei",serif;
+  background:var(--paper);color:var(--ink);
+  height:100dvh;overflow:hidden;position:relative;
+  font-size:21px;line-height:1.65;
+  display:flex;flex-direction:column;
+}
+
+/* ===== 导航条 ===== */
+nav#topNav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  padding:6px 12px;display:flex;align-items:center;gap:10px;
+  flex-wrap:nowrap;overflow-x:auto;
+  box-shadow:0 2px 12px rgba(0,0,0,.15);
+  -webkit-overflow-scrolling:touch;
+}
+nav#topNav::-webkit-scrollbar{height:3px}
+nav#topNav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:2px}
+nav#topNav .chip{
+  flex-shrink:0;padding:5px 14px;border-radius:20px;
+  background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);
+  font-size:16px;cursor:pointer;transition:all .25s;
+  white-space:nowrap;border:1px solid transparent;font-weight:500;
+}
+nav#topNav .chip:hover{background:rgba(255,255,255,.25)}
+nav#topNav .chip.active{
+  background:var(--accent);color:#fff;font-weight:700;
+  border-color:var(--accent);box-shadow:0 2px 8px rgba(255,143,0,.4);
+}
+/* 导航芯片类型样式 */
+nav#topNav .chip.pre{background:rgba(255,143,0,.25);color:#fff}
+nav#topNav .chip.mid{background:rgba(0,137,123,.25);color:#fff}
+nav#topNav .chip.post{background:rgba(211,47,47,.25);color:#fff}
+nav#topNav .chip.sim{background:rgba(21,101,192,.25);color:#fff}
+nav#topNav .chip-end{background:rgba(255,255,255,.25);color:#fff}
+
+/* ===== 进度条 ===== */
+#progressWrap{
+  position:fixed;top:44px;left:0;right:0;height:4px;z-index:201;
+  background:rgba(0,0,0,.08);
+}
+#progressBar{
+  height:100%;background:var(--accent);
+  width:0%;transition:width .4s ease;border-radius:0 2px 2px 0;
+}
+
+/* ===== 翻页容器 ===== */
+#pageContainer{flex:1;position:relative;overflow:hidden;margin-top:48px}
+
+/* ===== 页面通用 ===== */
+.page{
+  position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+  display:none;padding:32px 36px 40px;
+  animation:fadeSlide .4s ease;
+}
+.page.active{display:block}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.page::-webkit-scrollbar{width:5px}
+.page::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+/* ===== 全屏按钮：v2026-09-28e 定案「默认不放」 =====
+   资料库外壳 sandbox 无 allow-fullscreen，网页代码达不到 F11 式真全屏；
+   故骨架不放全屏按钮（HTML/CSS/JS 三件套一律不配）。
+   课堂需要全屏时：引导用户直接按键盘 F11，或下载 HTML 直开。
+   确需按钮的特殊场景 → 从 teaching-control.js 取三级降级实现（见 SKILL.md §3.6③）。 */
+
+/* ===== 翻页按钮 ===== */
+/* ⚠ !important 加固（v2026-09-29）：页码与翻页键必须恒在底部居中——
+   实测部分课件会被其它 fixed/absolute 样式挤到左侧，全部属性加 !important 防挤占。 */
+/* ⚠ z-index 500 顶层（v2026-10-13）：页码指示器是教师端唯一入口（1.5s 连点三次），
+   必须恒在页面内容/通信状态/揭示遮罩之上可点击。预留层级表见 workflow-dev.md §3.6④——
+   页面内容元素 z-index 一律 ≤99，禁止与导航层（500）争层级。 */
+#navBtns{
+  position:fixed !important;bottom:20px !important;left:50% !important;
+  right:auto !important;top:auto !important;transform:translateX(-50%) !important;
+  display:flex !important;align-items:center;justify-content:center;gap:16px;z-index:500;
+}
+#navBtns button{
+  width:48px;height:48px;border-radius:50%;border:2px solid var(--primary);
+  background:var(--paper);color:var(--primary);font-size:22px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;box-shadow:var(--shadow);
+}
+#navBtns button:hover{background:var(--primary);color:#fff}
+#navBtns button:disabled{opacity:.35;cursor:default}
+#navBtns button:disabled:hover{background:var(--paper);color:var(--primary)}
+#pageIndicator{font-size:20px;font-weight:700;color:var(--primary);min-width:80px;text-align:center}
+
+/* ===== 封面页 =====
+   注意：display:flex 必须写为 .page.active .cover-page（级联选择器，特异性 0,3,0），
+   绝不能写 .cover-page.active、也绝不能裸写 .cover-page{display:flex}！
+   原因：翻页系统 showPage() 只给 <section class="page"> 加/减 active 类，
+   嵌套的 .cover-page div 永远没有 active 类 → .cover-page.active 永不匹配；
+   裸写 .cover-page{display:flex} 则同特异性(0,1,0)下源码靠后覆盖 .page{display:none}，
+   导致封面翻走后仍渲染（《价格理论》翻走后不消失、《氓》浅黄底+白字均源于此坑）。 */
+.page.active .cover-page{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  width:100%;height:100%;color:#fff;
+}
+.cover-page h1{font-size:48px;font-weight:900;color:#fff;margin-bottom:12px;text-shadow:0 3px 12px rgba(0,0,0,.5)}
+.cover-page .sub{font-size:24px;color:rgba(255,255,255,.9);margin-bottom:32px}
+.cover-page .tags{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:36px}
+.cover-page .tag{padding:8px 20px;border-radius:24px;background:rgba(255,143,0,.7);color:#fff;font-size:18px;font-weight:600}
+.cover-page .hint{margin-top:40px;font-size:18px;color:rgba(255,255,255,.7)}
+
+/* ===== 讲授页 ===== */
+.teach-title{font-size:34px;font-weight:900;color:var(--primary);margin-bottom:24px;border-bottom:3px solid var(--accent);padding-bottom:10px}
+.teach-text{font-size:21px;line-height:1.8;margin-bottom:20px}
+.teach-text strong{color:var(--accent)}
+.key-box{
+  background:var(--paper-2);border-left:5px solid var(--accent);
+  padding:16px 20px;border-radius:0 10px 10px 0;margin:16px 0;font-size:20px;
+}
+.key-box strong{color:var(--primary)}
+.feature-list{list-style:none;padding:0}
+.feature-list li{padding:10px 0 10px 32px;position:relative;font-size:20px;border-bottom:1px dashed var(--line)}
+.feature-list li::before{content:'';position:absolute;left:4px;top:16px;width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.card{background:var(--paper-2);border-radius:12px;padding:20px;border:1px solid var(--line);transition:all .25s}
+.card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.card h4{color:var(--primary);font-size:22px;margin-bottom:10px}
+.card p{font-size:19px;line-height:1.7}
+.highlight-num{
+  display:inline-block;background:var(--accent);color:#fff;
+  width:32px;height:32px;border-radius:50%;text-align:center;
+  line-height:32px;font-size:18px;font-weight:700;margin-right:8px;
+}
+
+/* ===== 仿真页 ===== */
+.sim-page{padding:24px 20px 40px}
+.sim-title{font-size:30px;font-weight:900;color:var(--primary);margin-bottom:12px;text-align:center}
+.sim-desc{text-align:center;font-size:19px;color:var(--primary-light);margin-bottom:20px}
+.sim-controls{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.sim-controls label{font-size:19px;font-weight:600;color:var(--primary)}
+.sim-controls input[type="range"]{width:200px;accent-color:var(--accent)}
+.sim-controls input[type="range"]:focus{outline:none}
+.sim-controls .val-display{font-size:20px;font-weight:700;color:var(--accent);min-width:80px;text-align:center}
+.sim-canvas-wrap{display:flex;justify-content:center;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-top:8px}
+.canvas-box{text-align:center}
+.canvas-box canvas{border:2px solid var(--line);border-radius:12px;background:#fff;max-width:100%;height:auto}
+.canvas-box .cap{font-size:18px;color:var(--primary);margin-top:6px;font-weight:600}
+
+/* ===== 测验页 ===== */
+.quiz-page{padding:28px 36px 48px}
+.quiz-title{font-size:30px;font-weight:900;color:var(--primary);margin-bottom:20px;text-align:center}
+.quiz-hint{font-size:18px;color:var(--primary-light);text-align:center;margin-bottom:24px}
+.quiz-q{
+  background:var(--paper-2);border-radius:14px;padding:20px 24px;
+  margin-bottom:16px;border:2px solid var(--line);transition:border-color .3s;
+}
+.quiz-q.answered{border-color:var(--primary-light)}
+.quiz-q .q-stem{font-size:21px;font-weight:700;color:var(--ink);margin-bottom:14px}
+.quiz-q .opts{display:flex;flex-direction:column;gap:10px}
+.quiz-q .opt{
+  display:flex;align-items:center;gap:12px;padding:12px 16px;
+  border-radius:10px;border:2px solid var(--line);cursor:pointer;
+  transition:all .2s;font-size:20px;
+}
+.quiz-q .opt:hover{border-color:var(--accent);background:var(--accent-soft)}
+.quiz-q .opt.selected{border-color:var(--accent);background:var(--accent-soft)}
+.quiz-q .opt .badge{
+  width:36px;height:36px;border-radius:50%;background:var(--primary-light);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:18px;flex-shrink:0;
+}
+.quiz-q .opt.correct{border-color:var(--green);background:#e0f2f1}
+.quiz-q .opt.correct .badge{background:var(--green)}
+.quiz-q .opt.wrong{border-color:var(--red);background:#fbe9e7}
+.quiz-q .opt.wrong .badge{background:var(--red)}
+/* ⚠ v2026-09-29 定案「提交前可随时修改」：选项锁定挂 .submitted 前缀（submitQuiz 时加），
+   .answered 只表示已作答、不锁——学生提交前可随时改选/重确认。禁止改回 .answered 前缀锁定。 */
+.quiz-q.submitted .opt{pointer-events:none;opacity:.85}
+.quiz-q.submitted .opt.correct{opacity:1}
+.feedback{margin-top:12px;padding:12px 16px;border-radius:8px;font-size:19px;display:none;line-height:1.7}
+.feedback.show{display:block;animation:fadeSlide .25s}
+.feedback.correct-fb{background:#e0f2f1;border:1px solid var(--green);color:#004d40}
+.feedback.wrong-fb{background:#fbe9e7;border:1px solid var(--red);color:#4e1a06}
+.feedback .fb-icon{margin-right:8px;font-weight:700}
+.quiz-actions{display:flex;justify-content:center;gap:12px;margin-top:28px;flex-wrap:wrap}
+.quiz-actions button{padding:12px 32px;border-radius:30px;font-size:21px;font-weight:700;cursor:pointer;border:2px solid var(--accent);transition:all .2s}
+.btn-submit{background:var(--accent);color:#fff;border-color:var(--accent)!important}
+.btn-submit:hover{background:#e67e00;box-shadow:0 4px 12px rgba(255,143,0,.3)}
+.btn-submit:disabled{background:#ccc;color:#999;border-color:#ccc!important;cursor:not-allowed;box-shadow:none}
+.btn-retry{background:var(--paper);color:var(--primary)}
+.btn-retry:hover{background:var(--paper-2)}
+.quiz-score{text-align:center;font-size:24px;font-weight:700;color:var(--green);margin-top:20px;display:none}
+
+/* ===== 总结页 ===== */
+.summary-page{padding:28px 36px 48px}
+.summary-title{font-size:34px;font-weight:900;color:var(--primary);margin-bottom:24px;text-align:center}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.summary-item{background:var(--paper-2);border-radius:14px;padding:20px;border-left:5px solid var(--accent)}
+.summary-item h4{font-size:22px;color:var(--primary);margin-bottom:8px}
+.summary-item p{font-size:19px;line-height:1.7}
+.mantra{text-align:center;font-size:28px;font-weight:900;color:var(--accent);margin:24px 0;padding:20px;background:var(--paper-2);border-radius:14px}
+.score-compare{display:flex;justify-content:center;align-items:center;gap:32px;margin:24px 0;flex-wrap:wrap}
+.score-compare .sc{text-align:center;padding:20px 28px;background:var(--paper-2);border-radius:14px;min-width:140px}
+.score-compare .sc .label{font-size:20px;color:var(--primary-light);margin-bottom:4px}
+.score-compare .sc .val{font-size:36px;font-weight:900;color:var(--primary)}
+.score-compare .sc .val.green{color:var(--green)}
+.score-compare .arrow{font-size:40px;color:var(--accent);font-weight:900}
+
+/* ===== 知识结构图（HTML可折叠树） ===== */
+.mindmap .node{cursor:pointer;padding:10px 16px;border-radius:8px;border-left:4px solid var(--primary);margin:4px 0;background:var(--paper-2)}
+.mindmap .branch{margin-left:24px}
+.mindmap .branch.collapsed{display:none}
+.mindmap .icon{margin-right:8px}
+.mindmap .brief{display:block;font-size:14px;color:var(--primary-light);margin-top:4px}
+
+/* ===== 响应式 ===== */
+@media(max-width:768px){
+  .page{padding:20px 16px 56px}
+  .cover-page h1{font-size:32px}
+  .cover-page .sub{font-size:20px}
+  .teach-title{font-size:28px}
+  .teach-text{font-size:20px}
+  .card-grid{grid-template-columns:1fr}
+  .sim-canvas-wrap{flex-direction:column;align-items:center}
+  .sim-controls input[type="range"]{width:140px}
+  nav#topNav{padding:4px 8px;gap:6px}
+  nav#topNav .chip{padding:4px 10px;font-size:14px}
+  #navBtns button{width:40px;height:40px;font-size:18px}
+  /* v2026-10-13：收窄页码防 320px 窄屏与右下二维码徽章相碰；揭示提示条上移，
+     为通信状态条（step4 注入，移动端 bottom:84px）让位 */
+  #pageIndicator{min-width:56px;font-size:18px}
+  #revealHint{bottom:124px}
+  .quiz-q{padding:16px}
+  .quiz-q .q-stem{font-size:20px}
+  .quiz-q .opt{font-size:19px;padding:10px 12px}
+  .summary-grid{grid-template-columns:1fr}
+  .score-compare{gap:16px}
+  .score-compare .sc{padding:14px 20px}
+  .score-compare .sc .val{font-size:28px}
+}
+
+/* ===== 图文混排（有图有文页面必用，禁止把图堆到页面底部） ===== */
+.clearfix::after{content:'';display:block;clear:both}
+.fig{text-align:center;margin:8px 0}
+.fig img{width:100%;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.fig .caption{font-size:16px;color:var(--primary-light);margin-top:4px;font-weight:600;line-height:1.5}
+.fig.float-r{float:right;width:44%;margin-left:24px;margin-bottom:12px}
+.fig.float-l{float:left;width:42%;margin-right:24px;margin-bottom:12px}
+@media(max-width:768px){
+  .fig.float-r,.fig.float-l{float:none;width:100%;margin:12px 0}
+}
+.page-img{display:block;margin:20px auto;max-width:92%;height:auto;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.img-caption{text-align:center;font-size:18px;color:var(--primary-light);margin-top:6px;font-weight:600}
+
+/* ===== 全局滚动条 ===== */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+/* ===== 渐进呈现动画系统（24种） ===== */
+/* 基础隐藏状态 */
+.reveal-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.reveal-hidden.reveal-done{animation-fill-mode:forwards;visibility:visible;opacity:1;pointer-events:auto}
+/* 揭示进度指示器 */
+#revealHint{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:140;
+  display:none;align-items:center;gap:8px;
+  background:rgba(200,16,46,.12);color:var(--primary);padding:6px 16px;
+  border-radius:20px;font-size:16px;font-weight:600;
+  pointer-events:none;transition:opacity .3s;
+}
+#revealHint .r-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+#revealHint .r-progress{color:var(--accent);font-weight:700}
+
+/* A1: 淡入上浮 */
+.reveal-fade-up{animation:fadeUp .5s cubic-bezier(.25,.46,.45,.94) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+/* A2: 打字机 — JS实现，此处仅光标样式 */
+.reveal-typewriter .tw-cursor{border-right:2px solid var(--accent);animation:blink .8s infinite}
+@keyframes blink{50%{border-color:transparent}}
+/* A3: 段落逐现 — 配合 animation-delay */
+.reveal-fade-up-seq{animation:fadeUp .5s cubic-bezier(.25,.46,.45,.94) both}
+/* A4: 模糊聚焦 */
+.reveal-blur-focus{animation:blurFocus .6s ease both}
+@keyframes blurFocus{from{opacity:0;filter:blur(8px)}to{opacity:1;filter:blur(0)}}
+/* A5: 高亮脉冲 */
+.reveal-pulse{animation:highlightPulse .8s ease both}
+@keyframes highlightPulse{0%{box-shadow:0 0 0 0 var(--accent-soft)}50%{box-shadow:0 0 16px 8px var(--accent-soft)}100%{box-shadow:0 0 0 0 var(--accent-soft)}}
+/* A6: 字幕展开 */
+.reveal-slide-x{animation:slideX .5s cubic-bezier(.25,.46,.45,.94) both}
+@keyframes slideX{from{opacity:0;transform:scaleX(0);transform-origin:left}to{opacity:1;transform:scaleX(1)}}
+
+/* B1: 列表逐条滑入 */
+.reveal-li-slide{animation:liSlide .45s cubic-bezier(.25,.46,.45,.94) both}
+@keyframes liSlide{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+/* B2: 编号步骤 — 圆圈弹入 */
+.reveal-step-num .highlight-num{animation:popIn .45s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes popIn{from{transform:scale(0)}60%{transform:scale(1.2)}to{transform:scale(1)}}
+.reveal-step-num.reveal-hidden .highlight-num{transform:scale(0)}
+/* F1: 勾选清单（编号与 SKILL.md 动画目录一致） */
+.reveal-check{animation:checkReveal .5s ease both}
+@keyframes checkReveal{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+/* F2: 层级缩进展开（编号与 SKILL.md 动画目录一致） */
+.reveal-indent{animation:indentExpand .45s ease both;overflow:hidden}
+@keyframes indentExpand{from{opacity:0;max-height:0;padding-top:0;padding-bottom:0}to{opacity:1;max-height:200px}}
+
+/* C1: 帷幕揭图 */
+.reveal-curtain{position:relative;overflow:hidden}
+.reveal-curtain img{display:block}
+.reveal-curtain::before,.reveal-curtain::after{content:'';position:absolute;top:0;width:50%;height:100%;z-index:2;transition:transform .7s cubic-bezier(.7,0,.3,1)}
+.reveal-curtain::before{left:0;background:var(--primary)}
+.reveal-curtain::after{right:0;background:var(--primary)}
+.reveal-curtain.reveal-hidden::before{transform:translateX(0)}
+.reveal-curtain.reveal-hidden::after{transform:translateX(0)}
+.reveal-curtain.reveal-done::before{transform:translateX(-100%)}
+.reveal-curtain.reveal-done::after{transform:translateX(100%)}
+/* C2: 底片显影 */
+.reveal-sepia{animation:sepiaDevelop 1s ease both}
+@keyframes sepiaDevelop{from{filter:sepia(1) brightness(.3)}to{filter:sepia(0) brightness(1)}}
+/* C3: 框入聚焦 */
+.reveal-focus-in{animation:focusIn .55s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes focusIn{from{opacity:0;transform:scale(.85)}60%{transform:scale(1.03)}to{opacity:1;transform:scale(1)}}
+/* C4: 浮动入位 — 右浮图片专用 */
+.reveal-float-in-r{animation:floatInR .5s cubic-bezier(.25,.46,.45,.94) both}
+@keyframes floatInR{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
+.reveal-float-in-l{animation:floatInL .5s cubic-bezier(.25,.46,.45,.94) both}
+@keyframes floatInL{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:translateX(0)}}
+/* C5: Ken Burns 慢移（持续） */
+.reveal-kenburns img{animation:kenBurns 8s ease alternate infinite}
+@keyframes kenBurns{from{transform:scale(1)}to{transform:scale(1.08) translate(-2%,-1%)}}
+
+/* F3: 卡片翻转（编号与 SKILL.md 动画目录一致） */
+.reveal-flip-card{perspective:800px}
+.reveal-flip-card .flip-inner{transition:transform .6s;transform-style:preserve-3d}
+.reveal-flip-card.reveal-done .flip-inner{transform:rotateY(180deg)}
+.reveal-flip-card .flip-front,.reveal-flip-card .flip-back{backface-visibility:hidden;position:absolute;inset:0}
+.reveal-flip-card .flip-back{transform:rotateY(180deg)}
+/* D2: 卡片弹入 */
+.reveal-card-pop{animation:cardPop .55s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes cardPop{from{opacity:0;transform:scale(.7)}60%{transform:scale(1.06)}to{opacity:1;transform:scale(1)}}
+/* D3: 网格填充 — 配合 animation-delay */
+.reveal-card-grid .card{animation:cardPop .55s cubic-bezier(.34,1.56,.64,1) both}
+.reveal-card-grid.reveal-hidden .card{opacity:0;animation:none}
+/* D4: 折叠展开 */
+.reveal-fold{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.25,.46,.45,.94)}
+.reveal-fold.reveal-done{max-height:600px}
+
+/* E1: 关键框滑入 */
+.reveal-slide-left{animation:slideLeft .5s cubic-bezier(.25,.46,.45,.94) both}
+@keyframes slideLeft{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:translateX(0)}}
+.reveal-slide-right{animation:slideRight .5s cubic-bezier(.25,.46,.45,.94) both}
+@keyframes slideRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
+/* E2: 引用金句 */
+.reveal-quote{animation:quoteReveal .6s ease both}
+@keyframes quoteReveal{from{opacity:0;transform:scale(.9)}40%{opacity:1;transform:scale(1.03)}to{opacity:1;transform:scale(1)}}
+/* E3: 表格逐行 */
+.reveal-tr-fade{animation:fadeUp .4s cubic-bezier(.25,.46,.45,.94) both}
+/* E4: 数字跳动 — JS实现 */
+.reveal-count-up{}
+/* E5: 聚光灯 */
+.reveal-spotlight{position:relative}
+.reveal-spotlight::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;transition:opacity .4s}
+.reveal-spotlight.reveal-done::before{opacity:0;pointer-events:none}
+.reveal-spotlight > *{position:relative;z-index:301}
+
+/* ===== 图片全屏灯箱 ===== */
+#imgLightbox{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.92);justify-content:center;align-items:center;
+  cursor:zoom-out;
+}
+#imgLightbox.show{display:flex}
+#imgLightbox img{
+  max-width:95vw;max-height:95vh;object-fit:contain;
+  border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);
+  animation:lightboxIn .3s ease;
+}
+@keyframes lightboxIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+#imgLightbox .lb-close{
+  position:absolute;top:20px;right:24px;width:44px;height:44px;
+  border-radius:50%;background:rgba(255,255,255,.15);color:#fff;
+  font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  border:none;transition:background .2s;
+}
+#imgLightbox .lb-close:hover{background:rgba(255,255,255,.3)}
+/* 图片可点击放大提示 */
+.teach-text img, .fig img, .page-img, .card img{cursor:zoom-in;transition:opacity .2s}
+.teach-text img:hover, .fig img:hover, .page-img:hover, .card img:hover{opacity:.85}
+
+/* ===== 伪全屏兜底 CSS（第四代标准件 §3）=====
+   默认不放「全屏按钮」，但下面三条规则必须保留——
+   删了 pagesync-test-mqtt.js 的 S7 直接 FAIL；伪全屏时顶部导航须压课件层之上。 */
+body.fs-pseudo #pageContainer{position:fixed;inset:0;z-index:9999}
+body.fs-pseudo #topNav{z-index:10001 !important}
+body.fs-pseudo #navBtns, body.fs-pseudo #mqttStatus{z-index:10000 !important}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部导航 ===== -->
+<!-- 每个chip: class="chip" + 类型样式(pre/mid/post/sim) + data-page序号 -->
+<nav id="topNav">
+  <span class="chip active" data-page="0">封面</span>
+  <span class="chip pre" data-page="1">前测</span>
+  <!-- 添加更多chip... -->
+</nav>
+
+<!-- ===== 进度条 ===== -->
+<div id="progressWrap"><div id="progressBar"></div></div>
+
+<!-- 全屏按钮：v2026-09-28e 定案「默认不放」——骨架不配按钮（见上方 CSS 说明） -->
+
+<!-- ===== 页面容器 ===== -->
+<div id="pageContainer">
+
+<!-- ===== p0: 封面 ===== -->
+<section class="page active" id="p0">
+<div class="cover-page" style="height:100%">
+  <h1><!-- 课件标题 emoji + 主题名 --></h1>
+  <p class="sub"><!-- 副标题 · 年级科目 --></p>
+  <div class="tags">
+    <span class="tag"><!-- 知识点1 --></span>
+    <span class="tag"><!-- 知识点2 --></span>
+  </div>
+  <p style="font-size:20px;color:rgba(255,255,255,.85);max-width:500px;line-height:1.8;">
+    <!-- 课件简介 -->
+  </p>
+  <p class="hint">点击右下角箭头开始 或 点击顶部导航跳转</p>
+</div>
+</section>
+
+<!-- ===== p1: 前测（模板） ===== -->
+<!-- 复制 quiz-page 模板，填入前测题目 -->
+
+<!-- ===== 讲授页（模板） ===== -->
+<!-- 复制 teach-title + teach-text + key-box 组合 -->
+
+<!-- ===== 仿真页（模板） ===== -->
+<!-- 复制 sim-page 模板，填入Canvas和控件 -->
+
+<!-- ===== 测验页（模板） ===== -->
+<!-- 复制 quiz-page 模板 -->
+
+<!-- ===== 总结页 ===== -->
+<!-- 复制 summary-page 模板 -->
+
+</div><!-- /pageContainer -->
+
+<!-- ===== 渐进揭示提示条 ===== -->
+<div id="revealHint"><span class="r-dot"></span>点击页面继续揭示 <span class="r-progress" id="revealProgress"></span></div>
+
+<!-- ===== 图片全屏灯箱 ===== -->
+<div id="imgLightbox" onclick="closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lbImg" src="" alt="全屏查看">
+</div>
+
+<!-- ===== 底部翻页按钮 ===== -->
+<div id="navBtns">
+  <button id="btnPrev" onclick="prevPage()" disabled>◀</button>
+  <span id="pageIndicator">1/N</span>
+  <button id="btnNext" onclick="nextPage()">▶</button>
+</div>
+
+<script>
+// ⚠ 加载顺序：page-flip-system.js 必须最先（其中定义了 getPageParam，供 mqtt-framework/teaching-control 复用）
+// 引用: references/templates/page-flip-system.js
+// 引用: references/templates/quiz-engine.js
+// 引用: references/templates/matching-quiz.js
+// 引用: references/templates/canvas-engine-patterns.js
+// 引用: references/templates/infographic-generator.js
+// 各仿真和绘制函数按需添加...
+
+// ===== 全屏：v2026-09-28e 定案「默认不放按钮」 =====
+// 外壳 sandbox 无 allow-fullscreen，网页代码达不到 F11 式真全屏，故不放全屏按钮及其 JS。
+// 需要全屏 → 用户按 F11 或直开 HTML；确需按钮 → 从 teaching-control.js 取三级降级实现。
+
+
+// ===== 渐进呈现动画引擎 =====
+// 使用方式：在 onPageEnter 中调用 setupReveal(pageId, [...]), 定义每步揭示的元素
+// 每个 item: { sel: 'CSS选择器', anim: '动画class名', delay: 可选延迟ms }
+// 学生在讲授页点击空白区域依次揭示
+
+var pageRevealQueues = {};   // { p2: [{sel, anim, delay}, ...], ... }
+var pageRevealIndex = {};    // { p2: 2, ... }
+var pageRevealActive = {};   // { p2: true, ... }
+
+function setupReveal(pageId, items) {
+  pageRevealQueues[pageId] = items;
+  pageRevealIndex[pageId] = 0;
+  pageRevealActive[pageId] = items.length > 0;
+  // 初始隐藏所有待揭示元素
+  items.forEach(function(item) {
+    var els = document.querySelectorAll('#' + pageId + ' ' + item.sel);
+    els.forEach(function(el) { el.classList.add('reveal-hidden'); });
+  });
+  updateRevealHint(pageId);
+}
+
+function nextReveal(pageId) {
+  if (!pageRevealActive[pageId]) return;
+  var queue = pageRevealQueues[pageId];
+  var idx = pageRevealIndex[pageId];
+  if (!queue || idx >= queue.length) return;
+  var item = queue[idx];
+  var els = document.querySelectorAll('#' + pageId + ' ' + item.sel);
+  var delay = item.delay || 0;
+  els.forEach(function(el, i) {
+    var d = delay + (item.seqDelay || 0) * i;
+    el.style.animationDelay = d + 'ms';
+    el.classList.add(item.anim);
+    el.classList.add('reveal-done');
+  });
+  pageRevealIndex[pageId]++;
+  updateRevealHint(pageId);
+  // 全部揭示完 → 隐藏提示条
+  if (pageRevealIndex[pageId] >= queue.length) {
+    pageRevealActive[pageId] = false;
+  }
+}
+
+// 逆向回退：撤销上一步揭示（配合键盘箭头回退，见 SKILL.md「Progressive Reveal Animation System」章节）
+function prevReveal(pageId) {
+  var queue = pageRevealQueues[pageId];
+  var idx = pageRevealIndex[pageId];
+  if (!queue || idx <= 0) return;
+  idx--;
+  var item = queue[idx];
+  var els = document.querySelectorAll('#' + pageId + ' ' + item.sel);
+  els.forEach(function(el) {
+    el.classList.remove(item.anim, 'reveal-done');
+    el.classList.add('reveal-hidden');
+    el.style.animationDelay = '';
+    // 项目扩展：此处重置该元素内的 count-num / typewriter 等特殊效果
+    // 完整版（含 _twTimer 中断）见 SKILL.md「Progressive Reveal Animation System」章节 prevReveal 完整代码
+  });
+  pageRevealIndex[pageId] = idx;
+  pageRevealActive[pageId] = true;
+  updateRevealHint(pageId);
+}
+
+function updateRevealHint(pageId) {
+  var hint = document.getElementById('revealHint');
+  var progress = document.getElementById('revealProgress');
+  var active = pageRevealActive[pageId];
+  var queue = pageRevealQueues[pageId];
+  if (!active || !queue) { hint.style.display = 'none'; return; }
+  var idx = pageRevealIndex[pageId];
+  var remain = queue.length - idx;
+  if (remain <= 0) { hint.style.display = 'none'; return; }
+  hint.style.display = 'flex';
+  progress.textContent = (idx + 1) + '/' + queue.length + ' ←→';
+}
+
+// 讲授页全局点击 → 触发 nextReveal（排除链接、按钮、quiz-q 等交互元素）
+document.addEventListener('click', function(e) {
+  var pageEl = document.querySelector('.page.active');
+  if (!pageEl) return;
+  var pid = pageEl.id;
+  if (!pageRevealActive[pid]) return;
+  // 排除交互元素（含图片——图片点击触发灯箱而非揭示）
+  var tag = e.target.tagName;
+  if (tag === 'A' || tag === 'BUTTON' || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'IMG') return;
+  if (e.target.closest('.quiz-q') || e.target.closest('.opt') ||
+      e.target.closest('nav') || e.target.closest('#navBtns') || e.target.closest('.timeline-card') ||
+      e.target.closest('.mindmap') || e.target.closest('#imgLightbox')) return;
+  nextReveal(pid);
+});
+
+// 翻页时重置提示条状态
+var _origShowPage = showPage;
+showPage = function(i) {
+  _origShowPage(i);
+  var pid = PAGE_IDS[i];
+  setTimeout(function() { updateRevealHint(pid); }, 100);
+};
+
+// ===== 图片全屏灯箱 =====
+function openLightbox(src) {
+  document.getElementById('lbImg').src = src;
+  document.getElementById('imgLightbox').classList.add('show');
+}
+function closeLightbox() {
+  document.getElementById('imgLightbox').classList.remove('show');
+}
+// 页面图片点击 → 全屏放大
+document.addEventListener('click', function(e) {
+  if (e.target.tagName === 'IMG' && !e.target.closest('#imgLightbox') && !e.target.closest('.qr-img-wrap')) {
+    e.stopPropagation();
+    openLightbox(e.target.src);
+  }
+});
+// ESC 关闭灯箱
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var lb = document.getElementById('imgLightbox');
+    if (lb.classList.contains('show')) { closeLightbox(); e.preventDefault(); }
+  }
+});
+</script>
+</body>
+</html>

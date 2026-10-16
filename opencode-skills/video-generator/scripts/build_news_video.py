@@ -322,7 +322,7 @@ body{{width:1080px;height:1440px;overflow:hidden;font-family:-apple-system,Blink
 .div2{{width:80px;height:2px;background:{accent};border-radius:2px;margin-bottom:30px;z-index:1}}
 .tag{{font-size:15px;color:rgba(255,255,255,0.3);letter-spacing:0.08em;z-index:1}}
 </style></head><body>
-<div class="intro"><div class="glow"></div><div class="grid"></div>
+<div class="intro" data-composition-id="intro"><div class="glow"></div><div class="grid"></div>
 <div class="ring"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg></div>
 <div class="h1">{BRAND["title"]}</div>
 <div class="h2">{BRAND["subtitle"]}</div>
@@ -347,7 +347,7 @@ body{{width:1080px;height:1440px;overflow:hidden;font-family:-apple-system,Blink
 .div3{{width:60px;height:2px;background:{accent};border-radius:2px;margin-bottom:20px;z-index:1}}
 .dt{{font-size:14px;color:rgba(255,255,255,0.2);margin-top:40px;z-index:1}}
 </style></head><body>
-<div class="outro"><div class="glow"></div>
+<div class="outro" data-composition-id="outro"><div class="glow"></div>
 <div class="chk"><svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
 <div class="h1o">感谢观看</div>
 <div class="h2o">{BRAND["title"]}</div>
@@ -462,11 +462,12 @@ def start_http_server(port=18909):
 
 async def capture_slides(items, base_url):
     from playwright.async_api import async_playwright
+    from build_tech_share import _launch_browser
 
     CAPTURES_DIR.mkdir(parents=True, exist_ok=True)
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _launch_browser(p)
         context = await browser.new_context(viewport=VIEWPORT)
         page = await context.new_page()
 
@@ -489,8 +490,8 @@ async def capture_slides(items, base_url):
             url = f"{base_url}/slides/slide_{idx:03d}.html"
             print(f"  [{idx+1}/{len(items)}] 截图: {item.title[:40]}")
             try:
-                await page.goto(url, wait_until="networkidle", timeout=15000)
-                await page.wait_for_timeout(500)
+                await page.goto(url, wait_until="load", timeout=60000)
+                await page.wait_for_timeout(800)
                 await page.screenshot(path=str(shot_path), full_page=False)
                 results.append(str(shot_path.relative_to(PROJECT_DIR)))
             except Exception as e:
@@ -586,7 +587,6 @@ def build_subtitles_html(timeline_items):
 
 
 def build_index_html(timeline_items, total_dur):
-    import json as _json
     accent = BRAND["accentColor"]
     bg = BRAND["bgColor"]
     lines = []
@@ -601,51 +601,27 @@ def build_index_html(timeline_items, total_dur):
         sid = item['start']
         sdir = item['duration']
         if item['type'] == 'intro':
-            lines.append('  <div id="intro" data-composition-id="intro" data-composition-src="compositions/intro.html" data-start="' + str(sid) + '" data-duration="' + str(sdir) + '"></div>')
+            lines.append('  <div id="intro" data-composition-id="intro" data-composition-src="compositions/intro.html" data-start="' + str(sid) + '" data-duration="' + str(sdir) + '" data-no-timeline></div>')
         elif item['type'] == 'slide':
             shot_path = item.get('screenshot', '')
             media_path = item.get('mediaPath', '')
             media_type = item.get('mediaType', '')
 
             if media_type == 'video' and media_path:
-                # 视频元素：需要 muted playsinline preload="auto"
-                lines.append('  <video id="slide-' + str(i) + '" class="clip" src="' + media_path + '" muted playsinline preload="auto" data-start="' + str(sid) + '" data-duration="' + str(sdir) + '" style="position:absolute;top:0;left:0;width:1080px;height:1440px;object-fit:contain;z-index:1;opacity:0"></video>')
+                # 视频元素：muted + autoplay 保证挂载即播
+                lines.append('  <video id="slide-' + str(i) + '" class="clip" src="' + media_path + '" muted playsinline autoplay preload="auto" data-start="' + str(sid) + '" data-duration="' + str(sdir) + '" data-track-index="1" style="position:absolute;top:0;left:0;width:1080px;height:1440px;object-fit:contain;z-index:1"></video>')
             elif shot_path:
-                lines.append('  <img id="slide-' + str(i) + '" class="clip" src="' + shot_path + '" data-start="' + str(sid) + '" data-duration="' + str(sdir) + '" style="position:absolute;top:0;left:0;width:1080px;height:1440px;object-fit:cover;z-index:1;opacity:0">')
+                lines.append('  <img id="slide-' + str(i) + '" class="clip" src="' + shot_path + '" data-start="' + str(sid) + '" data-duration="' + str(sdir) + '" data-track-index="1" style="position:absolute;top:0;left:0;width:1080px;height:1440px;object-fit:cover;z-index:1">')
         elif item['type'] == 'outro':
-            lines.append('  <div id="outro" class="clip" data-start="' + str(sid) + '" data-duration="' + str(sdir) + '" style="position:absolute;top:0;left:0;width:1080px;height:1440px;overflow:hidden;z-index:100;opacity:0;display:block">')
-            lines.append('    <div data-composition-id="outro-inner" data-composition-src="compositions/outro.html" data-start="0" data-duration="' + str(sdir) + '"></div>')
-            lines.append('  </div>')
+            lines.append('  <div id="outro" class="clip" data-composition-id="outro" data-composition-src="compositions/outro.html" data-start="' + str(sid) + '" data-duration="' + str(sdir) + '" data-no-timeline style="position:absolute;top:0;left:0;width:1080px;height:1440px;overflow:hidden;z-index:100;display:block"></div>')
     lines.append('  <div data-composition-id="subtitles" data-composition-src="compositions/subtitles.html" data-start="0" data-duration="' + str(total_dur) + '"></div>')
     lines.append('</div>')
-    shot_data = []
-    for i, item in enumerate(timeline_items):
-        if item['type'] in ('slide', 'outro'):
-            sid_name = 'slide-' + str(i) if item['type'] == 'slide' else 'outro'
-            shot_data.append({"id": sid_name, "start": item['start'], "duration": item['duration']})
     lines.append('<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>')
     lines.append('<script>')
     lines.append('window.__timelines=window.__timelines||{};')
-    lines.append('window.__timelines["root"]=gsap.timeline({paused:true});')
-    lines.append('var HF_SHOTS=' + _json.dumps(shot_data) + ';')
-    lines.append('var HF_ROOT=window.__timelines["root"];')
-    lines.append('var _played={};')
-    lines.append('HF_ROOT.eventCallback("onUpdate",function(){')
-    lines.append('  var t=HF_ROOT.time();')
-    lines.append('  for(var i=0;i<HF_SHOTS.length;i++){')
-    lines.append('    var s=HF_SHOTS[i];')
-    lines.append('    var el=document.getElementById(s.id);')
-    lines.append('    if(!el)continue;')
-    lines.append('    var st=s.start, ed=s.start+s.duration;')
-    lines.append('    if(t>=st&&t<=ed){')
-    lines.append('      el.style.opacity="1";el.style.display="block";')
-    lines.append('      if(el.tagName==="VIDEO"&&!_played[s.id]){el.play();_played[s.id]=1;}')
-    lines.append('    }else{')
-    lines.append('      el.style.opacity="0";el.style.display="none";')
-    lines.append('      if(el.tagName==="VIDEO"){el.pause();el.currentTime=0;delete _played[s.id];}')
-    lines.append('    }')
-    lines.append('  }')
-    lines.append('});')
+    lines.append('var _tl=gsap.timeline({paused:true});')
+    lines.append('_tl.set({},{},' + str(total_dur) + ');')
+    lines.append('window.__timelines["root"]=_tl;')
     lines.append('</script>')
     lines.append('</body></html>')
     path = PROJECT_DIR / "index.html"

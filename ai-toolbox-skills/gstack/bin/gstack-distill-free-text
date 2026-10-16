@@ -20,9 +20,21 @@
 # auditability via --status when you want it.
 # Per D6: Anthropic SDK direct call, fail-loud on missing ANTHROPIC_API_KEY.
 set -euo pipefail
+
+# Heredoc delivery guard. bash 5.2+ writes a heredoc body <=64KiB through a
+# pipe in the forked child before exec, with no reader on the other end. On
+# macOS under pipe-KVA pressure a fresh pipe gets a 512-byte buffer, so any
+# body >=512B blocks write() forever and the script hangs at startup with no
+# output. Compat level 50 restores the tempfile path. These scripts are
+# bash-3.2-clean, so the compat level costs them nothing. Not exported: the
+# guard is per-script, and it survives `bash script.sh` call sites that
+# bypass the shebang.
+BASH_COMPAT=50
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-GSTACK_HOME="${GSTACK_STATE_ROOT:-${GSTACK_HOME:-$HOME/.gstack}}"
+. "$(dirname "$0")/gstack-state-root.sh" 2>/dev/null || { echo "$0: cannot resolve the gstack state root: $(dirname "$0")/gstack-state-root.sh is missing. fix: reinstall with ./setup or /gstack-upgrade (docs/state-root.md)" >&2; exit 1; }
+gstack_state_root_select
+GSTACK_HOME="$_gstack_sr_root"
 eval "$("$SCRIPT_DIR/gstack-slug" 2>/dev/null || true)"
 SLUG="${SLUG:-unknown}"
 PROJECT_DIR="$GSTACK_HOME/projects/$SLUG"
@@ -117,7 +129,7 @@ fi
 
 # Heredoc into temp file (avoids $(cat <<'PROMPT'...) which choked the
 # bash parser on apostrophes elsewhere in the script).
-DISTILL_PROMPT_FILE=$(mktemp)
+DISTILL_PROMPT_FILE=$(mktemp "${TMPDIR:-/tmp}/gstack-distill.XXXXXX")
 trap 'rm -f "$DISTILL_PROMPT_FILE"' EXIT
 cat > "$DISTILL_PROMPT_FILE" <<'PROMPT'
 You are gstack dream-cycle distiller. Below are free-text responses the
@@ -197,8 +209,13 @@ RESULT=$(EVENTS_JSON="$EVENTS_JSON" DISTILL_PROMPT="$DISTILL_PROMPT" \
   const INPUT_PER_TOKEN = 1e-6;
   const OUTPUT_PER_TOKEN = 5e-6;
 
+  // Host-neutral model resolution (mirrors lib/eval-model.ts — this inline
+  // bun -e script cannot import repo-relative libs from an arbitrary cwd).
+  const distillModel = process.env.GSTACK_EVAL_MODEL_DISTILL
+    || process.env.GSTACK_EVAL_MODEL
+    || "claude-haiku-4-5-20251001";
   const resp = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
+    model: distillModel,
     max_tokens: 4096,
     messages: [{ role: "user", content: prompt }],
   });

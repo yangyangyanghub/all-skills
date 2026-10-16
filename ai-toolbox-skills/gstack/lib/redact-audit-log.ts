@@ -18,6 +18,8 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { createHash } from "crypto";
+import { appendJsonl } from "./jsonl-store";
+import { resolveStateRoot } from "./state-root";
 
 export interface SemanticReviewEntry {
   ts: string;
@@ -29,7 +31,7 @@ export interface SemanticReviewEntry {
 }
 
 function securityDir(): string {
-  const home = process.env.GSTACK_HOME || path.join(os.homedir(), ".gstack");
+  const home = resolveStateRoot();
   return path.join(home, "security");
 }
 
@@ -43,7 +45,9 @@ export function appendSemanticReview(entry: SemanticReviewEntry): void {
     const dir = securityDir();
     fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, "semantic-reviews.jsonl");
-    fs.appendFileSync(file, JSON.stringify(entry) + "\n");
+    // 0600 at create via appendJsonl's mode opt; the chmod backstop covers
+    // files created looser by pre-mode versions.
+    appendJsonl(file, entry, { mode: 0o600 });
     try {
       fs.chmodSync(file, 0o600);
     } catch {

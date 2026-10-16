@@ -1,7 +1,7 @@
 ---
 name: baoyu-post-to-weibo
 description: Posts content to Weibo (微博). Supports regular posts with text, images, and videos, and headline articles (头条文章) with Markdown input via Chrome CDP. Use when user asks to "post to Weibo", "发微博", "发布微博", "publish to Weibo", "share on Weibo", "写微博", or "微博头条文章".
-version: 1.56.1
+version: 1.117.3
 metadata:
   openclaw:
     homepage: https://github.com/JimLiu/baoyu-skills#baoyu-post-to-weibo
@@ -35,40 +35,17 @@ Posts text, images, videos, and long-form articles to Weibo via real Chrome brow
 
 ## Preferences (EXTEND.md)
 
-Check EXTEND.md existence (priority order):
+Check EXTEND.md in priority order — the first one found wins:
 
-```bash
-# macOS, Linux, WSL, Git Bash
-test -f .baoyu-skills/baoyu-post-to-weibo/EXTEND.md && echo "project"
-test -f "${XDG_CONFIG_HOME:-$HOME/.config}/baoyu-skills/baoyu-post-to-weibo/EXTEND.md" && echo "xdg"
-test -f "$HOME/.baoyu-skills/baoyu-post-to-weibo/EXTEND.md" && echo "user"
-```
+| Priority | Path | Scope |
+|----------|------|-------|
+| 1 | `.baoyu-skills/baoyu-post-to-weibo/EXTEND.md` | Project |
+| 2 | `${XDG_CONFIG_HOME:-$HOME/.config}/baoyu-skills/baoyu-post-to-weibo/EXTEND.md` | XDG |
+| 3 | `$HOME/.baoyu-skills/baoyu-post-to-weibo/EXTEND.md` | User home |
 
-```powershell
-# PowerShell (Windows)
-if (Test-Path .baoyu-skills/baoyu-post-to-weibo/EXTEND.md) { "project" }
-$xdg = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { "$HOME/.config" }
-if (Test-Path "$xdg/baoyu-skills/baoyu-post-to-weibo/EXTEND.md") { "xdg" }
-if (Test-Path "$HOME/.baoyu-skills/baoyu-post-to-weibo/EXTEND.md") { "user" }
-```
+If none found, use defaults.
 
-┌──────────────────────────────────────────────────┬───────────────────┐
-│                       Path                       │     Location      │
-├──────────────────────────────────────────────────┼───────────────────┤
-│ .baoyu-skills/baoyu-post-to-weibo/EXTEND.md      │ Project directory │
-├──────────────────────────────────────────────────┼───────────────────┤
-│ $HOME/.baoyu-skills/baoyu-post-to-weibo/EXTEND.md│ User home         │
-└──────────────────────────────────────────────────┴───────────────────┘
-
-┌───────────┬───────────────────────────────────────────────────────────────────────────┐
-│  Result   │                                  Action                                   │
-├───────────┼───────────────────────────────────────────────────────────────────────────┤
-│ Found     │ Read, parse, apply settings                                               │
-├───────────┼───────────────────────────────────────────────────────────────────────────┤
-│ Not found │ Use defaults                                                              │
-└───────────┴───────────────────────────────────────────────────────────────────────────┘
-
-**EXTEND.md Supports**: Default Chrome profile
+**EXTEND.md supports**: Default Chrome profile
 
 ## Prerequisites
 

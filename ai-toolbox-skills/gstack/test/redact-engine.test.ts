@@ -21,6 +21,7 @@ import {
   shannonEntropy,
   isPublicIPv4,
   isPlaceholderSpan,
+  URL_PASSWORD_PLACEHOLDER_WORDS,
 } from "../lib/redact-patterns";
 
 function ids(text: string, vis: RepoVisibility = "private"): string[] {
@@ -47,6 +48,11 @@ describe("HIGH credential patterns", () => {
     ["gitlab.token", "remote: glpat-" + "Ab12Cd34Ef56Gh78Ij90"],
     ["gitlab.token", "trigger glptt-" + "a1b2c3d4e5f6a7b8c9d0e1f2"],
     ["gitlab.token", "deploy gldt-" + "Zy98Xw76Vu54Ts32Rq10"],
+    ["groq.key", "gsk_" + "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn"],
+    ["tavily.key", "tvly-" + "AbCdEfGhIjKlMnOpQrStUvWx"],
+    ["tavily.key", "tvly-dev-" + "AbCdEfGhIjKlMnOpQrStUvWx"],
+    ["notion.token", "ntn_" + "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGh"],
+    ["notion.token", "secret_" + "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGh"],
     ["huggingface.token", "hf_" + "AbCdEfGhIjKlMnOpQrStUvWxYz012345"],
     ["npm.token", "npm_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"],
     ["digitalocean.token", "dop_v1_" + "0123456789abcdef".repeat(4)],
@@ -54,6 +60,8 @@ describe("HIGH credential patterns", () => {
       "gcp.service_account",
       '{"private_key_id": "abc123", "private_key": "-----BEGIN PRIVATE KEY-----\\nMIIE..."}',
     ],
+    ["google.oauth_client_secret", 'client_secret: "GOCSPX-' + "Ab3xQ9zLmNp2RtVw7YkD1sHf" + '"'],
+    ["telegram.bot_token", "TELEGRAM_TOKEN=8326208591:AA" + "HdqRy9Lm2ZpXvKb4NcQw8TuEr6YoP1sVg"],
   ];
   for (const [id, text] of cases) {
     test(`flags ${id}`, () => {
@@ -102,6 +110,58 @@ describe("HIGH credential patterns", () => {
   test("db.url_with_password flags real password, skips placeholder/env-var", () => {
     expect(ids("postgres://user:s3cretP@ss@db.example.com/app")).toContain("db.url_with_password");
     expect(ids("postgres://user:${DB_PASSWORD}@host/app")).not.toContain("db.url_with_password");
+    // Literal PASSWORD placeholder (URL-format doc comments).
+    expect(ids("postgresql://USER:PASSWORD@host/db")).not.toContain("db.url_with_password");
+    // JS template interpolations are code, not credentials — the
+    // uppercase-only placeholder form blocked a push over
+    // `postgresql://${dbUser}:${dbPass}@...` in a bash->TS port.
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(ids("postgresql://${dbUser}:${dbPass}@${dbHost}:5432/db")).not.toContain("db.url_with_password");
+    // Assembled at runtime so this file's own diff never contains a
+    // credential-shaped literal (the prepush guard scans exact pushed bytes).
+    expect(ids("postgres://admin:" + "hun" + "ter2@db.internal/app")).toContain("db.url_with_password");
+    // Bare $UPPER_SNAKE is shell convention → suppressed; bare $lowercase is
+    // NOT an interpolation form — a real password starting with `$` must
+    // still block (both-braces-optional would have let it through).
+    expect(ids("postgres://user:$DB_PASSWORD@host/app")).not.toContain("db.url_with_password");
+    expect(ids("postgres://admin:$" + "hun" + "ter2@db.internal/app")).toContain("db.url_with_password");
+    // Mismatched brace is not an interpolation either (assembled at runtime
+    // so this file's own pushed bytes carry no blockable URL shape).
+    expect(ids("postgres://admin:${" + "dbPass@db.internal/app")).toContain("db.url_with_password");
+    // A fully-braced interpolation is code whatever it contains — the DSN
+    // builder's `${encodeURIComponent(dbPass)}` call site must not scan as a
+    // pushed secret.
+    expect(ids("postgresql://user:${encodeURIComponent(dbPass)}@host:5432/db")).not.toContain("db.url_with_password");
+    // A LOWERCASE literal 'password'/'pass' at the URL-password position is a
+    // real (terrible) credential, not a doc placeholder — only the ALL-CAPS
+    // doc convention (USER:PASSWORD) is suppressed. Assembled at runtime so
+    // this file's own bytes never carry a live credential shape.
+    expect(ids("postgres://admin:" + "pass" + "word@10.0.0.5/app")).toContain("db.url_with_password");
+    expect(ids("https://root:" + "pa" + "ss@127.0.0.1/")).toContain("creds.basic_auth_url");
+    // Structural placeholders still suppress at the URL position.
+    expect(ids("postgres://user:<your-password>@host/db")).not.toContain("db.url_with_password");
+    // An ALL-CAPS password that is NOT an exact placeholder token is a real
+    // secret and must block — the pre-fix shape rule (/^[A-Z][A-Z0-9_]*$/) waved
+    // every all-caps password through. Substring of a placeholder word (SECRET)
+    // must not rescue it. Assembled at runtime so this file's own pushed bytes
+    // carry no live DSN shape.
+    expect(ids("postgres://admin:" + "PROD2026" + "SECRET@db-prod.internal/app")).toContain("db.url_with_password");
+    expect(ids("postgres://admin:" + "ADMIN" + "123@host/db")).toContain("db.url_with_password");
+  });
+
+  // Every curated placeholder word must suppress at the URL-password position.
+  // The fix replaced a shape rule with a hand-curated EXACT set, so a typo or a
+  // dropped entry (CHANGEME -> CHANGME) would silently start blocking a legit
+  // doc placeholder with zero failure elsewhere. Loop the real exported set so
+  // the test can't drift from the source list.
+  test("db.url_with_password suppresses every curated placeholder word", () => {
+    for (const word of URL_PASSWORD_PLACEHOLDER_WORDS) {
+      expect(ids(`postgres://user:${word}@host/db`)).not.toContain("db.url_with_password");
+    }
+    // Guard the set stays a non-trivial curated list (catches an accidental clear).
+    expect(URL_PASSWORD_PLACEHOLDER_WORDS.size).toBeGreaterThanOrEqual(8);
+    // And a real secret that merely CONTAINS a placeholder word still blocks.
+    expect(ids("postgres://user:" + "MY" + "SECRETPASS@host/db")).toContain("db.url_with_password");
   });
 
   test("all HIGH patterns block (exit 3)", () => {
@@ -134,6 +194,101 @@ describe("MEDIUM demoted credential-shaped patterns (TENSION-1)", () => {
     expect(ids("API_KEY=${MY_VAR}")).not.toContain("env.kv");
   });
 
+  // #1946 gap 3: the uppercase-`=`-only shape made lowercase and YAML/JSON
+  // colon assignments invisible — the exact config shapes people actually
+  // push. Each closed detection fail-open gets a pinned case.
+  test("env.kv fires on lowercase = assignment (#1946)", () => {
+    expect(ids("api_key=8Fk2pQ9vXz4wL7mN3rT6yB1cD5eG0hJ")).toContain("env.kv");
+  });
+  test("env.kv fires on YAML colon assignment (#1946)", () => {
+    expect(ids("password: 8Fk2pQ9vXz4wL7mN3rT6yB1cD5eG0hJ")).toContain("env.kv");
+  });
+  test("env.kv fires on quoted JSON key colon assignment (#1946)", () => {
+    expect(ids('"apiKey": "8Fk2pQ9vXz4wL7mN3rT6yB1cD5eG0hJ"')).toContain("env.kv");
+  });
+  test("env.kv colon/lowercase forms stay entropy-gated and placeholder-safe", () => {
+    expect(ids("password: changeme")).not.toContain("env.kv");
+    expect(ids("apiKey: YOUR_API_KEY_HERE")).not.toContain("env.kv");
+    expect(ids("api_key=${MY_VAR}")).not.toContain("env.kv");
+  });
+  // T1 calibration: the zero-or-more-prefix net matched ANY identifier ending
+  // in a suffix, so ordinary code (`cacheKey: <entropic id>`) hit a MEDIUM
+  // confirm prompt. Name shape must be credential-semantic to count.
+  test("env.kv ignores non-credential names ending in a suffix (entropic values)", () => {
+    const v = "8Fk2pQ9vXz4wL7mN3rT6yB1cD5eG0hJ";
+    expect(ids(`cacheKey: ${v}`)).not.toContain("env.kv");
+    expect(ids(`sortKey: ${v}`)).not.toContain("env.kv");
+    expect(ids(`partitionKey: ${v}`)).not.toContain("env.kv");
+    expect(ids(`hotkey: ${v}`)).not.toContain("env.kv");
+    expect(ids(`monkey: ${v}`)).not.toContain("env.kv");
+    expect(ids(`idempotencyKey: ${v}`)).not.toContain("env.kv");
+  });
+  test("env.kv still fires on every credential-shaped name form", () => {
+    const v = "8Fk2pQ9vXz4wL7mN3rT6yB1cD5eG0hJ";
+    expect(ids(`api_key=${v}`)).toContain("env.kv"); // (i) separator
+    expect(ids(`API_KEY=${v}`)).toContain("env.kv"); // (i) + ALL-CAPS
+    expect(ids(`x-access-key: ${v}`)).toContain("env.kv"); // (i) dash separator
+    expect(ids(`key: ${v}`)).toContain("env.kv"); // (ii) bare suffix
+    expect(ids(`APIKEY=${v}`)).toContain("env.kv"); // (iii) ALL-CAPS compound
+    expect(ids(`apiKey: ${v}`)).toContain("env.kv"); // (iv) credential camel
+    expect(ids(`authToken: ${v}`)).toContain("env.kv"); // (iv) credential camel
+    expect(ids(`clientSecret: ${v}`)).toContain("env.kv"); // (iv) credential camel
+  });
+  // #3048 — in a TS/JSX file an unquoted value after `:` is a type or an
+  // expression, and a JSX brace of names is an expression. Decided by file
+  // context: the same shapes in .env/YAML (or with no path) are literals.
+  test("env.kv skips TS/JSX source syntax by file context, never by value shape (#3048)", () => {
+    const kv = (text: string, sourcePath?: string) =>
+      scan(text, { repoVisibility: "private", ...(sourcePath ? { sourcePath } : {}) }).findings.some((f) => f.id === "env.kv");
+    const v = "8Fk2pQ9vXz4wL7mN3rT6yB1cD5eG0hJ";
+    const signature = "export async function issueServerCoachItem(\n  db: Pool,\n  session: SessionState,\n  item: IssuedCoachItem,\n): Promise<void> {}";
+    for (const [code, file] of [
+      [signature, "src/coach.ts"],
+      ["interface Props {\n  session: SessionState;\n}", "src/props.ts"],
+      ["key={turn.requestId + turn.role + index}", "src/Turn.tsx"],
+      ["apiKey={settings.apiKey}", "src/Settings.jsx"],
+    ] as const) expect({ code, kv: kv(code, file) }).toEqual({ code, kv: false });
+    for (const [literal, file] of [
+      ["API_KEY=VelvetRiverOrbitSunset;", ".env"],
+      ["password: {RiverStoneAmberCedar}", "config/app.yml"],
+      [signature, undefined],
+      ["  session: SessionState,", "deploy/values.yaml"],
+      [`session: "${v}",`, "src/a.ts"], [`key={${v}}`, "src/A.tsx"], [`API_KEY={${v}}`, "src/A.tsx"],
+      [`key={settings.apiKey + "${v}"}`, "src/A.tsx"], [`key="${v}"`, "src/A.tsx"], [`api_key: ${v}`, ".env"],
+    ] as const) expect({ literal, file, kv: kv(literal, file) }).toEqual({ literal, file, kv: true });
+    const jwt = ["eyJhbGciOiJIUzI1NiJ9", "eyJzdWIiOiIxMjM0NTY3ODkwIn0", "dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U"].join(".");
+    expect(scan(`token: ${jwt},`, { repoVisibility: "private", sourcePath: "src/auth.ts" }).findings.map((f) => f.id)).toContain("jwt");
+  });
+  // #2912 — a line that READS a secret from the environment holds no secret;
+  // it must not fire (and so must not be masked or withhold a /cso source file).
+  test("env.kv skips exact environment reads (#2912)", () => {
+    for (const line of [
+      'api_key=os.environ["AGENTOPS_API_KEY"]',
+      '        api_key=os.environ["AGENTOPS_API_KEY"]',
+      "LIVEKIT_API_KEY = os.getenv('LIVEKIT_API_KEY')",
+      'token = os.environ.get("GH_TOKEN")',
+      "API_KEY=process.env.OPENAI_API_KEY",
+      "SECRET_KEY=getenv(\"APP_SECRET_KEY\")",
+    ]) {
+      expect(ids(line)).not.toContain("env.kv");
+      expect(redactFindingSpans(`x=1\n${line}\n`, {})).toBe(`x=1\n${line}\n`);
+    }
+  });
+  test("env.kv still fires on real high-entropy keys beside or instead of an env read (#2912 negative controls)", () => {
+    const v = "Zq8vR2mN5tYb7Lc3Wd9K";
+    expect(ids(`SECRET_KEY = os.getenv('DJANGO_SECRET', '${v}')`)).toContain("env.kv");
+    expect(ids(`API_KEY=process.env.OPENAI_API_KEY||"${v}"`)).toContain("env.kv");
+    expect(ids(`API_KEY=os.environ["X"]+"${v}"`)).toContain("env.kv");
+    expect(ids(`API_KEY=os.environ_${v}`)).toContain("env.kv");
+    expect(ids(`API_KEY=getenv${v}`)).toContain("env.kv");
+    expect(ids(`API_KEY="${v}"`)).toContain("env.kv");
+  });
+  test("env.kv stays MEDIUM (calibration: generic net, not a blocker)", () => {
+    const f = scan("api_key=8Fk2pQ9vXz4wL7mN3rT6yB1cD5eG0hJ", { repoVisibility: "private" })
+      .findings.find((x) => x.id === "env.kv");
+    expect(f?.tier).toBe("MEDIUM");
+  });
+
   // #1946 — Bearer is the most FP-prone shape in the wave: docs and examples
   // are full of "Authorization: Bearer <token>". MEDIUM + header proximity +
   // the env.kv entropy recipe keep it calibrated.
@@ -160,10 +315,31 @@ describe("#1946 pattern negatives (placeholders never fire)", () => {
   test("short or placeholder shapes don't trip the new HIGH patterns", () => {
     expect(ids("glpat-xxxx")).not.toContain("gitlab.token");
     expect(ids("hf_token")).not.toContain("huggingface.token");
+    expect(ids("gsk_key")).not.toContain("groq.key");
+    expect(ids("tvly-key")).not.toContain("tavily.key");
+    expect(ids("ntn_token")).not.toContain("notion.token");
+    // `secret_` is an ordinary word; only the length makes it a credential.
+    expect(ids("secret_value")).not.toContain("notion.token");
     expect(ids("npm_install")).not.toContain("npm.token");
     expect(ids("dop_v1_short")).not.toContain("digitalocean.token");
     // pem header WITHOUT the GCP JSON shape stays pem.private_key only.
     expect(ids("-----BEGIN PRIVATE KEY-----")).not.toContain("gcp.service_account");
+  });
+});
+
+describe("google.oauth_client_secret / telegram.bot_token negatives", () => {
+  test("undersized and placeholder shapes never fire", () => {
+    // Length floor keeps short repo fixtures quiet (e.g. the 19-char body in
+    // openclaw's extensions/google/oauth.test.ts).
+    expect(ids("GOCSPX-FakeSecretValue123")).not.toContain("google.oauth_client_secret");
+    expect(ids("GOCSPX-short")).not.toContain("google.oauth_client_secret");
+    // Placeholder suppression on an otherwise correctly-sized body.
+    expect(ids("GOCSPX-example" + "a".repeat(17))).not.toContain("google.oauth_client_secret");
+    expect(ids("1234567890:AAexample" + "a".repeat(26))).not.toContain("telegram.bot_token");
+    // A plain number pair must not read as a bot token.
+    expect(ids("1234567890:1234567890")).not.toContain("telegram.bot_token");
+    // The AIza key stays MEDIUM (google.api_key); it is not promoted here.
+    expect(ids("AIza" + "a".repeat(35))).not.toContain("google.oauth_client_secret");
   });
 });
 
@@ -185,8 +361,31 @@ describe("PII patterns", () => {
       scan("bob@acme.co", { repoVisibility: "private", repoPublicEmails: ["bob@acme.co"] }).findings,
     ).toHaveLength(0);
   });
-  test("phone E.164", () => {
+  // A git SSH remote's `git@host` is a transport user@host, not a person's
+  // address. Suppressed by URL SHAPE rather than by allowlisting the `git`
+  // local part: a bare `git@` entry would also silently hide a real address
+  // at a domain that merely starts with "git".
+  test("ssh git remotes are not flagged as emails", () => {
+    expect(ids("set :repo_url, 'git@github.com:acme/widgets.git'")).not.toContain(
+      "pii.email",
+    );
+    expect(ids("git clone git@gitlab.com:acme/widgets.git")).not.toContain("pii.email");
+    expect(ids("git@bitbucket.org:acme/widgets.git")).not.toContain("pii.email");
+    expect(ids("git@ssh.dev.azure.com:v3/acme/widgets/widgets")).not.toContain("pii.email");
+    expect(ids("ssh -T git@github.com")).not.toContain("pii.email");
+    // General case: any host in <user>@<host>:<path>.git position.
+    expect(ids("git@git.acme-internal.net:infra/tools.git")).not.toContain("pii.email");
+    expect(ids("ssh://git@scm.acme-internal.net/infra/tools.git")).not.toContain("pii.email");
+  });
+  test("a real address is still flagged, including at a git host", () => {
+    expect(ids("ping alex@github.com about the issue")).toContain("pii.email");
+    // A domain that merely STARTS WITH "git" is not a git host — this is the
+    // case a bare `git@` local-part allowlist would have wrongly suppressed.
+    expect(ids("contact git@gitmail.com for access")).toContain("pii.email");
+  });
+  test("phone E.164 flags, skips compact timestamps", () => {
     expect(ids("call +14155550123 now")).toContain("pii.phone.e164");
+    expect(ids("backup stamp 20260727202423 ran late")).not.toContain("pii.phone.e164");
   });
   test("ssn flags valid, skips 000 octet", () => {
     expect(ids("ssn 123-45-6789")).toContain("pii.ssn");
@@ -200,6 +399,34 @@ describe("PII patterns", () => {
     expect(ids("connect 8.8.8.8")).toContain("pii.ip_public");
     expect(ids("local 192.168.1.5")).not.toContain("pii.ip_public");
     expect(ids("local 10.0.0.1")).not.toContain("pii.ip_public");
+  });
+
+  // Digit-only UUIDs are the standard test-fixture shape, and their digit runs
+  // collide with both the card pattern (a 13-19 digit slice passes Luhn often
+  // enough to matter) and the phone pattern (hyphen groups read as national
+  // formatting). Observed live: 14 of 21 MEDIUM findings on one ordinary branch
+  // were exactly this, all from test files — the volume that makes people stop
+  // reading MEDIUM output at all.
+  test("digit-only UUID fixtures are not cards or phones", () => {
+    expect(ids("owner_user_id: '00000000-0000-0000-0000-000000000000'")).not.toContain("pii.cc");
+    expect(ids("const OWNER = '11111111-1111-1111-1111-111111111111'")).not.toContain(
+      "pii.phone.e164",
+    );
+    expect(ids("const TEAM = '22222222-2222-2222-2222-222222222222'")).not.toContain(
+      "pii.phone.e164",
+    );
+    // Hex UUIDs never matched these digit patterns; pinned so the suppression
+    // is not silently widened to something that swallows real numbers.
+    expect(ids("id 'a1b2c3d4-1111-2222-3333-444455556666'")).not.toContain("pii.cc");
+  });
+
+  test("UUID suppression requires TOTAL containment", () => {
+    // Real card sitting next to a UUID still reports — suppression is the
+    // exception and may only fire when the whole match is UUID interior.
+    expect(ids("00000000-0000-0000-0000-000000000000 4111111111111111")).toContain("pii.cc");
+    // And the plain cases are untouched.
+    expect(ids("card 4111-1111-1111-1111")).toContain("pii.cc");
+    expect(ids("reach me on +1 415 555 2671")).toContain("pii.phone.e164");
   });
 });
 
@@ -233,6 +460,15 @@ describe("LOW patterns surface only", () => {
       (x) => x.id === "hygiene.todo",
     );
     expect(f?.tier).toBe("LOW");
+  });
+  test("gstack-shortcut(dec-*) debt marker survives redaction untouched", () => {
+    // The shortcut ledger convention (AskUserQuestion Format / /retro Step 11.5)
+    // ships in commits and PR bodies BY DESIGN — the ledger is the point. It
+    // must not be caught by hygiene.todo's TODO(owner) shape or anything else.
+    const marker =
+      "// gstack-shortcut(dec-a1b2c3): global lock, upgrade when throughput matters";
+    const result = scan(marker, { repoVisibility: "public" });
+    expect(result.findings).toHaveLength(0);
   });
 });
 
@@ -386,23 +622,27 @@ describe("redactFindingSpans — machine-egress masking (#1947)", () => {
     expect(out).toBe("first <REDACTED-aws.access_key> then <REDACTED-github.pat> end");
   });
 
-  test("fails closed (null) when a span cannot be relocated — never raw passthrough", () => {
-    // env.kv's span (the value) starts well past the regex match start (the
-    // var name), so locateSpan's rewind-2 re-exec misses it. The contract is
-    // null → caller drops the whole payload. The one thing that must never
-    // happen is the secret surviving in the output.
+  test("masks an anchored env.kv value rather than withholding the whole payload", () => {
     const secret = "8Fk2pQ9vXz4wL7mN3rT6yB1cD5eG0hJq";
     const out = redactFindingSpans(`API_KEY=${secret}`, { repoVisibility: "private" });
-    if (out !== null) {
-      // If locateSpan ever learns to find context-prefixed spans, masking
-      // must actually mask.
-      expect(out).not.toContain(secret);
-    } else {
-      expect(out).toBeNull();
-    }
+    expect(out).toBe("API_KEY=<REDACTED-env.kv>");
   });
 
-  test("multiline input redacts a finding past the first line (locateSpan line/col path)", () => {
+  test("line/col at boundaries: line start, after blank lines, first char, last unterminated line", () => {
+    const token = "ghp_" + "1234567890abcdefghijklmnopqrstuvwxyz";
+    const at = (text: string) => {
+      const f = scan(text, { repoVisibility: "private" }).findings.find((x) => x.id === "github.pat");
+      expect(f).toBeDefined();
+      return [f!.line, f!.col];
+    };
+    expect(at(`a\nb\n${token} x`)).toEqual([3, 1]);
+    expect(at(`a\n\n\n  ${token}`)).toEqual([4, 3]);
+    expect(at(token)).toEqual([1, 1]);
+    expect(at(`one\r\ntwo ${token}`)).toEqual([2, 5]);
+    expect(redactFindingSpans(`a\nb\n${token} x`, { repoVisibility: "private" })).toBe("a\nb\n<REDACTED-github.pat> x");
+  });
+
+  test("multiline input redacts a finding past the first line (original span map)", () => {
     const token = "ghp_" + "1234567890abcdefghijklmnopqrstuvwxyz";
     const out = redactFindingSpans(`line one\nline two has ${token}\nline three`, {
       repoVisibility: "private",
@@ -450,5 +690,24 @@ describe("taxonomy integrity", () => {
     for (const p of PATTERNS) {
       if (p.autoRedactable) expect(p.redactToken).toBeTruthy();
     }
+  });
+});
+
+describe("#3048: gstack-redact --from-file passes the file's path as scan context", () => {
+  test("the same line is source syntax in a .ts file and a literal in YAML", () => {
+    const fs = require("node:fs") as typeof import("node:fs");
+    const os = require("node:os") as typeof import("node:os");
+    const path = require("node:path") as typeof import("node:path");
+    const { spawnSync } = require("node:child_process") as typeof import("node:child_process");
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "redact-from-file-"));
+    try {
+      const kv = (name: string) => {
+        fs.writeFileSync(path.join(dir, name), "  session: SessionState,\n");
+        const r = spawnSync("bun", [path.join(import.meta.dir, "..", "bin", "gstack-redact"), "--from-file", path.join(dir, name), "--json"], { encoding: "utf8", timeout: 30_000 });
+        return (JSON.parse(r.stdout).findings as Array<{ id: string }>).some((f) => f.id === "env.kv");
+      };
+      expect(kv("coach.ts")).toBe(false);
+      expect(kv("values.yaml")).toBe(true);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
 });

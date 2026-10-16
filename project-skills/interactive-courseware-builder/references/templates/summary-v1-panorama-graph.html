@@ -1,0 +1,142 @@
+<!-- ===== V1 · Panoramic Concept Graph Template (全景概念关系图) ===== -->
+<!-- 复制到课件总结页。Canvas 知识图谱：节点+关系连线，支持拖拽/缩放。 -->
+<!-- 替换 nd（节点）和 ed（边）数组为本课内容。 -->
+<!-- 特征：可视知识网络全貌 + 点击节点看详情 + 拖拽平移 + 滚轮缩放。 -->
+
+<section class="page summary-page" id="summary">
+
+  <div class="pg-canvas-wrap" id="pgWrap">
+    <canvas id="pgCv"></canvas>
+    <div class="pg-detail" id="pgDetail">
+      <h4 id="pgTitle"></h4>
+      <div id="pgBody"></div>
+    </div>
+    <div class="pg-legend" id="pgLegend">
+      <!-- 根据本课知识类型自定义图例 -->
+      <span><span class="pg-ld" style="background:#00897b"></span>[类型A]</span>
+      <span><span class="pg-ld" style="background:#5c6bc0"></span>[类型B]</span>
+      <span>— 实=层级 虚=关联 →=推导</span>
+    </div>
+  </div>
+
+</section>
+
+<style>
+/* ===== V1 Panoramic Concept Graph 样式 ===== */
+/* 通用规约：100%宽 / 标题≥24px bold / 正文≥20px / 不设全局重置按钮 */
+/* DOM 通用色（背景/标题/正文）统一用主题变量；节点类型色与三分类标签色保留 hex 语义色（Canvas RGB 不可用变量；类型区分需独立色） */
+.pg-canvas-wrap{position:relative;width:100%;height:600px;background:var(--paper)}
+.pg-canvas-wrap canvas{display:block;cursor:grab}
+.pg-canvas-wrap canvas:active{cursor:grabbing}
+.pg-detail{position:absolute;background:var(--paper);border-radius:14px;box-shadow:var(--shadow);padding:22px 26px;min-width:280px;max-width:380px;display:none;z-index:10;border-left:5px solid #00897b}
+.pg-detail.show{display:block}
+.pg-detail h4{font-size:24px;font-weight:bold;color:var(--ink);margin-bottom:12px}
+.pg-detail p,.pg-detail li{font-size:20px;line-height:1.9;color:var(--ink)}
+.pg-detail .pg-tag{display:inline-block;font-size:16px;padding:4px 12px;border-radius:12px;margin:4px 3px}
+.pg-tg-a{background:#e0f2f1;color:#00695c}
+.pg-tg-b{background:#ede7f6;color:#4527a0}
+.pg-tg-c{background:#fff3e0;color:#e65100}
+.pg-legend{position:absolute;bottom:12px;left:16px;display:flex;gap:16px;flex-wrap:wrap;font-size:18px;color:var(--ink);opacity:.7}
+.pg-legend .pg-ld{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;vertical-align:middle}
+</style>
+
+<script>
+/* ===== V1 Panoramic Concept Graph 逻辑 ===== */
+/* ---- 节点定义 ---- */
+/* 替换为本课知识节点。每个节点：{id:'唯一id', x:画布坐标x, y:画布坐标y, r:半径, lb:'标签', sb:'副标题(可选,null)', cl:'填充色', tc:'文字色', dt:'HTML格式详情'} */
+var pgNd = [
+  {id:'node1',x:200,y:180,r:52,lb:'[主体概念A]',sb:null,cl:'#00897b',tc:'#fff',dt:'<p>[概念A详解...]</p>'},
+  {id:'node2',x:500,y:180,r:52,lb:'[主体概念B]',sb:null,cl:'#5c6bc0',tc:'#fff',dt:'<p>[概念B详解...]</p>'},
+  {id:'sub1',x:100,y:320,r:36,lb:'[子概念]',sb:null,cl:'#4db6ac',tc:'#fff',dt:'<p>[子概念详解...]</p>'},
+  {id:'sub2',x:600,y:320,r:36,lb:'[子概念]',sb:null,cl:'#7986cb',tc:'#fff',dt:'<p>[子概念详解...]</p>'},
+];
+
+/* ---- 边定义 ---- */
+/* 替换为本课节点关系。每条边：{f:'起点id', t:'终点id', ty:'solid|dashed|arrow', lb:'关系标注', cl:'颜色'} */
+var pgEd = [
+  {f:'sub1',t:'node1',ty:'solid',lb:'属于',cl:'#4db6ac'},
+  {f:'sub2',t:'node2',ty:'solid',lb:'属于',cl:'#7986cb'},
+  {f:'node1',t:'node2',ty:'dashed',lb:'关联',cl:'#90a4ae'},
+];
+
+/* ---- 渲染引擎（通用，无需修改） ---- */
+(function(){
+var cv,pw,pp,pt,pc,W,H,sc,ox,oy,sn,hn,dragging,dsx,dsy,dox,doy;
+function pgFn(id){for(var i=0;i<pgNd.length;i++)if(pgNd[i].id===id)return pgNd[i];return null}
+function pgTr(x,y){return{x:x*sc+ox,y:y*sc+oy}}
+function pgIv(mx,my){return{x:(mx-ox)/sc,y:(my-oy)/sc}}
+function pgInit(){
+  cv=document.getElementById('pgCv');ctx=cv.getContext('2d');pw=document.getElementById('pgWrap');
+  pp=document.getElementById('pgDetail');pt=document.getElementById('pgTitle');pc=document.getElementById('pgBody');
+  var rw=pw.clientWidth;
+  W=rw||900; H=600;
+  cv.width=W; cv.height=H;
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  ox=(W-700)/2; oy=20; sc=1;
+  pgDraw();
+  cv.addEventListener('mousedown',function(e){
+    var mx=e.clientX-cv.getBoundingClientRect().left,my=e.clientY-cv.getBoundingClientRect().top,inv=pgIv(mx,my),hit=null;
+    for(var i=pgNd.length-1;i>=0;i--){var n=pgNd[i],dx=inv.x-n.x,dy=inv.y-n.y;if(dx*dx+dy*dy<=n.r*n.r){hit=n;break}}
+    if(hit){sn=hit;pgSp(hit,e.clientX,e.clientY)}else{sn=null;pp.classList.remove('show');dragging=true;dsx=e.clientX;dsy=e.clientY;dox=ox;doy=oy}
+    pgDraw();
+  });
+  cv.addEventListener('mousemove',function(e){
+    var mx=e.clientX-cv.getBoundingClientRect().left,my=e.clientY-cv.getBoundingClientRect().top;
+    if(dragging){ox=dox+(e.clientX-dsx);oy=doy+(e.clientY-dsy);pgDraw();return}
+    var inv=pgIv(mx,my),hit=null;
+    for(var i=pgNd.length-1;i>=0;i--){var n=pgNd[i],dx=inv.x-n.x,dy=inv.y-n.y;if(dx*dx+dy*dy<=n.r*n.r){hit=n;break}}
+    if(hit!==hn){hn=hit;pgDraw()}
+  });
+  cv.addEventListener('mouseup',function(){dragging=false});
+  cv.addEventListener('mouseleave',function(){dragging=false;hn=null;pgDraw()});
+  cv.addEventListener('wheel',function(e){
+    e.preventDefault();
+    var mx=e.clientX-cv.getBoundingClientRect().left,my=e.clientY-cv.getBoundingClientRect().top,ivb=pgIv(mx,my);
+    var ds=e.deltaY<0?1.08:.92,ns=Math.max(.3,Math.min(2.5,sc*ds));
+    ox=mx-ivb.x*ns;oy=my-ivb.y*ns;sc=ns;pgDraw();
+  });
+  window.pgRst=function(){ox=(W-700)/2;oy=20;sc=1;sn=null;pp.classList.remove('show');pgDraw();};
+  window.addEventListener('resize',function(){var rw=pw.clientWidth;W=rw||900;H=600;cv.width=W;cv.height=H;cv.style.width=W+'px';cv.style.height=H+'px';pgRst()});
+}
+function pgDraw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.save(); ctx.translate(ox,oy); ctx.scale(sc,sc);
+  pgEd.forEach(function(e){
+    var a=pgFn(e.f),b=pgFn(e.t); if(!a||!b)return;
+    var dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy);
+    var fx=a.x+dx/d*a.r,fy=a.y+dy/d*a.r,tx=b.x-dx/d*b.r,ty=b.y-dy/d*b.r;
+    ctx.beginPath(); ctx.strokeStyle=e.cl; ctx.lineWidth=1.8;
+    if(e.ty==='dashed')ctx.setLineDash([6,4]);else ctx.setLineDash([]);
+    ctx.moveTo(fx,fy); ctx.lineTo(tx,ty); ctx.stroke(); ctx.setLineDash([]);
+    if(e.ty==='arrow'){
+      var ang=Math.atan2(dy,dx);
+      ctx.beginPath();ctx.moveTo(tx-14*Math.cos(ang-Math.PI/6),ty-14*Math.sin(ang-Math.PI/6));
+      ctx.lineTo(tx,ty);ctx.lineTo(tx-14*Math.cos(ang+Math.PI/6),ty-14*Math.sin(ang+Math.PI/6));
+      ctx.fillStyle=e.cl;ctx.fill();
+    }
+    var mx=(fx+tx)/2,my=(fy+ty)/2;
+    if(e.lb){ctx.fillStyle='#777';ctx.font='20px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(e.lb,mx,my-6)}
+  });
+  pgNd.forEach(function(n){
+    var hl=(n===sn||n===hn);
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle=n.cl;ctx.fill();
+    if(hl){ctx.strokeStyle='#000';ctx.lineWidth=3;ctx.stroke()}
+    ctx.fillStyle=n.tc;ctx.font='bold 22px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(n.lb,n.x,n.y-2);
+    if(n.sb){ctx.font='20px "Microsoft YaHei",sans-serif';ctx.fillText(n.sb,n.x,n.y+22)}
+  });
+  ctx.restore();
+  if(sn){pgEd.forEach(function(e){if(e.f===sn.id||e.t===sn.id){var a=pgFn(e.f),b=pgFn(e.t);if(a&&b){ctx.save();ctx.translate(ox,oy);ctx.scale(sc,sc);
+    ctx.beginPath();ctx.strokeStyle='rgba(0,150,136,.5)';ctx.lineWidth=3;ctx.stroke();
+    ctx.beginPath();ctx.arc(a.x,a.y,a.r+5,0,Math.PI*2);ctx.strokeStyle='rgba(0,150,136,.35)';ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r+5,0,Math.PI*2);ctx.stroke();ctx.restore()}}})}
+}
+function pgSp(node,cx,cy){
+  pt.innerHTML=node.lb;pc.innerHTML=node.dt;pp.classList.add('show');
+  var r=pw.getBoundingClientRect(),l=cx-r.left+20,t=cy-r.top-20;
+  if(l+380>r.width)l=cx-r.left-400;if(t+220>r.height)t=r.height-240;
+  if(l<10)l=10;if(t<10)t=10;pp.style.left=l+'px';pp.style.top=t+'px';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',pgInit);else pgInit();
+})();
+</script>

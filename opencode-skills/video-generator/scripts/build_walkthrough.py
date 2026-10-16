@@ -52,11 +52,12 @@ DEFAULT_TIMING = {
 async def capture_screenshots(steps, base_url, storage_state=None):
   """对每个 step 的 URL 截全页图，存到 CAPTURES_DIR"""
   from playwright.async_api import async_playwright
+  from build_tech_share import _launch_browser
 
   CAPTURES_DIR.mkdir(parents=True, exist_ok=True)
 
   async with async_playwright() as p:
-    browser = await p.chromium.launch(headless=True)
+    browser = await _launch_browser(p)
 
     context_kwargs = {"viewport": VIEWPORT}
     if storage_state and os.path.exists(storage_state):
@@ -279,6 +280,7 @@ def build_subtitles_html(timeline):
   lines.append('[data-composition-id="subtitles"] .sub-text{display:inline-block;background:rgba(0,0,0,.75);color:#fff;font-size:30px;font-weight:500;padding:14px 32px;border-radius:8px;letter-spacing:.04em;line-height:1.5;max-width:1400px;text-shadow:0 2px 4px rgba(0,0,0,.5)}')
   lines.append('</style></head>')
   lines.append('<body style="background:transparent">')
+  lines.append('<div data-composition-id="subtitles">')
 
   for i, item in enumerate(timeline):
     if item["type"] == "step":
@@ -351,18 +353,30 @@ def build_index_html(timeline, brand, timing):
     sdir = item.get("duration", 1)
 
     if t == "intro":
-      # 使用子 composition（必须，否则 HyperFrames clip 全局失效）
-      cid = "intro"
-      lines.append(f'  <div id="intro-{i}" data-composition-id="{cid}" data-composition-src="compositions/intro.html" data-start="{sid}" data-duration="{sdir}"'
-                   f' data-variable-values=\'{{"title":"{esc(item.get("title",""))}","subtitle":"{esc(item.get("subtitle",""))}","bgColor":"{item.get("bgColor","#0f172a")}","accentColor":"{item.get("accentColor","#3b82f6")}","logoPath":"{item.get("logoPath","")}","duration":{sdir}}}\'></div>')
+      # 内联片头卡（弃用子 composition，避免引用会被 news 模式覆写的 compositions/intro.html）
+      accent = item.get("accentColor", "#3b82f6")
+      ititle = esc(item.get("title", ""))
+      isub = esc(item.get("subtitle", ""))
+      lines.append(f'  <div id="intro-{i}" class="clip" data-start="{sid}" data-duration="{sdir}" data-track-index="0"'
+                   f' style="position:absolute;top:0;left:0;width:1920px;height:1080px;overflow:hidden;background:#0f172a;z-index:2">')
+      lines.append(f'    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,{accent}22 0%,transparent 65%)"></div>')
+      lines.append(f'    <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center">')
+      lines.append(f'      <div style="width:80px;height:80px;border:3px solid {accent};border-radius:50%;display:flex;align-items:center;justify-content:center">')
+      lines.append(f'        <svg viewBox="0 0 24 24" fill="none" stroke="{accent}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><polyline points="5 13 10 18 19 7"/></svg>')
+      lines.append(f'      </div>')
+      lines.append(f'      <div style="font-size:64px;font-weight:800;color:#fff;letter-spacing:.04em;margin-top:40px">{ititle}</div>')
+      lines.append(f'      <div style="font-size:26px;color:#94a3b8;margin-top:18px">{isub}</div>')
+      lines.append(f'      <div style="height:3px;width:100px;background:{accent};border-radius:2px;margin-top:34px"></div>')
+      lines.append(f'    </div>')
+      lines.append(f'  </div>')
 
     elif t == "chapter":
-      # 内联章节页（通过 HF_SHOTS onUpdate 控制显隐）
+      # 内联章节页（框架按 data-start/data-duration 自动挂载/卸载）
       num = item.get("number", "")
       chap_title = esc(item.get("title", ""))
       accent = item.get("accentColor", "#3b82f6")
-      lines.append(f'  <div id="chapter-{i}" class="clip chapter-page" data-start="{sid}" data-duration="{sdir}"'
-                   f' style="position:absolute;top:0;left:0;width:1920px;height:1080px;overflow:hidden;background:#0f172a;z-index:2;opacity:0">')
+      lines.append(f'  <div id="chapter-{i}" class="clip chapter-page" data-start="{sid}" data-duration="{sdir}" data-track-index="2"'
+                   f' style="position:absolute;top:0;left:0;width:1920px;height:1080px;overflow:hidden;background:#0f172a;z-index:2">')
       lines.append(f'    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,{accent}22 0%,transparent 65%)"></div>')
       # 四个角标 - 不设 opacity:0，由父 div 统一控制
       for corner_pos, tx, ty in [("tl",80,80),("tr","auto",80),("bl",80,"auto"),("br","auto","auto")]:
@@ -385,15 +399,15 @@ def build_index_html(timeline, brand, timing):
       step = item["step"]
       screenshot = step.get("screenshot", "")
       if screenshot:
-        lines.append(f'  <img id="step-{i}" class="clip screenshot" src="{screenshot}" data-start="{sid}" data-duration="{sdir}"'
-                     f' style="position:absolute;top:0;left:0;width:1920px;height:1080px;object-fit:contain;background:#0f172a;z-index:1;opacity:0">')
+        lines.append(f'  <img id="step-{i}" class="clip screenshot" src="{screenshot}" data-start="{sid}" data-duration="{sdir}" data-track-index="1"'
+                     f' style="position:absolute;top:0;left:0;width:1920px;height:1080px;object-fit:contain;background:#0f172a;z-index:1">')
 
     elif t == "outro":
       # 片尾：使用 class="clip" 让 HyperFrames clip 系统管理显隐
       msg = esc(item.get("message", "感谢观看"))
       accent = item.get("accentColor", "#3b82f6")
-      lines.append(f'  <div id="outro-{i}" class="clip" data-start="{sid}" data-duration="{sdir}"'
-                   f' style="position:absolute;top:0;left:0;width:1920px;height:1080px;overflow:hidden;background:#0f172a;z-index:100;opacity:0;display:block">')
+      lines.append(f'  <div id="outro-{i}" class="clip" data-start="{sid}" data-duration="{sdir}" data-track-index="3"'
+                   f' style="position:absolute;top:0;left:0;width:1920px;height:1080px;overflow:hidden;background:#0f172a;z-index:100">')
       lines.append(f'    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,{accent}22 0%,transparent 65%)"></div>')
       lines.append(f'    <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center">')
       lines.append(f'      <div style="width:72px;height:72px;border:3px solid {accent};border-radius:50%;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="{accent}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="36" height="36"><polyline points="20 6 9 17 4 12"/></svg></div>')
@@ -411,33 +425,14 @@ def build_index_html(timeline, brand, timing):
                ' data-variable-values=\'{"segments":' + json.dumps(subtitle_data, ensure_ascii=False) + '}\'></div>')
 
   lines.append('</div>')  # root
-  # 截图时间线数据（JSON）
-  shot_data = []
-  for i, item in enumerate(timeline):
-    if item["type"] in ("step", "chapter", "outro"):
-      sid = item["start"]
-      sdir = item["duration"]
-      shot_data.append({"id": f"{item['type']}-{i}", "start": sid, "duration": sdir})
 
-  # Root timeline 注册 - HyperFrames 需要
+  # Root timeline 注册（sentinel 撑满时长；clip 显隐由框架按 data-start/duration 托管）
   lines.append('<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>')
   lines.append('<script>')
   lines.append('window.__timelines=window.__timelines||{};')
-  lines.append('window.__timelines["root"]=gsap.timeline({paused:true});')
-  lines.append('var HF_SHOTS=' + json.dumps(shot_data) + ';')
-  lines.append('var HF_ROOT=window.__timelines["root"];')
-  lines.append('HF_ROOT.eventCallback("onUpdate",function(){')
-  lines.append('  var t=HF_ROOT.time();')
-  lines.append('  for(var i=0;i<HF_SHOTS.length;i++){')
-  lines.append('    var s=HF_SHOTS[i];')
-  lines.append('    var el=document.getElementById(s.id);')
-  lines.append('    if(!el)continue;')
-  lines.append('    var st=s.start, ed=s.start+s.duration;')
-  lines.append('    if(t>=st&&t<=ed){el.style.opacity="1";el.style.display="block"}')
-  lines.append('    else{el.style.opacity="0";el.style.display="none"}')
-  lines.append('  }')
-  lines.append('});')
-  # onUpdate 已处理所有 clip 的显隐控制（包括片尾）
+  lines.append('var _tl=gsap.timeline({paused:true});')
+  lines.append('_tl.set({},{},' + str(total_dur) + ');')
+  lines.append('window.__timelines["root"]=_tl;')
   lines.append('</script>')
   lines.append('</body></html>')
 

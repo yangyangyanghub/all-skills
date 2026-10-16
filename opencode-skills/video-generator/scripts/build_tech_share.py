@@ -499,6 +499,19 @@ def get_audio_duration(path):
 
 # ======== Mixed Screenshot Capture ========
 
+async def _launch_browser(p):
+    """优先 Playwright 自带 chromium；缺失则回退系统 Chrome / Edge（免下载浏览器）。"""
+    last_err = None
+    for kwargs in ({}, {"channel": "chrome"}, {"channel": "msedge"}):
+        try:
+            return await p.chromium.launch(headless=True, **kwargs)
+        except Exception as e:
+            last_err = e
+    raise RuntimeError(
+        "Playwright 无可用浏览器：运行 `playwright install chromium`，或安装 Chrome/Edge。原始错误：%s" % last_err
+    )
+
+
 async def capture_tech_slides(slides, base_url):
     from playwright.async_api import async_playwright
 
@@ -506,7 +519,7 @@ async def capture_tech_slides(slides, base_url):
     results = [""] * len(slides)
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _launch_browser(p)
 
         for idx, slide in enumerate(slides):
             seg_dir = CAPTURES_DIR / ("seg_%03d" % idx)
@@ -604,17 +617,18 @@ def generate_all_slides(slides):
 # ======== Timeline + Index + Narration ========
 
 def build_timeline(slides, screenshots, durations):
+    """全部页面（含片头卡/总结卡）统一用已截图的 slide 图片排时间线，
+    不再挂 compositions/ 子 composition（避免引用残留静态文件、内容串台）。"""
     timeline = []
     current = 0.0
-    # intro
-    intro_dur = TIMING["introDuration"]
-    timeline.append({"type": "intro", "start": current, "duration": intro_dur, "idx": 0})
-    current += intro_dur
-    # content slides
     for idx, slide in enumerate(slides):
+        base = durations[idx] if idx < len(durations) else TIMING["minSlideDuration"]
         if slide.type == "intro":
-            continue
-        dur = max(durations[idx] + TIMING["slidePadding"], TIMING["minSlideDuration"])
+            dur = float(TIMING["introDuration"])
+        elif slide.type == "conclusion":
+            dur = max(base + TIMING["slidePadding"], float(TIMING["outroDuration"]) + 3)
+        else:
+            dur = max(base + TIMING["slidePadding"], TIMING["minSlideDuration"])
         timeline.append({
             "type": slide.type,
             "start": current,
@@ -625,10 +639,6 @@ def build_timeline(slides, screenshots, durations):
             "audioPath": str(AUDIO_DIR / ("seg_%03d.mp3" % idx)),
         })
         current += dur
-    # outro
-    outro_dur = TIMING["outroDuration"] + 3
-    timeline.append({"type": "outro", "start": current, "duration": outro_dur, "idx": len(slides)})
-    current += outro_dur
     total_dur = current
     # print summary
     for item in timeline:
@@ -639,7 +649,9 @@ def build_timeline(slides, screenshots, durations):
 
 
 def build_index_html(timeline, total_dur, slides):
-    import json as _json
+    """按 HyperFrames 官方 slideshow 规范：每个 <img> 只带 data-start/data-duration，
+    由框架自动挂载/卸载（禁写内联 opacity/display 与 onUpdate 手动切换——框架会强制
+    opacity:1 且 display:none 会卡死后续片段）。时间线仅注册 sentinel 撑满时长。"""
     lines = []
     lines.append('<!DOCTYPE html>')
     lines.append('<html>')
@@ -649,41 +661,16 @@ def build_index_html(timeline, total_dur, slides):
     lines.append('</style></head><body>')
     lines.append('<div id="root" data-composition-id="root" data-width="1080" data-height="1440" data-start="0" data-duration="%s">' % str(total_dur))
     for item in timeline:
-        sid = item["start"]
-        sdir = item["duration"]
-        if item["type"] == "intro":
-            lines.append('  <div id="intro" data-composition-id="intro" data-composition-src="compositions/intro.html" data-start="%s" data-duration="%s"></div>' % (str(sid), str(sdir)))
-        elif item["type"] == "outro":
-            lines.append('  <div id="outro" class="clip" data-start="%s" data-duration="%s" style="position:absolute;top:0;left:0;width:1080px;height:1440px;overflow:hidden;z-index:100;opacity:0;display:block">' % (str(sid), str(sdir)))
-            lines.append('    <div data-composition-id="outro-inner" data-composition-src="compositions/outro.html" data-start="0" data-duration="%s"></div>' % str(sdir))
-            lines.append('  </div>')
-        else:
-            shot = item.get("screenshot", "")
-            if shot:
-                lines.append('  <img id="slide-%d" class="clip" src="%s" data-start="%s" data-duration="%s" style="position:absolute;top:0;left:0;width:1080px;height:1440px;object-fit:cover;z-index:1;opacity:0">' % (item["idx"], shot, str(sid), str(sdir)))
+        shot = item.get("screenshot", "")
+        if shot:
+            lines.append('  <img id="slide-%d" class="clip" src="%s" data-start="%s" data-duration="%s" data-track-index="1" style="position:absolute;top:0;left:0;width:1080px;height:1440px;object-fit:cover;z-index:1">' % (item["idx"], shot, str(item["start"]), str(item["duration"])))
     lines.append('</div>')
-    # Build shot data for visibility control
-    shot_data = []
-    for item in timeline:
-        if item["type"] not in ("intro", "outro"):
-            shot_data.append({"id": "slide-%d" % item["idx"], "start": item["start"], "duration": item["duration"]})
     lines.append('<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>')
     lines.append('<script>')
     lines.append('window.__timelines=window.__timelines||{};')
-    lines.append('window.__timelines["root"]=gsap.timeline({paused:true});')
-    lines.append('var HF_SHOTS=' + _json.dumps(shot_data) + ';')
-    lines.append('var HF_ROOT=window.__timelines["root"];')
-    lines.append('var _played={};')
-    lines.append('HF_ROOT.eventCallback("onUpdate",function(){')
-    lines.append('  var t=HF_ROOT.time();')
-    lines.append('  for(var i=0;i<HF_SHOTS.length;i++){')
-    lines.append('    var s=HF_SHOTS[i];var el=document.getElementById(s.id);')
-    lines.append('    if(!el)continue;')
-    lines.append('    var st=s.start,ed=s.start+s.duration;')
-    lines.append('    if(t>=st&&t<=ed){el.style.opacity="1";el.style.display="block";')
-    lines.append('    }else{el.style.opacity="0";el.style.display="none";}')
-    lines.append('  }')
-    lines.append('});')
+    lines.append('var _tl=gsap.timeline({paused:true});')
+    lines.append('_tl.set({},{},%s);' % str(total_dur))
+    lines.append('window.__timelines["root"]=_tl;')
     lines.append('</script>')
     lines.append('</body></html>')
     path = PROJECT_DIR / "index.html"

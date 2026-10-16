@@ -2,7 +2,7 @@
  * Layer 8 memory cache + injection (plan-tune cathedral T12).
  *
  * Verifies the PreToolUse hook reads ~/.gstack/free-text-memory.json and
- * surfaces matching nuggets via additionalContext on the hook response.
+ * surfaces matching nuggets via additionalContext-only output (#2035: never a permissionDecision).
  * Cache: per-session memory-cache.json populated on first read, sub-1ms
  * thereafter (D13 perf).
  */
@@ -12,6 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { spawnSync } from 'child_process';
+import { slugCacheFile } from '../lib/bin-context';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 const HOOK = path.join(ROOT, 'hosts', 'claude', 'hooks', 'question-preference-hook');
@@ -43,9 +44,9 @@ function runHook(stdin: object): { stdout: string; stderr: string; status: numbe
   env.GSTACK_STATE_ROOT = stateRoot;
   env.GSTACK_QUESTION_LOG_NO_DERIVE = '1';
   delete env.GSTACK_HOME;
-  // These cases assert the defer-path memoryContext injection. Strip ambient
+  // These cases assert the pass-through memoryContext injection. Strip ambient
   // Conductor markers so running inside Conductor (CONDUCTOR_WORKSPACE_PATH/PORT
-  // set) doesn't flip the hook into the [conductor] prose deny instead of defer.
+  // set) doesn't flip the hook into the [conductor] prose deny instead of pass-through.
   delete env.CONDUCTOR_WORKSPACE_PATH;
   delete env.CONDUCTOR_PORT;
   const res = spawnSync(HOOK, [], {
@@ -53,6 +54,7 @@ function runHook(stdin: object): { stdout: string; stderr: string; status: numbe
     input: JSON.stringify({ ...stdin, cwd: fixtureCwd }),
     encoding: 'utf-8',
     cwd: ROOT,
+    timeout: 30_000,
   });
   let parsed: any = null;
   try { parsed = JSON.parse(res.stdout || '{}'); } catch {}
@@ -69,7 +71,7 @@ function runHook(stdin: object): { stdout: string; stderr: string; status: numbe
 // ----------------------------------------------------------------------
 
 describe('memory injection', () => {
-  test('injects matching nugget into additionalContext on defer', () => {
+  test('injects matching nugget into additionalContext on pass-through', () => {
     writeMemory([
       {
         nugget: 'User prefers verbose explanations with tradeoffs',
@@ -91,7 +93,10 @@ describe('memory injection', () => {
         ],
       },
     });
-    expect(r.parsed?.hookSpecificOutput?.permissionDecision).toBe('defer');
+    // #2035: nugget delivery is additionalContext-ONLY — a permissionDecision
+    // here (any value) would orphan the tool call on CC >= 2.1.89.
+    expect('permissionDecision' in (r.parsed?.hookSpecificOutput ?? {})).toBe(false);
+    expect(r.parsed?.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
     expect(r.parsed?.hookSpecificOutput?.additionalContext).toContain('verbose explanations');
   });
 
@@ -115,8 +120,9 @@ describe('memory injection', () => {
         ],
       },
     });
-    expect(r.parsed?.hookSpecificOutput?.permissionDecision).toBe('defer');
-    expect(r.parsed?.hookSpecificOutput?.additionalContext).toBeUndefined();
+    // No nugget → pure pass-through: exit 0 with EXACTLY empty stdout.
+    expect(r.status).toBe(0);
+    expect(r.stdout).toBe('');
   });
 
   test('caps to 3 most-recent nuggets when many match', () => {
@@ -156,6 +162,11 @@ describe('memory injection', () => {
       },
     ]);
     // Set a never-ask preference and check both deny AND memory are surfaced.
+    // The hook resolves the project bucket from gstack-slug's versioned
+    // slug-cache entry (#2901), which the skill preamble writes first.
+    const cacheFile = slugCacheFile(stateRoot, fixtureCwd);
+    fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+    fs.writeFileSync(cacheFile, `v2:${cwdSlug}`);
     fs.mkdirSync(path.join(stateRoot, 'projects', cwdSlug), { recursive: true });
     fs.writeFileSync(
       path.join(stateRoot, 'projects', cwdSlug, 'question-preferences.json'),
@@ -219,7 +230,8 @@ describe('per-session memory cache', () => {
         ],
       },
     });
-    expect(r.parsed?.hookSpecificOutput?.permissionDecision).toBe('defer');
-    expect(r.parsed?.hookSpecificOutput?.additionalContext).toBeUndefined();
+    // No nugget → pure pass-through: exit 0 with EXACTLY empty stdout.
+    expect(r.status).toBe(0);
+    expect(r.stdout).toBe('');
   });
 });

@@ -1,11 +1,18 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
 import { chromium, type Browser, type BrowserContext } from 'playwright';
-import { applyStealth, WEBDRIVER_MASK_SCRIPT, STEALTH_LAUNCH_ARGS } from '../src/stealth';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { applyStealth, buildStealthScript, readHostProfile, STEALTH_LAUNCH_ARGS } from '../src/stealth';
 
 let browser: Browser;
 
 beforeAll(async () => {
-  browser = await chromium.launch({ headless: true, args: STEALTH_LAUNCH_ARGS });
+  // Playwright's default launch timeout is 30s — under the full-suite
+  // --parallel run, ~400 workers contend and a cold Chromium launch can
+  // stall past it (observed: hook death reported as an '(unnamed)' test at
+  // 30006ms). The runner's external wall-clock still bounds the ceiling.
+  browser = await chromium.launch({ headless: true, args: STEALTH_LAUNCH_ARGS, timeout: 120_000 });
 });
 
 afterAll(async () => {
@@ -15,20 +22,6 @@ afterAll(async () => {
 describe('STEALTH_LAUNCH_ARGS', () => {
   test('includes --disable-blink-features=AutomationControlled', () => {
     expect(STEALTH_LAUNCH_ARGS).toContain('--disable-blink-features=AutomationControlled');
-  });
-});
-
-describe('WEBDRIVER_MASK_SCRIPT', () => {
-  test('contains a single Object.defineProperty for navigator.webdriver', () => {
-    expect(WEBDRIVER_MASK_SCRIPT).toContain('navigator');
-    expect(WEBDRIVER_MASK_SCRIPT).toContain('webdriver');
-    expect(WEBDRIVER_MASK_SCRIPT).toContain('false');
-  });
-
-  test('does NOT touch plugins, languages, or window.chrome (D7 narrowing)', () => {
-    expect(WEBDRIVER_MASK_SCRIPT).not.toMatch(/plugins/i);
-    expect(WEBDRIVER_MASK_SCRIPT).not.toMatch(/languages/i);
-    expect(WEBDRIVER_MASK_SCRIPT).not.toMatch(/window\.chrome/);
   });
 });
 
@@ -180,29 +173,95 @@ describe('applyStealth — context level', () => {
     }
   });
 
-  test('chrome.csi() and chrome.loadTimes() execute, runtime.connect() throws native-shaped', async () => {
-    // Presence (typeof === 'function') is not enough — a real detector calls
-    // them. loadTimes() dereferences performance.timing; connect() must throw
-    // the native "No matching signature" TypeError.
+  test('chrome.csi() and chrome.loadTimes() execute without inventing runtime messaging', async () => {
     const page = await context.newPage();
     try {
       const r = await page.evaluate(() => {
         const c = (window as any).chrome;
-        let connectErr = '';
-        try { c.runtime.connect(); } catch (e) { connectErr = String(e); }
         return {
           csiOk: typeof c.csi().onloadT === 'number',
           loadTimesOk: typeof c.loadTimes().wasFetchedViaSpdy === 'boolean',
-          connectErr,
+          connect: typeof c.runtime.connect,
+          sendMessage: typeof c.runtime.sendMessage,
         };
       });
       expect(r.csiOk).toBe(true);
       expect(r.loadTimesOk).toBe(true);
-      expect(r.connectErr).toContain('No matching signature');
+      expect(r.connect).toBe('undefined');
+      expect(r.sendMessage).toBe('undefined');
     } finally {
       await page.close();
     }
   });
+});
+
+describe('extension messaging compatibility', () => {
+  test('plain Chromium and default stealth both select the ordinary web flow without an extension', async () => {
+    const plainBrowser = await chromium.launch({ headless: true });
+    try {
+      for (const stealth of [false, true]) {
+        const ctx = await plainBrowser.newContext();
+        try {
+          if (stealth) await applyStealth(ctx);
+          const page = await ctx.newPage();
+          await page.goto('data:text/html,<title>No extension</title>');
+          const result = await page.evaluate(() => {
+            const runtime = (window as any).chrome?.runtime;
+            return {
+              connect: typeof runtime?.connect,
+              sendMessage: typeof runtime?.sendMessage,
+              flow: typeof runtime?.sendMessage === 'function' ? 'companion-extension' : 'ordinary-web',
+            };
+          });
+          expect(result).toEqual({ connect: 'undefined', sendMessage: 'undefined', flow: 'ordinary-web' });
+        } finally {
+          await ctx.close();
+        }
+      }
+    } finally {
+      await plainBrowser.close();
+    }
+  }, 30000);
+
+  test('preserves native runtime methods and messages a genuinely installed extension', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'gstack-stealth-extension-'));
+    const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: () => new Response('<title>Extension control</title>', { headers: { 'Content-Type': 'text/html' } }) });
+    writeFileSync(join(root, 'manifest.json'), JSON.stringify({
+      manifest_version: 3, name: 'Stealth runtime control', version: '1.0',
+      background: { service_worker: 'worker.js' },
+      externally_connectable: { matches: ['http://127.0.0.1/*'] },
+    }));
+    writeFileSync(join(root, 'worker.js'), "chrome.runtime.onMessageExternal.addListener((message, sender, reply) => reply({ received: message.probe }));");
+    let ctx: BrowserContext | undefined;
+    try {
+      ctx = await chromium.launchPersistentContext(join(root, 'profile'), {
+        headless: true, channel: 'chromium',
+        args: [`--disable-extensions-except=${root}`, `--load-extension=${root}`],
+      });
+      await applyStealth(ctx);
+      const worker = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker');
+      const extensionId = new URL(worker.url()).host;
+      const page = await ctx.newPage();
+      await page.goto(`http://127.0.0.1:${server.port}`);
+      const result = await page.evaluate(async ({ script, extensionId }) => {
+        const runtime = (window as any).chrome.runtime;
+        const connect = runtime.connect;
+        const sendMessage = runtime.sendMessage;
+        (0, eval)(script);
+        return {
+          sameRuntime: runtime === (window as any).chrome.runtime,
+          sameConnect: connect === runtime.connect,
+          sameSendMessage: sendMessage === runtime.sendMessage,
+          reply: await runtime.sendMessage(extensionId, { probe: 'native-runtime' }),
+        };
+      }, { script: buildStealthScript(readHostProfile()), extensionId });
+      expect(result).toEqual({ sameRuntime: true, sameConnect: true, sameSendMessage: true, reply: { received: 'native-runtime' } });
+    } finally {
+      await ctx?.close();
+      server.stop(true);
+      rmSync(root, { recursive: true, force: true });
+    }
+  }, 30000);
 });
 
 describe('applyStealth — per-install hardware from env', () => {
@@ -306,6 +365,7 @@ describe('applyStealth — persistent context (headed + handoff parity)', () => 
     const ctx = await chromium.launchPersistentContext(userDataDir, {
       headless: true,
       args: STEALTH_LAUNCH_ARGS,
+      timeout: 120_000, // same parallel-load headroom as the top-level launch
     });
     try {
       await applyStealth(ctx);
@@ -324,5 +384,11 @@ describe('applyStealth — persistent context (headed + handoff parity)', () => 
       await ctx.close();
       fs.rmSync(userDataDir, { recursive: true, force: true });
     }
-  });
+  }, 45000);
+  // ^ 45s: this is the one HEADED persistent-context launch in the free
+  // suite. A cold headed launch on macOS runs 8-25s — worse on the first
+  // launch of a freshly downloaded Chromium (XProtect scans the new bundle,
+  // the #2554 class) and under shard concurrency. bun's 5s default made this
+  // the suite's most reliable false-negative: it timed out on the pre-wave
+  // baseline run of main too, and passes at 15/15 with an honest budget.
 });

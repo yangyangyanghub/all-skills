@@ -1,0 +1,20 @@
+{
+  "project": "国土空间规划实施监测信息系统",
+  "city": "邯郸",
+  "method": "personmonth",
+  "rate_mode": "auto",
+  "rate_override": null,
+  "modules": [
+    {"name": "规划成果管理", "role": "后端+数据库", "work": "规划数据库建设、成果入库、版本管理、元数据管理", "personmonths": 8},
+    {"name": "规划实施监测", "role": "后端+GIS开发", "work": "指标监测体系、动态分析、进度跟踪、实施评估", "personmonths": 10},
+    {"name": "空间数据管理", "role": "GIS开发+后端", "work": "GIS数据管理、底图服务、空间查询、图层叠加分析", "personmonths": 9},
+    {"name": "评估预警", "role": "后端+算法", "work": "指标预警规则引擎、风险评估模型、异常告警推送", "personmonths": 7},
+    {"name": "统计分析", "role": "前端+后端", "work": "报表生成、可视化展示、多维分析、图表组件", "personmonths": 6},
+    {"name": "公众服务", "role": "前端+后端", "work": "信息公开门户、在线查询、互动交流、意见征集", "personmonths": 5},
+    {"name": "系统管理", "role": "后端", "work": "用户管理、权限控制、日志审计、系统配置", "personmonths": 4},
+    {"name": "数据交换", "role": "后端+接口", "work": "与上级系统对接、数据同步、接口管理、ETL处理", "personmonths": 6},
+    {"name": "移动应用", "role": "移动端开发", "work": "移动端采集、现场核查、离线同步、消息推送", "personmonths": 8},
+    {"name": "决策支持", "role": "算法+后端", "work": "模型分析、情景模拟、辅助决策、智能推荐", "personmonths": 10.5}
+  ],
+  "sections_note": "本表仅测算软件开发费；云资源、等保测评、运维费立项时单列"
+}

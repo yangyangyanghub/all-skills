@@ -1,5 +1,5 @@
 """
-统一视频生成器 - 支持新闻简报和系统演示两种模式
+统一视频生成器 - 按 --mode 分发到各构建器（news/brief/tech/courseware/walkthrough）
 """
 import argparse
 import asyncio
@@ -16,6 +16,7 @@ def interactive_menu():
     print("│    2. 系统演示 (16:9 横版)                │")
     print("│    6. 简报模式 (合屏, 无配音, 15s)        │")
     print("│    7. 技术分享 (3:4 竖版, 调研转口播)     │")
+    print("│    8. 交互课件 (16:9 横版, 课件转讲解)    │")
     print("│                                           │")
     print("│  功能选项：                               │")
     print("│    3. 配音 (TTS)      [开]                │")
@@ -56,6 +57,9 @@ def interactive_menu():
         elif choice == "7":
             mode = "tech"
             print("  → 模式: 技术分享 (3:4)")
+        elif choice == "8":
+            mode = "courseware"
+            print("  → 模式: 交互课件 (16:9)")
         else:
             print("  无效选择")
 
@@ -66,10 +70,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description="统一视频生成器")
 
     # 模式
-    parser.add_argument("--mode", choices=["news", "walkthrough", "brief", "tech"], default="news")
+    parser.add_argument("--mode", choices=["news", "walkthrough", "brief", "tech", "courseware"], default="news")
 
     # 输入
     parser.add_argument("--md", default="daily-brief.md", help="Markdown 文件 (新闻模式)")
+    parser.add_argument("--html", help="课件 HTML 文件 (课件模式, interactive-courseware-builder 产物)")
     parser.add_argument("--config", help="JSON 配置文件 (演示模式)")
     parser.add_argument("--base-url", default="http://localhost:3000", help="系统地址 (演示模式)")
     parser.add_argument("--storage-state", help="Playwright 登录态文件 (演示模式)")
@@ -97,6 +102,10 @@ def parse_args():
     # 技术分享模式参数
     parser.add_argument("--brand-title", help="技术分享自定义标题")
     parser.add_argument("--brand-accent", help="技术分享自定义强调色")
+
+    # 课件模式参数
+    parser.add_argument("--skip-quiz", action="store_true", help="课件模式: 测验页不进视频")
+    parser.add_argument("--skip-sim", action="store_true", help="课件模式: 仿真页不进视频")
 
     # 交互模式
     parser.add_argument("--interactive", "-i", action="store_true")
@@ -214,6 +223,39 @@ async def run_tech_mode(args, options):
     await tech_main()
 
 
+async def run_courseware_mode(args, options):
+    """运行课件模式（interactive-courseware-builder 课件 → 16:9 讲解视频）"""
+    from build_courseware import main as courseware_main
+
+    if not args.html:
+        print("[!] 课件模式需要 --html 参数指定课件 HTML 文件")
+        sys.exit(1)
+
+    sys.argv = [
+        "build_courseware.py",
+        "--html", args.html,
+        "--voice", args.voice,
+        "--rate", args.rate,
+        "--output", args.output,
+    ]
+
+    if args.brand_title:
+        sys.argv.extend(["--title", args.brand_title])
+
+    if not options["tts"]:
+        sys.argv.append("--skip-tts")
+    if args.bgm:
+        sys.argv.extend(["--bgm", args.bgm])
+    if args.skip_render:
+        sys.argv.append("--skip-render")
+    if args.skip_quiz:
+        sys.argv.append("--skip-quiz")
+    if args.skip_sim:
+        sys.argv.append("--skip-sim")
+
+    await courseware_main()
+
+
 async def main():
     args = parse_args()
 
@@ -257,6 +299,8 @@ async def main():
         run_brief_mode(args, options)
     elif mode == "tech":
         await run_tech_mode(args, options)
+    elif mode == "courseware":
+        await run_courseware_mode(args, options)
 
 
 if __name__ == "__main__":

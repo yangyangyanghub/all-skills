@@ -1,0 +1,81 @@
+<!--
+  summary-v3-dual-panel-tree.html — V3·双栏交互式知识树总结页模板
+  使用方式：Step 3 选中V3后，将以下CSS+HTML+JS复制到课件中。
+  
+  结构：左栏可折叠知识树 + 右栏选中节点动态详情(公式/图示/例题/易错)
+  适用：高等数学、物理公式体系、化学分类、编程语法等需分类+详情展示的知识。
+
+  ⚠ 颜色变量：全部使用 color-schemes.md 标准变量（--primary/--paper/--line/--accent 等），
+  不依赖任何自定义颜色变量。复制时无需改动。
+-->
+
+<style>
+/* V3 双栏知识树总结页 CSS（复制到课件 <style>） */
+.summary-v3-main{display:flex;min-height:580px}
+.summary-v3-tree{width:34%;min-width:320px;background:var(--paper-2);border-right:1px solid var(--line);padding:24px 20px;overflow-y:auto}
+.summary-v3-tree h3{font-size:24px;font-weight:500;color:var(--primary);margin-bottom:20px}
+.summary-v3-tnode{cursor:pointer;user-select:none}
+.summary-v3-tnode .row{display:flex;align-items:center;padding:14px 16px;border-radius:8px;gap:14px;transition:background .15s}
+.summary-v3-tnode .row:hover{background:var(--paper)}
+.summary-v3-tnode .row.active{background:var(--paper-2);font-weight:700}
+.summary-v3-tnode .toggle{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--primary-light);flex-shrink:0;transition:transform .2s}
+.summary-v3-tnode .toggle.open{transform:rotate(90deg)}
+.summary-v3-tnode .icon{font-size:26px;flex-shrink:0}
+.summary-v3-tnode .label{font-size:24px;font-weight:700;color:var(--ink);line-height:1.4}
+.summary-v3-children{margin-left:28px;overflow:hidden;max-height:0;transition:max-height .35s ease;border-left:2px solid var(--primary-light);padding-left:8px}
+.summary-v3-children.open{max-height:900px}
+.summary-v3-detail{flex:1;padding:32px 40px;overflow-y:auto}
+.summary-v3-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--primary-light);font-size:20px}
+.summary-v3-card{display:none;animation:fadeIn .3s}
+.summary-v3-card.show{display:block}
+.summary-v3-card h3{font-size:28px;font-weight:700;color:var(--primary);margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--primary-light)}
+.summary-v3-card .desc{font-size:20px;line-height:1.9;color:var(--ink);margin-bottom:22px}
+.summary-v3-card .formula{background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:20px 24px;margin-bottom:18px;font-family:"Cambria Math",serif;font-size:22px;color:var(--primary);overflow-x:auto}
+.summary-v3-card .example{background:var(--accent-soft);border-left:4px solid var(--accent);padding:18px 22px;border-radius:0 10px 10px 0;font-size:20px;line-height:1.8;color:var(--ink);margin-bottom:18px}
+.summary-v3-card .warn{background:rgba(198,40,40,.08);border-left:4px solid var(--red);padding:18px 22px;border-radius:0 10px 10px 0;font-size:20px;line-height:1.8;color:var(--ink);margin-bottom:18px}
+</style>
+
+<!-- V3 双栏知识树 HTML skeleton（复制到总结页 <section>） -->
+<div class="summary-v3-main">
+  <div class="summary-v3-tree">
+    <h3>知识结构</h3>
+    <!--
+    树节点模板（一层）：
+    <div class="summary-v3-tnode" data-node="node-id">
+      <div class="row" onclick="selectNodeV3('node-id',this)"><span class="toggle" style="visibility:hidden">▶</span><span class="icon">🔤</span><span class="label">节点名</span></div>
+    </div>
+    
+    树节点模板（有子节点）：
+    <div class="summary-v3-tnode"><div class="row" onclick="toggleChildrenV3('child-id',this)"><span class="toggle">▶</span><span class="icon">🔤</span><span class="label">父节点名</span></div>
+    <div class="summary-v3-children" id="child-id">
+      <!-- 子节点... -->
+    </div></div>
+    -->
+  </div>
+  <div class="summary-v3-detail">
+    <div class="summary-v3-empty" id="v3Empty">点击左侧节点查看详情</div>
+    <!--
+    详情卡片模板：
+    <div class="summary-v3-card" id="card-node-id">
+      <h3>标题</h3>
+      <div class="desc">描述</div>
+      <div class="formula">公式</div>
+      <div class="example">示例</div>
+      <div class="warn">易错提醒</div>
+    </div>
+    -->
+  </div>
+</div>
+
+<!-- V3 JS（复制到课件 <script>） -->
+<script>
+function toggleChildrenV3(childrenId,rowEl){var c=document.getElementById(childrenId),t=rowEl.querySelector('.toggle');c.classList.toggle('open');t.classList.toggle('open')}
+function selectNodeV3(nodeId,rowEl){
+  document.querySelectorAll('.summary-v3-tnode .row').forEach(function(r){r.classList.remove('active')});
+  rowEl.classList.add('active');
+  document.getElementById('v3Empty').style.display='none';
+  document.querySelectorAll('.summary-v3-card').forEach(function(c){c.classList.remove('show')});
+  var card=document.getElementById('card-'+nodeId);if(card)card.classList.add('show')
+}
+// 默认选中第一个节点（可选）：selectNodeV3('first-node-id', document.querySelector('[data-node="first-node-id"] .row'));
+</script>
