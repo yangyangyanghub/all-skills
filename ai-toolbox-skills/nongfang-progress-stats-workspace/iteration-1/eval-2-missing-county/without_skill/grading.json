@@ -1,0 +1,32 @@
+{
+  "expectations": [
+    {
+      "text": "输出目录出现一个非模板的 .xlsx 文件",
+      "passed": true,
+      "evidence": "农房整治整改进展情况统计表_汇总.xlsx"
+    },
+    {
+      "text": "模板文件未被修改（内容与运行前一致）",
+      "passed": true,
+      "evidence": "sha256 一致"
+    },
+    {
+      "text": "总批次 = 94",
+      "passed": false,
+      "evidence": "实际 96"
+    },
+    {
+      "text": "明确指出武安市缺数据",
+      "passed": true,
+      "evidence": "武安市'，但明细表中没有"
+    },
+    {
+      "text": "没有静默产出一份看似完整的结果",
+      "passed": true,
+      "evidence": "已在回答中提示武安缺失"
+    }
+  ],
+  "passed": 4,
+  "total": 5,
+  "pass_rate": 0.8
+}

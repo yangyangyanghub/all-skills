@@ -1,0 +1,41 @@
+{
+ "id": "render-facade-ref",
+ "title": "立面 / 色调参考迁移",
+ "drawing": "render",
+ "delivery": "intent-only",
+ "source": {
+  "article": "建筑学长《Banana Pro 最全建筑设计应用提示词指南》",
+  "url": "https://mp.weixin.qq.com/s/xesHXV6-afbN9QElqWEF-g"
+ },
+ "requires": {
+  "base": "model_or_photo",
+  "refs": 1,
+  "view": "同机位"
+ },
+ "constraint_block": "保持图 1 的建筑轮廓、立面样式、视角与比例尺寸不变，只取图 2 的色调",
+ "vars": [
+  "ref_role"
+ ],
+ "elements": [
+  "色调迁移",
+  "立面样式保留"
+ ],
+ "composition": [
+  "双参考分工明确"
+ ],
+ "anchors": [
+  "双参考必须显式分工：图 1 定结构与立面，图 2 只给色调"
+ ],
+ "avoid": [
+  "把参考图 2 的构图也抄进来"
+ ],
+ "prompt_skeleton": "图 1 参考图 2 的色调，保持图 1 的建筑轮廓和立面样式、视角不变，生成效果图，保持图 1 的比例尺寸不变。{constraint_block}。",
+ "model_hint": "双参考：ref1=待改模型/照片，ref2 必须是**纯色调参考（色卡、色板）**，不能是实景照片——实测实景照片会带入其建筑与构图",
+ "intent_reason": "实测 ref2 用了实景照片，模型把 ref2 的建筑、花坛、绿地都抄进来了，构图被污染（1/4 通过）。需改用纯色卡/色调板做 ref2 才能交付",
+ "validation": {
+  "status": "failed-ref-pollution",
+  "date": "2026-10-29",
+  "score": "1/4",
+  "evidence": "viz/recipe-test/eval-batch-B.json"
+ }
+}

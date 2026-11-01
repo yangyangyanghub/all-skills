@@ -1,0 +1,39 @@
+{
+ "id": "analysis-exploded",
+ "title": "爆炸轴测图",
+ "drawing": "analysis",
+ "delivery": "deliverable",
+ "source": {
+  "article": "建筑学长《Banana Pro 最全建筑设计应用提示词指南》",
+  "url": "https://mp.weixin.qq.com/s/xesHXV6-afbN9QElqWEF-g"
+ },
+ "requires": {
+  "base": "model",
+  "refs": 0,
+  "view": "轴测"
+ },
+ "constraint_block": "各构件之间的组装关系必须可还原，爆炸距离均匀",
+ "vars": [
+  "layers"
+ ],
+ "elements": [
+  "分层构件",
+  "中文标注与说明",
+  "不同高亮透明色块区分系统"
+ ],
+ "composition": [
+  "轴测",
+  "构件沿同一轴向散开",
+  "色块半透明"
+ ],
+ "anchors": [
+  "半透明色块只标系统归属，不抢构件轮廓"
+ ],
+ "avoid": [
+  "构件比例失真",
+  "爆炸方向不一致"
+ ],
+ "prompt_skeleton": "生成图中建筑的爆炸轴测图，保持建筑合理性。{constraint_block}。用中文标注说明，用不同高亮半透明色块表达各系统归属。",
+ "model_hint": "wan2.7 单参考会抹平矢量感（实测：色块硬边、缺网格基底、缺硬阴影）。首选 qwen-image-3.0-pro 纯文生图，或双参考（结构底图 + 一张矢量风参考）。",
+ "fusion_block": "参考图 1 是场地结构的唯一依据：地块边界、道路走向、关键节点与水系位置必须与参考图 1 完全一致，不得移动、增删或重新规划。\n参考图 2 是图面语言的唯一依据：严格参照其矢量风格、色块处理、网格/街坊基底、图元样式（指北针、比例尺、图标、中英对照模块）与文字层级；参考图 2 的场地内容与布局一律忽略。\n\n"
+}

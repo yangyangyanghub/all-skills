@@ -2,3 +2,5 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-10-15T22:31	baseline	sw-cost-estimate	-	80.9	baseline	-	dim4=2.4 dim9=3.0 dim3=7 短板; runtime 0红灯	full_test
 2026-10-15T22:34	53cdc38	sw-cost-estimate	80.9	3-0 better	paired	dim4 检查点	两个🔴显性门控，三judge一致better(slight)	paired
 2026-10-15T22:36	03a9598	sw-cost-estimate	-	3-0 better	keep(dim9)	红线清单6条独立成节; 连续2轮slight触发HL-4收手	paired
+2026-10-26T07:50	baseline	deep	-	75.8	baseline	-	dim3=5 dim4=4 短板; runtime 0红灯; dim8 full_test with/baseline 对比7分	full_test
+2026-10-26T08:05	826d6aa	deep	75.8	3-0 better	paired	dim3+dim4	fallback表4场景+🔴检查点; 三judge一致better(clear)	paired

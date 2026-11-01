@@ -1,0 +1,41 @@
+{
+ "id": "render-multiview",
+ "title": "多角度图（六视角 + 标注）",
+ "drawing": "render",
+ "delivery": "deliverable",
+ "source": {
+  "article": "建筑学长《Banana Pro 最全建筑设计应用提示词指南》",
+  "url": "https://mp.weixin.qq.com/s/xesHXV6-afbN9QElqWEF-g"
+ },
+ "requires": {
+  "base": "model_or_render",
+  "refs": 0,
+  "view": "多视角竖向排版"
+ },
+ "constraint_block": "六个视角必须是同一栋建筑，材质与比例保持一致",
+ "vars": [
+  "views"
+ ],
+ "elements": [
+  "原图大图",
+  "正视图",
+  "左转 45°",
+  "右转 45°",
+  "俯视",
+  "近景特写",
+  "远景"
+ ],
+ "composition": [
+  "竖向排版",
+  "每个视角加中文标注"
+ ],
+ "anchors": [
+  "六个视角共用一套材质，一换就露馅"
+ ],
+ "avoid": [
+  "各视角材质不一致",
+  "缺标注"
+ ],
+ "prompt_skeleton": "生成一张竖向包含多个建筑角度的图，包含原图大图与{views}。{constraint_block}。每个视角加中文标注。",
+ "model_hint": "wan2.7-image-pro 单参考，实测约束块能锁住体块与户型。"
+}

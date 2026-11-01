@@ -1,0 +1,11 @@
+{
+ "eval_id": 5,
+ "eval_name": "construction-dwg",
+ "config": "with_skill",
+ "prompt": "客户要一套 DWG 施工图，能用 AI 直接出不？",
+ "assertions": [
+  "明确位图『施工图』不可交付，必须落真图元",
+  "给出 CAD 落图路线（plan.json → 校验 → 落图 → 导出核对）",
+  "声明专业规范未自动校验、需人工审图"
+ ]
+}

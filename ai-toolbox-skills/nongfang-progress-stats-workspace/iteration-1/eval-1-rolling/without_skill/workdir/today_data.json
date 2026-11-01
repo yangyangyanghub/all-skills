@@ -1,0 +1,202 @@
+{
+  "today_data": {
+    "磁县": {
+      "batches": 3,
+      "patrols": 62,
+      "paid": 54,
+      "unpaid": 8
+    },
+    "曲周县": {
+      "batches": 3,
+      "patrols": 224,
+      "paid": 81,
+      "unpaid": 143
+    },
+    "冀南新区": {
+      "batches": 1,
+      "patrols": 8,
+      "paid": 8,
+      "unpaid": 0
+    },
+    "武安市": {
+      "batches": 15,
+      "patrols": 212,
+      "paid": 195,
+      "unpaid": 17
+    },
+    "馆陶县": {
+      "batches": 4,
+      "patrols": 170,
+      "paid": 135,
+      "unpaid": 35
+    },
+    "永年区": {
+      "batches": 1,
+      "patrols": 30,
+      "paid": 30,
+      "unpaid": 0
+    },
+    "涉县": {
+      "batches": 5,
+      "patrols": 45,
+      "paid": 43,
+      "unpaid": 2
+    },
+    "邱县": {
+      "batches": 5,
+      "patrols": 100,
+      "paid": 100,
+      "unpaid": 0
+    },
+    "复兴区": {
+      "batches": 1,
+      "patrols": 2,
+      "paid": 2,
+      "unpaid": 0
+    },
+    "邯山区": {
+      "batches": 1,
+      "patrols": 26,
+      "paid": 5,
+      "unpaid": 21
+    },
+    "峰峰\n矿区": {
+      "batches": 1,
+      "patrols": 5,
+      "paid": 5,
+      "unpaid": 0
+    },
+    "成安县": {
+      "batches": 4,
+      "patrols": 135,
+      "paid": 25,
+      "unpaid": 110
+    },
+    "鸡泽县": {
+      "batches": 3,
+      "patrols": 52,
+      "paid": 30,
+      "unpaid": 22
+    },
+    "魏县": {
+      "batches": 3,
+      "patrols": 93,
+      "paid": 79,
+      "unpaid": 14
+    },
+    "临漳县": {
+      "batches": 7,
+      "patrols": 330,
+      "paid": 167,
+      "unpaid": 163
+    },
+    "广平县": {
+      "batches": 8,
+      "patrols": 247,
+      "paid": 97,
+      "unpaid": 150
+    },
+    "肥乡区": {
+      "batches": 1,
+      "patrols": 23,
+      "paid": 4,
+      "unpaid": 19
+    },
+    "丛台区": {
+      "batches": 1,
+      "patrols": 2,
+      "paid": 2,
+      "unpaid": 0
+    },
+    "大名县": {
+      "batches": 7,
+      "patrols": 133,
+      "paid": 70,
+      "unpaid": 63
+    },
+    "经开区": {
+      "batches": 1,
+      "patrols": 15,
+      "paid": 15,
+      "unpaid": 0
+    }
+  },
+  "total": {
+    "batches": 75,
+    "patrols": 1914,
+    "paid": 1147,
+    "unpaid": 767
+  },
+  "delta_counties": [
+    {
+      "county": "临漳县",
+      "delta_batches": 6,
+      "delta_patrols": 309
+    },
+    {
+      "county": "大名县",
+      "delta_batches": 6,
+      "delta_patrols": 119
+    },
+    {
+      "county": "峰峰\n矿区",
+      "delta_batches": 1,
+      "delta_patrols": 5
+    },
+    {
+      "county": "广平县",
+      "delta_batches": 8,
+      "delta_patrols": 247
+    },
+    {
+      "county": "成安县",
+      "delta_batches": 3,
+      "delta_patrols": 127
+    },
+    {
+      "county": "曲周县",
+      "delta_batches": 2,
+      "delta_patrols": 201
+    },
+    {
+      "county": "武安市",
+      "delta_batches": 6,
+      "delta_patrols": 105
+    },
+    {
+      "county": "涉县",
+      "delta_batches": 1,
+      "delta_patrols": 14
+    },
+    {
+      "county": "磁县",
+      "delta_batches": 2,
+      "delta_patrols": 49
+    },
+    {
+      "county": "肥乡区",
+      "delta_batches": 1,
+      "delta_patrols": 23
+    },
+    {
+      "county": "邯山区",
+      "delta_batches": 0,
+      "delta_patrols": 7
+    },
+    {
+      "county": "馆陶县",
+      "delta_batches": 1,
+      "delta_patrols": 75
+    },
+    {
+      "county": "魏县",
+      "delta_batches": 3,
+      "delta_patrols": 93
+    },
+    {
+      "county": "鸡泽县",
+      "delta_batches": 2,
+      "delta_patrols": 46
+    }
+  ]
+}

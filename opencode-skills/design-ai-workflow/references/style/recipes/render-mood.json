@@ -1,0 +1,39 @@
+{
+ "id": "render-mood",
+ "title": "天气 / 四季 / 夜景转换",
+ "drawing": "render",
+ "delivery": "deliverable",
+ "source": {
+  "article": "建筑学长《Banana Pro 最全建筑设计应用提示词指南》",
+  "url": "https://mp.weixin.qq.com/s/xesHXV6-afbN9QElqWEF-g"
+ },
+ "requires": {
+  "base": "photo_or_render",
+  "refs": 0,
+  "view": "同机位"
+ },
+ "constraint_block": "保留图像中的建筑细节与拍摄视角不变，只换天气、光线与时间",
+ "vars": [
+  "weather",
+  "sky",
+  "light"
+ ],
+ "elements": [
+  "少量人群",
+  "真实植物",
+  "局部室内灯光"
+ ],
+ "composition": [
+  "电影级光线",
+  "提升真实摄影质感"
+ ],
+ "anchors": [
+  "地面状态是天气的关键：阴天要潮湿反光，夜景要局部灯光透出"
+ ],
+ "avoid": [
+  "改变建筑轮廓",
+  "只换天空不换地面与影子"
+ ],
+ "prompt_skeleton": "将这张图片转为真实照片渲染可视化风格。{constraint_block}。现代建筑，表面真实反射，局部高光，提升真实摄影质感。{weather}，{sky}，{light}。少量人群与真实植物。电影级光线。",
+ "model_hint": "wan2.7-image-pro 单参考，实测约束块能锁住体块与户型。"
+}

@@ -1,0 +1,42 @@
+{
+ "id": "analysis-terrain",
+ "title": "影像地形区位分析图",
+ "drawing": "analysis",
+ "delivery": "deliverable",
+ "source": {
+  "article": "烈日打灰《AI提示词快捷生成区域、建筑分析图》",
+  "url": "https://mp.weixin.qq.com/s/DwANMIiWyCeZxbCZm58wPQ"
+ },
+ "requires": {
+  "base": "satellite",
+  "refs": 0,
+  "view": "正交俯视"
+ },
+ "constraint_block": "地形等高线、路网走向与地块边界必须与输入一致",
+ "vars": [
+  "data_modules"
+ ],
+ "palette_note": "黑金 + 淡彩色块分区；其余留白",
+ "elements": [
+  "地形等高线",
+  "交通路网",
+  "黑金色块分区",
+  "周边数据图表",
+  "虚线引导线"
+ ],
+ "composition": [
+  "现代学术审美",
+  "高对比度排版",
+  "极简矢量"
+ ],
+ "anchors": [
+  "黑金主色让数据感强于装修感"
+ ],
+ "avoid": [
+  "把等高线画成装饰条纹",
+  "彩色过多"
+ ],
+ "prompt_skeleton": "将卫星地图转为专业建筑区位分析图。{constraint_block}。包含地形等高线、交通路网、黑金色块分区与周边数据图表，极简矢量风格，现代学术审美，虚线引导与高对比度排版。",
+ "model_hint": "wan2.7 单参考会抹平矢量感（实测：色块硬边、缺网格基底、缺硬阴影）。首选 qwen-image-3.0-pro 纯文生图，或双参考（结构底图 + 一张矢量风参考）。",
+ "fusion_block": "参考图 1 是场地结构的唯一依据：地块边界、道路走向、关键节点与水系位置必须与参考图 1 完全一致，不得移动、增删或重新规划。\n参考图 2 是图面语言的唯一依据：严格参照其矢量风格、色块处理、网格/街坊基底、图元样式（指北针、比例尺、图标、中英对照模块）与文字层级；参考图 2 的场地内容与布局一律忽略。\n\n"
+}

@@ -1,0 +1,26 @@
+{
+ "answer_exists": true,
+ "answer_chars": 626,
+ "expectations": [
+  {
+   "text": "指出整图重绘会画成重建",
+   "passed": false,
+   "evidence": "未命中：[['重建', '拆掉', '拆了', '推倒'], ['整图', '一次性', '直接', '重绘', '全图']]"
+  },
+  {
+   "text": "给出分区涂鸦/局部重绘 + 生成后合成的方案",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "强调保留区域的像素不能动（不是靠 prompt 写『保持不变』）",
+   "passed": true,
+   "evidence": "命中关键词族"
+  }
+ ],
+ "passed": 2,
+ "total": 3,
+ "run": "eval-6-renewal-keep-structure/without_skill",
+ "eval_name": "renewal-keep-structure",
+ "config": "without_skill"
+}

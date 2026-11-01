@@ -1,0 +1,11 @@
+{
+ "eval_id": 8,
+ "eval_name": "diagnose-white-window",
+ "config": "without_skill",
+ "prompt": "出的室内图窗外一片白，还凭空多了一块墙板。怎么修？",
+ "assertions": [
+  "归因为单参考缺少质感依据/没给材质参考",
+  "修法给出加一张氛围稿做第二参考（双参考）",
+  "给出负向约束：不得新增参考图里没有的构件"
+ ]
+}

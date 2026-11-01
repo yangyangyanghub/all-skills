@@ -1,0 +1,38 @@
+{
+ "id": "concept-anime",
+ "title": "实景转动漫",
+ "drawing": "concept",
+ "delivery": "concept-only",
+ "source": {
+  "article": "烈日打灰《AI提示词快捷生成区域、建筑分析图》",
+  "url": "https://mp.weixin.qq.com/s/DwANMIiWyCeZxbCZm58wPQ"
+ },
+ "requires": {
+  "base": "photo",
+  "refs": 0,
+  "view": "同机位"
+ },
+ "constraint_block": "保留实景的原始内容与生活温度",
+ "vars": [
+  "palette"
+ ],
+ "elements": [
+  "卡通化但保留现实比例的建筑与物体",
+  "拟人化人物动物",
+  "复古多彩高饱和招牌"
+ ],
+ "composition": [
+  "日系插画质感",
+  "线条清晰带轻微手绘肌理",
+  "明快"
+ ],
+ "anchors": [
+  "卡通化的是造型，不是比例——比例一改就假"
+ ],
+ "avoid": [
+  "比例失真",
+  "色彩冲突"
+ ],
+ "prompt_skeleton": "日系插画质感，线条清晰且带轻微手绘肌理；建筑与物体为卡通化造型但保留现实比例。融合实景原始内容，兼具插画明快质感与现实生活温度。主色调{palette}，整体明亮、对比鲜明且氛围统一。",
+ "model_hint": "qwen-image-3.0-pro 纯文生图即可，无保真要求。"
+}

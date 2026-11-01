@@ -1,0 +1,49 @@
+{
+ "id": "analysis-sasaki",
+ "title": "Sasaki 轴测体量图",
+ "drawing": "analysis",
+ "delivery": "deliverable",
+ "source": {
+  "article": "建筑学长《Banana Pro 最全建筑设计应用提示词指南》",
+  "url": "https://mp.weixin.qq.com/s/xesHXV6-afbN9QElqWEF-g"
+ },
+ "requires": {
+  "base": "axonometric_or_model",
+  "refs": 0,
+  "view": "轴测"
+ },
+ "constraint_block": "保持原有比例与空间组织不变，只强化边界、纯色体量、阴影关系与视觉层级",
+ "vars": [
+  "arrows",
+  "labels"
+ ],
+ "elements": [
+  "道路箭头",
+  "中文标注",
+  "纯色体量",
+  "清晰阴影"
+ ],
+ "composition": [
+  "干净白色背景",
+  "轴测投影",
+  "体量纯色不加贴图"
+ ],
+ "anchors": [
+  "纯色体量 + 硬阴影，不靠材质取胜"
+ ],
+ "avoid": [
+  "加贴图与反射",
+  "改变体量比例"
+ ],
+ "prompt_skeleton": "生成一张具有 Sasaki 风格的精致建筑轴测体量图。{constraint_block}。带道路箭头与中文标注，纯净背景，纯色体量与清晰阴影，专业、干净。",
+ "model_hint": "两步法：① 单参考出结构稿 ② 双参考 [原底图 + 该结构稿] 出定稿（实测 8/8）。硬阴影仍未达成，需后期或轴测渲染补。",
+ "intent_reason": "单模型两条路实测均失败：wan2.7 无硬阴影、qwen 改变空间组织且丢中文标注。硬阴影需走轴测渲染而非生成模型",
+ "validation": {
+  "status": "passed-two-stage",
+  "date": "2026-10-29",
+  "score": "8/8",
+  "known_limitation": "硬阴影缺失，需后期加投影",
+  "evidence": "viz/recipe-test/eval-batch-C.json"
+ },
+ "fusion_block": "参考图 1 是场地结构的唯一依据：地块边界、道路走向、关键节点与水系位置必须与参考图 1 完全一致，不得移动、增删或重新规划。\n参考图 2 是图面语言的唯一依据：严格参照其矢量风格、网格基底、图元样式与文字层级；参考图 2 必须来自同一底图的第一轮产物（结构一致），不得使用其它场地的矢量图，否则布局会被平均。\n\n"
+}

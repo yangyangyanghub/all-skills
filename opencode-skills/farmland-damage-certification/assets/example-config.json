@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "out_dir": "E:\\2026卫片执法专项\\耕地破坏鉴定\\20261029馆陶县",
+    "doc_date": "2026年10月29日",
+    "land_year": "2022",
+    "doc_number": "邯自然资规耕认字〔2026〕X 号",
+    "issuer": "邯郸市自然资源和规划局",
+    "committee": "邯郸市耕地破坏认定委员会",
+    "county_bureau": "馆陶县自然资源和规划局",
+    "law_city": "邯自然资规函〔2026〕12号",
+    "font_source": "E:\\2026卫片执法专项\\耕地破坏鉴定\\20260618磁县\\磁县人民医院违法用地破坏耕地认定意见(1)(1).docx"
+  },
+  "case": {
+    "subject": "馆陶县水利局",
+    "county": "馆陶县",
+    "project": "第三污水处理厂水循环净化项目",
+    "location": "馆陶县粮画大道南侧",
+    "violation_year": "2023",
+    "construction": "",
+    "status": "水循环净化水池，水池内种植黄花鸢尾，通过水循环净化池种植黄花鸢尾吸收吸附有害物质，完成污水处理作用，占用土地内的耕地原耕作层已被淹没",
+    "permanent_farmland": null,
+    "damage_ha": 2.168,
+    "total_area_ha": 3.159,
+    "suspect_prefix": false,
+    "conclusion_subject_phrase": "建设水池水面",
+    "summary_phrase": "违法建设第三污水处理厂水循环净化项目",
+    "damage_phrase": "严重毁坏",
+    "include_plot_ids": false,
+    "include_land_type_sentence": false,
+    "body_line_pt": 28,
+    "rending_line_pt": 26,
+    "filenames": {
+      "lunzheng": "馆陶县水利局违法用地耕地破坏论证意见.docx",
+      "rending": "馆陶县水利局违法用地破坏耕地认定意见.docx"
+    }
+  },
+  "plots": [
+    {
+      "id": "DK1",
+      "area": 1.5599,
+      "gengdi": 0.937,
+      "guoyuan": 0.289,
+      "qiaomu_lindi": 0.1436,
+      "qita_lindi": 0.1363,
+      "nongdao": 0.054,
+      "jianshe": 0
+    },
+    {
+      "id": "DK2",
+      "area": 0.9568,
+      "gengdi": 0.8891,
+      "guoyuan": 0,
+      "qiaomu_lindi": 0,
+      "qita_lindi": 0.0677,
+      "nongdao": 0,
+      "jianshe": 0
+    },
+    {
+      "id": "DK3",
+      "area": 0.6423,
+      "gengdi": 0.3419,
+      "guoyuan": 0,
+      "qiaomu_lindi": 0,
+      "qita_lindi": 0,
+      "nongdao": 0,
+      "jianshe": 0.3004
+    }
+  ],
+  "survey_m2": {
+    "耕地": 21680,
+    "林地": 3476.24,
+    "建设用地": 3004.24,
+    "果园": 2890,
+    "农村道路": 539.84,
+    "total": 31590.32
+  }
+}

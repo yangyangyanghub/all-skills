@@ -1,0 +1,26 @@
+{
+ "answer_exists": true,
+ "answer_chars": 630,
+ "expectations": [
+  {
+   "text": "归因为单参考缺少质感依据/没给材质参考",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "修法给出加一张氛围稿做第二参考（双参考）",
+   "passed": false,
+   "evidence": "未命中：[['氛围稿', '第二参考', '两张参考', '双参考', '再加一张']]"
+  },
+  {
+   "text": "给出负向约束：不得新增参考图里没有的构件",
+   "passed": true,
+   "evidence": "命中关键词族"
+  }
+ ],
+ "passed": 2,
+ "total": 3,
+ "run": "eval-8-diagnose-white-window/without_skill",
+ "eval_name": "diagnose-white-window",
+ "config": "without_skill"
+}

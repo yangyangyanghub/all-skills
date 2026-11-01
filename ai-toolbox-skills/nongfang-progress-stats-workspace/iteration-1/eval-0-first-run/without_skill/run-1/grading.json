@@ -1,0 +1,110 @@
+{
+  "summary": {
+    "passed": 16,
+    "failed": 4,
+    "total": 20,
+    "pass_rate": 0.8
+  },
+  "expectations": [
+    {
+      "text": "输出目录出现一个非模板的 .xlsx 文件",
+      "passed": true,
+      "evidence": "农房整治工作卷宗整改进展统计表_已填写.xlsx"
+    },
+    {
+      "text": "模板文件未被修改（内容与运行前一致）",
+      "passed": true,
+      "evidence": "sha256 一致"
+    },
+    {
+      "text": "总批次 = 109",
+      "passed": true,
+      "evidence": "实际 109"
+    },
+    {
+      "text": "总图斑 = 2741",
+      "passed": true,
+      "evidence": "实际 2741"
+    },
+    {
+      "text": "累计批次 = 43",
+      "passed": true,
+      "evidence": "实际 43"
+    },
+    {
+      "text": "累计图斑 = 571",
+      "passed": true,
+      "evidence": "实际 571"
+    },
+    {
+      "text": "剩余批次 = 66",
+      "passed": true,
+      "evidence": "实际 66"
+    },
+    {
+      "text": "剩余图斑 = 2170",
+      "passed": true,
+      "evidence": "实际 2170"
+    },
+    {
+      "text": "已缴费 = 1075",
+      "passed": false,
+      "evidence": "实际 1646"
+    },
+    {
+      "text": "未缴费 = 1095",
+      "passed": false,
+      "evidence": "实际 1101"
+    },
+    {
+      "text": "永年区 总批次 = 17",
+      "passed": true,
+      "evidence": "实际 17"
+    },
+    {
+      "text": "永年区 总图斑 = 509",
+      "passed": true,
+      "evidence": "实际 509"
+    },
+    {
+      "text": "永年区 累计批次 = 1",
+      "passed": true,
+      "evidence": "实际 1"
+    },
+    {
+      "text": "永年区 累计图斑 = 30",
+      "passed": true,
+      "evidence": "实际 30"
+    },
+    {
+      "text": "永年区 剩余批次 = 16",
+      "passed": true,
+      "evidence": "实际 16"
+    },
+    {
+      "text": "永年区 剩余图斑 = 479",
+      "passed": true,
+      "evidence": "实际 479"
+    },
+    {
+      "text": "永年区 已缴费 = 316",
+      "passed": false,
+      "evidence": "实际 346"
+    },
+    {
+      "text": "永年区 未缴费 = 163",
+      "passed": false,
+      "evidence": "实际 169"
+    },
+    {
+      "text": "输出表仍含 20 个县区行",
+      "passed": true,
+      "evidence": "实际 20 个：永年区、广平县、武安市、临漳县、大名县、邯山区、肥乡区、成安县、魏县、曲周县、磁县、鸡泽县、馆陶县、冀南新区、涉县、峰峰矿区、邱县、经开区、丛台区、复兴区"
+    },
+    {
+      "text": "输出表保留了模板的合并单元格",
+      "passed": true,
+      "evidence": "合并区域 9 个"
+    }
+  ]
+}

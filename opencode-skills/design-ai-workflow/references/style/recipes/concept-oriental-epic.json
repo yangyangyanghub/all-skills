@@ -1,0 +1,45 @@
+{
+ "id": "concept-oriental-epic",
+ "title": "东方建筑史诗感",
+ "drawing": "concept",
+ "delivery": "concept-only",
+ "source": {
+  "article": "未来设计《东方建筑美学AI提示词分享》",
+  "url": "https://mp.weixin.qq.com/s/9uRxiJ2ZwnrGWgJQ0zTyig"
+ },
+ "requires": {
+  "base": "none",
+  "refs": 0,
+  "view": "电影定场镜头"
+ },
+ "constraint_block": "无底图约束（概念图，不承诺与原方案一致）",
+ "vars": [
+  "building_type",
+  "palette",
+  "time",
+  "light"
+ ],
+ "elements": [
+  "重檐/斗拱/望柱/券拱等具体构件",
+  "极小人物",
+  "体积雾",
+  "框景（门框/拱门/纱帘）",
+  "湿润地面反光"
+ ],
+ "composition": [
+  "框景 + 对称 + 一点透视",
+  "低饱和色名",
+  "超宽横构图"
+ ],
+ "anchors": [
+  "尺度对比是史诗感的灵魂：极小的人 vs 极大的建筑",
+  "光线写具体、色调给色名，比『好看的光』有效一百倍"
+ ],
+ "avoid": [
+  "影楼布景感",
+  "游戏贴图感",
+  "形容词堆叠无具体构件"
+ ],
+ "prompt_skeleton": "写实史诗电影剧照：{building_type}，{time}。具体构件：重檐、斗拱、望柱、券拱逐层可数。{palette}。构图：框中框 + 强一点透视 + 中轴对称，左上留大面积天空负空间。尺度对比：极小的人物剪影行走其间。光线：一束从高处斜落的{light}。氛围：体积雾横贯画面，地面湿润反光。",
+ "model_hint": "qwen-image-3.0-pro 纯文生图即可，无保真要求。"
+}

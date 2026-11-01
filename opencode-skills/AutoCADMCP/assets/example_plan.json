@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "title": "专业 CAD MCP 示例平面",
+    "units": "mm",
+    "plan_size": [8000, 6000],
+    "orientation": "north-up",
+    "reference_required": false,
+    "source": "示例数据",
+    "assumptions": [
+      "外墙厚 200mm",
+      "内墙厚 120mm",
+      "示例只用于复制到项目目录后修改"
+    ]
+  },
+  "layers": [
+    "A-WALL-EXIST",
+    "A-WALL-NEW",
+    "A-WALL-FILL",
+    "A-OPENING",
+    "A-DOOR",
+    "A-DOOR-SWING",
+    "A-WINDOW",
+    "A-FIXED-FURN",
+    "A-MOVE-FURN",
+    "A-SANITARY",
+    "A-EQUIP",
+    "A-ROOM-TEXT",
+    "A-DIMS",
+    "A-NOTE"
+  ],
+  "walls": [
+    {"id": "wall_south_left", "rect": [0, 0, 900, 200], "layer": "A-WALL-EXIST", "confidence": "explicit", "source": "示例外轮廓"},
+    {"id": "wall_south_mid", "rect": [2500, 0, 5200, 200], "layer": "A-WALL-EXIST", "confidence": "explicit", "source": "示例外轮廓"},
+    {"id": "wall_south_right", "rect": [6600, 0, 8000, 200], "layer": "A-WALL-EXIST", "confidence": "explicit", "source": "示例外轮廓"},
+    {"id": "wall_north", "rect": [0, 5800, 8000, 6000], "layer": "A-WALL-EXIST", "confidence": "explicit", "source": "示例外轮廓"},
+    {"id": "wall_west", "rect": [0, 200, 200, 5800], "layer": "A-WALL-EXIST", "confidence": "explicit", "source": "示例外轮廓"},
+    {"id": "wall_east", "rect": [7800, 200, 8000, 5800], "layer": "A-WALL-EXIST", "confidence": "explicit", "source": "示例外轮廓"},
+    {"id": "wall_mid_left", "rect": [0, 3880, 3100, 4000], "layer": "A-WALL-NEW", "confidence": "inferred", "source": "示例空间划分"},
+    {"id": "wall_mid_right", "rect": [4000, 3880, 8000, 4000], "layer": "A-WALL-NEW", "confidence": "inferred", "source": "示例空间划分"},
+    {"id": "wall_bath_west", "rect": [5480, 4000, 5600, 5800], "layer": "A-WALL-NEW", "confidence": "inferred", "source": "示例空间划分"}
+  ],
+  "openings": [
+    {"id": "opening_w01", "p0": [900, 100], "p1": [2500, 100], "layer": "A-OPENING", "confidence": "explicit", "source": "南侧窗"},
+    {"id": "opening_w02", "p0": [5200, 100], "p1": [6600, 100], "layer": "A-OPENING", "confidence": "explicit", "source": "南侧窗"},
+    {"id": "opening_d01", "p0": [3100, 3940], "p1": [4000, 3940], "layer": "A-OPENING", "confidence": "explicit", "source": "卧室门洞"}
+  ],
+  "windows": [
+    {"id": "window_w01", "p0": [900, 100], "p1": [2500, 100], "orientation": "H", "frame_offset": 35, "layer": "A-WINDOW", "confidence": "explicit", "source": "南侧窗"},
+    {"id": "window_w02", "p0": [5200, 100], "p1": [6600, 100], "orientation": "H", "frame_offset": 35, "layer": "A-WINDOW", "confidence": "explicit", "source": "南侧窗"}
+  ],
+  "sliding": [],
+  "doors": [
+    {"id": "door_d01", "hinge": [4000, 4000], "leaf_end": [4000, 3100], "width": 900, "angle0": 180, "angle1": 270, "layer": "A-DOOR", "confidence": "explicit", "source": "卧室门"}
+  ],
+  "rooms": [
+    {"id": "room_living", "name": "客餐厅", "area": "27.4㎡", "label": [4000, 1900], "rect": [200, 200, 7800, 3880], "confidence": "explicit", "source": "示例功能"},
+    {"id": "room_bed", "name": "卧室", "area": "18.5㎡", "label": [2800, 5000], "rect": [200, 4000, 5480, 5800], "confidence": "explicit", "source": "示例功能"},
+    {"id": "room_bath", "name": "卫生间", "area": "7.7㎡", "label": [6700, 5000], "rect": [5600, 4000, 7800, 5800], "confidence": "explicit", "source": "示例功能"}
+  ],
+  "fixed_furniture": [
+    {"id": "wardrobe_01", "kind": "WARDROBE", "rect": [200, 4000, 800, 5400], "contacts": ["W"], "layer": "A-FIXED-FURN", "confidence": "inferred", "source": "示例布置"},
+    {"id": "tv_01", "kind": "TV", "rect": [7200, 1300, 7800, 2700], "contacts": ["E"], "layer": "A-FIXED-FURN", "confidence": "inferred", "source": "示例布置"}
+  ],
+  "movable_furniture": [
+    {"id": "bed_01", "kind": "BED_N", "rect": [1800, 4000, 3800, 5800], "contacts": ["N"], "layer": "A-MOVE-FURN", "confidence": "inferred", "source": "2000×1800 双人床"},
+    {"id": "sofa_01", "kind": "SOFA", "rect": [1100, 1200, 2900, 1900], "layer": "A-MOVE-FURN", "confidence": "inferred", "source": "示例布置"},
+    {"id": "coffee_01", "kind": "COFFEE", "rect": [3500, 1250, 4700, 1900], "layer": "A-MOVE-FURN", "confidence": "inferred", "source": "示例布置"}
+  ],
+  "fixtures": [
+    {"id": "toilet_01", "kind": "TOILET", "anchor": [6200, 5800], "orientation": "N", "layer": "A-SANITARY", "confidence": "inferred", "source": "示例布置"},
+    {"id": "shower_01", "kind": "SHOWER", "rect": [6800, 4800, 7800, 5800], "layer": "A-SANITARY", "confidence": "inferred", "source": "1000×1000 淋浴区"}
+  ],
+  "dims": [
+    {"id": "dim_total_w", "p0": [0, -500], "p1": [8000, -500], "text_position": [4000, -650], "value": 8000, "layer": "A-DIMS", "confidence": "explicit", "source": "示例总宽"},
+    {"id": "dim_total_h", "p0": [-500, 0], "p1": [-500, 6000], "text_position": [-700, 3000], "value": 6000, "layer": "A-DIMS", "confidence": "explicit", "source": "示例总深"}
+  ],
+  "notes": [
+    {"id": "note_title", "text": "专业 CAD MCP 示例 | 单位：mm", "point": [0, -1100], "height": 180, "layer": "A-NOTE", "confidence": "explicit", "source": "示例说明"}
+  ],
+  "entities": []
+}

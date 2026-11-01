@@ -1,0 +1,31 @@
+{
+ "answer_exists": true,
+ "answer_chars": 764,
+ "expectations": [
+  {
+   "text": "区分分析逻辑（人定/矢量）与分析表现（可由 AI 重绘）",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "给出两步法：先出结构稿，再用「原底图 + 该结构稿」双参考出定稿",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "强调第二张参考图必须与底图结构一致，不能用其它场地的图",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "没有承诺一次单模型就能出可交付的分析图",
+   "passed": true,
+   "evidence": "命中关键词族"
+  }
+ ],
+ "passed": 4,
+ "total": 4,
+ "run": "eval-2-analysis-two-stage/with_skill",
+ "eval_name": "analysis-two-stage",
+ "config": "with_skill"
+}

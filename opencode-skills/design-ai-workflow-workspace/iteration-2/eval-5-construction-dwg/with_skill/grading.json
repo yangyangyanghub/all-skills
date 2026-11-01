@@ -1,0 +1,26 @@
+{
+ "answer_exists": true,
+ "answer_chars": 587,
+ "expectations": [
+  {
+   "text": "明确位图『施工图』不可交付，必须落真图元",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "给出 CAD 落图路线（plan.json → 校验 → 落图 → 导出核对）",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "声明专业规范未自动校验、需人工审图",
+   "passed": true,
+   "evidence": "命中关键词族"
+  }
+ ],
+ "passed": 3,
+ "total": 3,
+ "run": "eval-5-construction-dwg/with_skill",
+ "eval_name": "construction-dwg",
+ "config": "with_skill"
+}

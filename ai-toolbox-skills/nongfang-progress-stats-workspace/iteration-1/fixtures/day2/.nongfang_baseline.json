@@ -1,0 +1,131 @@
+{
+  "updated_at": "2026-10-30T10:59:27",
+  "data_date": "2026-10-29",
+  "source_file": "C:\\Users\\HP\\AppData\\Local\\Temp\\opencode\\nf-base\\邯郸市NF整改进展情况统计表10.29(3).xlsx",
+  "total": {
+    "batches": 109,
+    "patrols": 2741
+  },
+  "counties": {
+    "磁县": {
+      "cum_batches": 1,
+      "cum_patrols": 13,
+      "paid": 37,
+      "unpaid": 12
+    },
+    "曲周县": {
+      "cum_batches": 1,
+      "cum_patrols": 23,
+      "paid": 58,
+      "unpaid": 143
+    },
+    "冀南新区": {
+      "cum_batches": 3,
+      "cum_patrols": 25,
+      "paid": 7,
+      "unpaid": 3
+    },
+    "武安市": {
+      "cum_batches": 9,
+      "cum_patrols": 107,
+      "paid": 88,
+      "unpaid": 17
+    },
+    "馆陶县": {
+      "cum_batches": 3,
+      "cum_patrols": 95,
+      "paid": 40,
+      "unpaid": 35
+    },
+    "永年区": {
+      "cum_batches": 1,
+      "cum_patrols": 30,
+      "paid": 316,
+      "unpaid": 163
+    },
+    "涉县": {
+      "cum_batches": 4,
+      "cum_patrols": 31,
+      "paid": 12,
+      "unpaid": 2
+    },
+    "邱县": {
+      "cum_batches": 5,
+      "cum_patrols": 100,
+      "paid": 0,
+      "unpaid": 0
+    },
+    "复兴区": {
+      "cum_batches": 2,
+      "cum_patrols": 7,
+      "paid": 0,
+      "unpaid": 0
+    },
+    "邯山区": {
+      "cum_batches": 1,
+      "cum_patrols": 19,
+      "paid": 24,
+      "unpaid": 108
+    },
+    "峰峰矿区": {
+      "cum_batches": 3,
+      "cum_patrols": 34,
+      "paid": 0,
+      "unpaid": 0
+    },
+    "成安县": {
+      "cum_batches": 1,
+      "cum_patrols": 8,
+      "paid": 17,
+      "unpaid": 110
+    },
+    "鸡泽县": {
+      "cum_batches": 1,
+      "cum_patrols": 6,
+      "paid": 24,
+      "unpaid": 22
+    },
+    "魏县": {
+      "cum_batches": 0,
+      "cum_patrols": 0,
+      "paid": 79,
+      "unpaid": 14
+    },
+    "临漳县": {
+      "cum_batches": 1,
+      "cum_patrols": 21,
+      "paid": 146,
+      "unpaid": 163
+    },
+    "广平县": {
+      "cum_batches": 0,
+      "cum_patrols": 0,
+      "paid": 97,
+      "unpaid": 150
+    },
+    "肥乡区": {
+      "cum_batches": 0,
+      "cum_patrols": 0,
+      "paid": 74,
+      "unpaid": 90
+    },
+    "丛台区": {
+      "cum_batches": 4,
+      "cum_patrols": 16,
+      "paid": 0,
+      "unpaid": 0
+    },
+    "大名县": {
+      "cum_batches": 1,
+      "cum_patrols": 14,
+      "paid": 56,
+      "unpaid": 63
+    },
+    "经开区": {
+      "cum_batches": 2,
+      "cum_patrols": 22,
+      "paid": 0,
+      "unpaid": 0
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+ "id": "concept-hex-axon",
+ "title": "六边形等轴测场景组",
+ "drawing": "concept",
+ "delivery": "concept-only",
+ "source": {
+  "article": "烈日打灰《AI提示词快捷生成区域、建筑分析图》",
+  "url": "https://mp.weixin.qq.com/s/DwANMIiWyCeZxbCZm58wPQ"
+ },
+ "requires": {
+  "base": "none",
+  "refs": 0,
+  "view": "等轴测"
+ },
+ "constraint_block": "每个六边形单元只能装一类活动场景，不得在同一单元内混装两种功能；单元正下方必须有浅粉矩形说明块",
+ "vars": [
+  "scenes",
+  "title"
+ ],
+ "elements": [
+  "独立的六边形轴测空间",
+  "简化几何小人",
+  "场景主标题 + 副标题",
+  "浅粉矩形说明块"
+ ],
+ "composition": [
+  "低饱和马卡龙",
+  "利落黑色轮廓线 + 内部平涂",
+  "轴测视角"
+ ],
+ "anchors": [
+  "黑色轮廓线 + 平涂是这类插画的骨架，去掉就散"
+ ],
+ "avoid": [
+  "高饱和撞色",
+  "六边形内塞两类场景"
+ ],
+ "prompt_skeleton": "生成以六边形为单元的独立轴测空间组，每个六边形完整展示内部布局，对应一类日常活动场景（{scenes}）。低饱和马卡龙色系，墙体浅蓝淡粉，家具浅绿嫩黄浅灰，人物浅棕浅蓝。所有元素以利落黑色轮廓线勾勒、内部平涂。顶部粉色字体标主标题「{title}」，下方小字副标题。",
+ "model_hint": "qwen-image-3.0-pro 纯文生图即可，无保真要求。",
+ "validation": {
+  "status": "partial",
+  "date": "2026-10-29",
+  "score": "5/3",
+  "note": "实测出现单元混装多场景、缺说明块；已强化约束",
+  "evidence": "viz/recipe-test/eval-batch-C.json"
+ }
+}

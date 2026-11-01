@@ -1,0 +1,292 @@
+{
+ "note": "变量槽默认值与风格标签。风格标签摘自 RemakerAI《160+ Midjourney 建筑 prompt》(2026)，仅作参考数据，不含原文提示词。",
+ "photo_style_vars": {
+  "style": [
+   "现代轻奢",
+   "极简现代",
+   "日式安静感",
+   "当代国际风",
+   "侘寂风",
+   "原木极简",
+   "新中式",
+   "工业风",
+   "Art Deco",
+   "地中海"
+  ],
+  "keywords": [
+   "温润",
+   "克制",
+   "通透",
+   "秩序",
+   "柔和",
+   "精致",
+   "安静",
+   "东方意境",
+   "写意",
+   "几何秩序"
+  ],
+  "materials": [
+   "木饰面",
+   "浅灰石材",
+   "微水泥",
+   "玻璃",
+   "金属",
+   "织物软装",
+   "胡桃木",
+   "雅白大理石",
+   "黄铜",
+   "清水混凝土",
+   "GRC 幕墙",
+   "超白玻"
+  ],
+  "env": [
+   "一线城市 CBD",
+   "滨江住宅区",
+   "老城更新街区",
+   "校园",
+   "科研园区",
+   "滨海度假区"
+  ],
+  "view": [
+   "人视一点透视",
+   "两点透视",
+   "45 度俯瞰",
+   "低空鸟瞰",
+   "轴测",
+   "正交平面"
+  ],
+  "light": [
+   "柔和自然光",
+   "午后侧光",
+   "黄昏逆光",
+   "蓝调时刻",
+   "阴天高对比",
+   "室内灯光为主",
+   "束状天光"
+  ],
+  "time": [
+   "清晨薄雾",
+   "正午",
+   "午后斜光",
+   "黄昏",
+   "夜景",
+   "雨雾"
+  ],
+  "palette": [
+   "低饱和暖金",
+   "莫兰迪灰",
+   "米白+胡桃木",
+   "青灰+暖金",
+   "黑金",
+   "马卡龙低饱和",
+   "奶油白+酒红"
+  ]
+ },
+ "architect_style_tags": [
+  {
+   "name": "Frank Lloyd Wright",
+   "nationality": "American",
+   "style": "Organic, Prairie, Modernism"
+  },
+  {
+   "name": "Ludwig Mies van der Rohe",
+   "nationality": "German",
+   "style": "Minimalism, Modernism"
+  },
+  {
+   "name": "Zaha Hadid",
+   "nationality": "Iraqi-British",
+   "style": "Deconstructivism, Futurism"
+  },
+  {
+   "name": "Santiago Calatrava",
+   "nationality": "Spanish",
+   "style": "Kinetic, Futurism"
+  },
+  {
+   "name": "Renzo Piano",
+   "nationality": "Italian",
+   "style": "Contemporary, Sustainable"
+  },
+  {
+   "name": "Tadao Ando",
+   "nationality": "Japanese",
+   "style": "Minimalism, Concrete"
+  },
+  {
+   "name": "Jean Nouvel",
+   "nationality": "French",
+   "style": "Contextual, Innovative"
+  },
+  {
+   "name": "Norman Foster",
+   "nationality": "British",
+   "style": "High-Tech, Sustainable"
+  },
+  {
+   "name": "Bjarke Ingels",
+   "nationality": "Danish",
+   "style": "Playful, Innovative"
+  },
+  {
+   "name": "Daniel Libeskind",
+   "nationality": "American",
+   "style": "Deconstructivism, Narrative"
+  },
+  {
+   "name": "Alvaro Siza",
+   "nationality": "Portuguese",
+   "style": "Minimalism, Contextual"
+  },
+  {
+   "name": "Toyo Ito",
+   "nationality": "Japanese",
+   "style": "Organic, Lightness"
+  },
+  {
+   "name": "Herzog & de Meuron",
+   "nationality": "Swiss",
+   "style": "Contextual, Contemporary"
+  },
+  {
+   "name": "Peter Zumthor",
+   "nationality": "Swiss",
+   "style": "Minimalism, Craftsmanship"
+  },
+  {
+   "name": "Fumihiko Maki",
+   "nationality": "Japanese",
+   "style": "Modernism, Simplicity"
+  },
+  {
+   "name": "Shigeru Ban",
+   "nationality": "Japanese",
+   "style": "Humanitarian, Sustainable"
+  },
+  {
+   "name": "Rem Koolhaas",
+   "nationality": "Dutch",
+   "style": "Deconstructivism, Urbanism"
+  },
+  {
+   "name": "Le Corbusier",
+   "nationality": "French-Swiss",
+   "style": "Modernism, International Style"
+  },
+  {
+   "name": "Oscar Niemeyer",
+   "nationality": "Brazilian",
+   "style": "Modernism, Organic"
+  },
+  {
+   "name": "Walter Gropius",
+   "nationality": "German",
+   "style": "Bauhaus, Modernism"
+  },
+  {
+   "name": "Antoni Gaudi",
+   "nationality": "Spanish",
+   "style": "Catalan Modernism, Organic"
+  },
+  {
+   "name": "Louis Kahn",
+   "nationality": "American",
+   "style": "Monumental, Expressionism"
+  },
+  {
+   "name": "I.M. Pei",
+   "nationality": "Chinese-American",
+   "style": "Modernism, Geometric"
+  },
+  {
+   "name": "Richard Meier",
+   "nationality": "American",
+   "style": "Minimalism, White Aesthetics"
+  },
+  {
+   "name": "Alvar Aalto",
+   "nationality": "Finnish",
+   "style": "Organic, Functionalism"
+  },
+  {
+   "name": "Carlo Scarpa",
+   "nationality": "Italian",
+   "style": "Modernism, Craftsmanship"
+  },
+  {
+   "name": "Charles Rennie Mackintosh",
+   "nationality": "Scottish",
+   "style": "Art Nouveau, Glasgow Style"
+  },
+  {
+   "name": "Eero Saarinen",
+   "nationality": "Finnish-American",
+   "style": "Modernism, Sculptural"
+  },
+  {
+   "name": "Kenzo Tange",
+   "nationality": "Japanese",
+   "style": "Metabolist, Modernism"
+  },
+  {
+   "name": "Rafael Moneo",
+   "nationality": "Spanish",
+   "style": "Neo-Rationalism, Contextual"
+  },
+  {
+   "name": "Jeanne Gang",
+   "nationality": "American",
+   "style": "Sustainable, Biomimicry"
+  },
+  {
+   "name": "Dominique Perrault",
+   "nationality": "French",
+   "style": "Minimalism, Industrial"
+  },
+  {
+   "name": "Kengo Kuma",
+   "nationality": "Japanese",
+   "style": "Natural Materials, Organic"
+  },
+  {
+   "name": "Elizabeth Diller",
+   "nationality": "American",
+   "style": "Contemporary, Interdisciplinary"
+  },
+  {
+   "name": "Kazuyo Sejima",
+   "nationality": "Japanese",
+   "style": "Minimalism, Transparency"
+  },
+  {
+   "name": "Vincent Van Duysen",
+   "nationality": "Belgian",
+   "style": "Minimalism, Interior"
+  },
+  {
+   "name": "David Chipperfield",
+   "nationality": "British",
+   "style": "Contextual, Contemporary"
+  },
+  {
+   "name": "Steven Holl",
+   "nationality": "American",
+   "style": "Organic, Light and Space"
+  },
+  {
+   "name": "Arata Isozaki",
+   "nationality": "Japanese",
+   "style": "Contextual, Fusion"
+  },
+  {
+   "name": "Moshe Safdie",
+   "nationality": "Canadian",
+   "style": "Habitat 67, Contextual"
+  },
+  {
+   "name": "Sou Fujimoto",
+   "nationality": "Japanese",
+   "style": "Organic, Transparent"
+  }
+ ]
+}

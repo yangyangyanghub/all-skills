@@ -1,0 +1,82 @@
+{
+  "expectations": [
+    {
+      "text": "输出目录出现一个非模板的 .xlsx 文件",
+      "passed": true,
+      "evidence": "农房整治工作卷宗整改进展统计表_20261030.xlsx"
+    },
+    {
+      "text": "模板文件未被修改（内容与运行前一致）",
+      "passed": true,
+      "evidence": "sha256 一致"
+    },
+    {
+      "text": "总批次 = 109",
+      "passed": true,
+      "evidence": "实际 109"
+    },
+    {
+      "text": "总图斑 = 2741",
+      "passed": true,
+      "evidence": "实际 2741"
+    },
+    {
+      "text": "当日批次 = 2",
+      "passed": true,
+      "evidence": "实际 2"
+    },
+    {
+      "text": "累计批次 = 45",
+      "passed": true,
+      "evidence": "实际 45"
+    },
+    {
+      "text": "累计图斑 = 606",
+      "passed": true,
+      "evidence": "实际 606"
+    },
+    {
+      "text": "剩余批次 = 64",
+      "passed": true,
+      "evidence": "实际 64"
+    },
+    {
+      "text": "剩余图斑 = 2135",
+      "passed": true,
+      "evidence": "实际 2135"
+    },
+    {
+      "text": "已缴费 = 1050",
+      "passed": true,
+      "evidence": "实际 1050"
+    },
+    {
+      "text": "未缴费 = 1085",
+      "passed": true,
+      "evidence": "实际 1085"
+    },
+    {
+      "text": "永年区 当日批次 = 1",
+      "passed": true,
+      "evidence": "实际 1"
+    },
+    {
+      "text": "磁县 当日批次 = 1",
+      "passed": true,
+      "evidence": "实际 1"
+    },
+    {
+      "text": "明确指出永年区有新增",
+      "passed": true,
+      "evidence": "| 永年区 | 1 |"
+    },
+    {
+      "text": "明确指出磁县有新增",
+      "passed": true,
+      "evidence": "| 磁县 | 1 |"
+    }
+  ],
+  "passed": 15,
+  "total": 15,
+  "pass_rate": 1.0
+}

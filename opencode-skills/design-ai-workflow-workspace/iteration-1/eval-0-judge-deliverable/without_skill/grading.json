@@ -1,0 +1,31 @@
+{
+ "answer_exists": true,
+ "answer_chars": 643,
+ "expectations": [
+  {
+   "text": "明确指出手绘总平直接转鸟瞰会导致布局漂移或重排",
+   "passed": false,
+   "evidence": "未命中：[['漂移', '重排', '不一致', '走样', '改动', '变形'], ['布局', '方案', '路网', '建筑位置']]"
+  },
+  {
+   "text": "明确说明该图不能作为施工参考或不可交付，只能当意向图",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "给出至少一条可保真的替代路径（体块模型/分区涂鸦/三维出图）",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "没有把「换更强的模型」当作解决办法",
+   "passed": true,
+   "evidence": "命中关键词族"
+  }
+ ],
+ "passed": 3,
+ "total": 4,
+ "run": "eval-0-judge-deliverable/without_skill",
+ "eval_name": "judge-deliverable",
+ "config": "without_skill"
+}

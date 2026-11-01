@@ -1,0 +1,50 @@
+{
+  "summary": {
+    "passed": 4,
+    "failed": 4,
+    "total": 8,
+    "pass_rate": 0.5
+  },
+  "expectations": [
+    {
+      "text": "输出目录出现一个非模板的 .xlsx 文件",
+      "passed": true,
+      "evidence": "农房整治进展统计结果.xlsx"
+    },
+    {
+      "text": "模板文件未被修改（内容与运行前一致）",
+      "passed": true,
+      "evidence": "sha256 一致"
+    },
+    {
+      "text": "总批次 = 109",
+      "passed": true,
+      "evidence": "实际 109"
+    },
+    {
+      "text": "总图斑 = 2741",
+      "passed": true,
+      "evidence": "实际 2741"
+    },
+    {
+      "text": "武安市 总批次（应为空） = 0",
+      "passed": false,
+      "evidence": "实际 15"
+    },
+    {
+      "text": "明确指出武安市缺数据",
+      "passed": false,
+      "evidence": "回答里没有把武安和'缺数据'联系起来"
+    },
+    {
+      "text": "指出'武安市区'这个模板里没有的县区名",
+      "passed": false,
+      "evidence": "回答没有提到武安市区"
+    },
+    {
+      "text": "没有静默产出一份看似完整的结果",
+      "passed": false,
+      "evidence": "异常未被完整暴露"
+    }
+  ]
+}

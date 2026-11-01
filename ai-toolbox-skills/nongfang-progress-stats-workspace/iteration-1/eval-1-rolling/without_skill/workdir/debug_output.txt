@@ -1,0 +1,4 @@
+  File "<string>", line 75
+    print(f'{county}: 批次={data[\
+          ^
+SyntaxError: unterminated string literal (detected at line 75)

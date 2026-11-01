@@ -1,0 +1,11 @@
+{
+ "eval_id": 7,
+ "eval_name": "delivery-declaration",
+ "config": "with_skill",
+ "prompt": "图出完了，怎么给客户写交付说明？",
+ "assertions": [
+  "提到三查的具体项（数元素/数楼层/对路网或开口）",
+  "要求区分可交付与仅意向，并写明降级原因",
+  "要求有证据（截图/对照图），而不是口头说看过了"
+ ]
+}

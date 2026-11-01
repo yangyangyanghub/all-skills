@@ -1,0 +1,50 @@
+{
+ "id": "render-interior",
+ "title": "室内方案展示板（平面图直出）",
+ "drawing": "render",
+ "delivery": "deliverable",
+ "source": {
+  "article": "风Su《2026是Agent元年，GPT-Image-2 建筑 实践拆解提示词的底层逻辑》",
+  "url": "https://mp.weixin.qq.com/s/wl-B6ymHm4x3l6NaCDVIkg"
+ },
+ "requires": {
+  "base": "floor_plan",
+  "refs": 0,
+  "view": "主视角 + 轴测 + 局部"
+ },
+ "constraint_block": "严格保持原户型布局、房间数量、墙体位置、门洞关系、开间进深、功能分区不变，不得重构或扩建；主画面必须是该户型的室内透视效果图，不得输出平面图/彩平作为主图",
+ "vars": [
+  "style",
+  "keywords",
+  "materials",
+  "space"
+ ],
+ "elements": [
+  "主视角室内透视",
+  "双语标题（中文大、英文小）",
+  "右侧上：3D 轴测空间图",
+  "右侧下：分区局部图与材质细节"
+ ],
+ "composition": [
+  "住宅设计汇报板式",
+  "中英双语排版",
+  "留白得当",
+  "16:9 横版"
+ ],
+ "anchors": [
+  "主画面只给一个核心空间，其余用右侧局部图承担，避免一张图讲完所有房间"
+ ],
+ "avoid": [
+  "改变户型结构",
+  "一张图塞满所有房间"
+ ],
+ "prompt_skeleton": "将住宅户型平面图转为高质量室内设计方案展示图。{constraint_block}。设计风格 {style}，强调 {keywords}。材质：{materials}。主画面为{space}的高质量室内透视，自然采光、空间通透、家具比例准确。画面合适位置加中英双语标题（中文字大在上，英文小在下）。图面右侧从上到下依次排布 3D 轴测空间图与若干局部效果图（餐厅/卧室/厨房/卫浴/材质/灯光）。光照自然柔和，真实材质反射，高端室内摄影质感。16:9 横版。",
+ "model_hint": "wan2.7-image-pro 单参考，实测约束块能锁住体块与户型。",
+ "validation": {
+  "status": "passed",
+  "date": "2026-10-29",
+  "score": "8/8",
+  "note": "补『主画面必须是室内透视』后全项通过",
+  "evidence": "viz/recipe-test/eval2.md"
+ }
+}

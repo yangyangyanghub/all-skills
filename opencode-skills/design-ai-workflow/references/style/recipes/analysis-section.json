@@ -1,0 +1,36 @@
+{
+ "id": "analysis-section",
+ "title": "剖面 / 轴测剖切图",
+ "drawing": "analysis",
+ "delivery": "deliverable",
+ "source": {
+  "article": "建筑学长《Banana Pro 最全建筑设计应用提示词指南》",
+  "url": "https://mp.weixin.qq.com/s/xesHXV6-afbN9QElqWEF-g"
+ },
+ "requires": {
+  "base": "model_or_plan",
+  "refs": 0,
+  "view": "轴测剖切"
+ },
+ "constraint_block": "剖面必须合理：楼板连续、梁柱有支承、无悬空构件",
+ "vars": [],
+ "elements": [
+  "剖切面",
+  "可见内部空间",
+  "剖面线"
+ ],
+ "composition": [
+  "轴测剖切",
+  "剖切面加深"
+ ],
+ "anchors": [
+  "剖切面用重线、被剖构件加深，一眼分清剖到什么"
+ ],
+ "avoid": [
+  "楼板断开",
+  "梁柱无支承"
+ ],
+ "prompt_skeleton": "根据输入生成相应的剖面/轴测剖切图，保持建筑剖面合理性。{constraint_block}。剖切面加粗，内部空间清晰可见。",
+ "model_hint": "wan2.7 单参考会抹平矢量感（实测：色块硬边、缺网格基底、缺硬阴影）。首选 qwen-image-3.0-pro 纯文生图，或双参考（结构底图 + 一张矢量风参考）。",
+ "fusion_block": "参考图 1 是场地结构的唯一依据：地块边界、道路走向、关键节点与水系位置必须与参考图 1 完全一致，不得移动、增删或重新规划。\n参考图 2 是图面语言的唯一依据：严格参照其矢量风格、色块处理、网格/街坊基底、图元样式（指北针、比例尺、图标、中英对照模块）与文字层级；参考图 2 的场地内容与布局一律忽略。\n\n"
+}

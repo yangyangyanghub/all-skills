@@ -1,0 +1,603 @@
+{
+  "metadata": {
+    "skill_name": "nongfang-progress-stats",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-10-30T04:22:17Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 20,
+        "failed": 0,
+        "total": 20,
+        "time_seconds": 520,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u8f93\u51fa\u76ee\u5f55\u51fa\u73b0\u4e00\u4e2a\u975e\u6a21\u677f\u7684 .xlsx \u6587\u4ef6",
+          "passed": true,
+          "evidence": "\u519c\u623f\u6574\u6cbb\u5de5\u4f5c\u5377\u5b97\u6574\u6539\u8fdb\u5c55\u7edf\u8ba1\u8868_20261029.xlsx"
+        },
+        {
+          "text": "\u6a21\u677f\u6587\u4ef6\u672a\u88ab\u4fee\u6539\uff08\u5185\u5bb9\u4e0e\u8fd0\u884c\u524d\u4e00\u81f4\uff09",
+          "passed": true,
+          "evidence": "sha256 \u4e00\u81f4"
+        },
+        {
+          "text": "\u603b\u6279\u6b21 = 109",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 109"
+        },
+        {
+          "text": "\u603b\u56fe\u6591 = 2741",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2741"
+        },
+        {
+          "text": "\u7d2f\u8ba1\u6279\u6b21 = 43",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 43"
+        },
+        {
+          "text": "\u7d2f\u8ba1\u56fe\u6591 = 571",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 571"
+        },
+        {
+          "text": "\u5269\u4f59\u6279\u6b21 = 66",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 66"
+        },
+        {
+          "text": "\u5269\u4f59\u56fe\u6591 = 2170",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2170"
+        },
+        {
+          "text": "\u5df2\u7f34\u8d39 = 1075",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 1075"
+        },
+        {
+          "text": "\u672a\u7f34\u8d39 = 1095",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 1095"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u603b\u6279\u6b21 = 17",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 17"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u603b\u56fe\u6591 = 509",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 509"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u7d2f\u8ba1\u6279\u6b21 = 1",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 1"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u7d2f\u8ba1\u56fe\u6591 = 30",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 30"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u5269\u4f59\u6279\u6b21 = 16",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 16"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u5269\u4f59\u56fe\u6591 = 479",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 479"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u5df2\u7f34\u8d39 = 316",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 316"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u672a\u7f34\u8d39 = 163",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 163"
+        },
+        {
+          "text": "\u8f93\u51fa\u8868\u4ecd\u542b 20 \u4e2a\u53bf\u533a\u884c",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 20 \u4e2a\uff1a\u6c38\u5e74\u533a\u3001\u5e7f\u5e73\u53bf\u3001\u6b66\u5b89\u5e02\u3001\u4e34\u6f33\u53bf\u3001\u5927\u540d\u53bf\u3001\u90af\u5c71\u533a\u3001\u80a5\u4e61\u533a\u3001\u6210\u5b89\u53bf\u3001\u9b4f\u53bf\u3001\u66f2\u5468\u53bf\u3001\u78c1\u53bf\u3001\u9e21\u6cfd\u53bf\u3001\u9986\u9676\u53bf\u3001\u5180\u5357\u65b0\u533a\u3001\u6d89\u53bf\u3001\u5cf0\u5cf0\u77ff\u533a\u3001\u90b1\u53bf\u3001\u7ecf\u5f00\u533a\u3001\u4e1b\u53f0\u533a\u3001\u590d\u5174\u533a"
+        },
+        {
+          "text": "\u8f93\u51fa\u8868\u4fdd\u7559\u4e86\u6a21\u677f\u7684\u5408\u5e76\u5355\u5143\u683c",
+          "passed": true,
+          "evidence": "\u5408\u5e76\u533a\u57df 9 \u4e2a"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 506,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u8f93\u51fa\u76ee\u5f55\u51fa\u73b0\u4e00\u4e2a\u975e\u6a21\u677f\u7684 .xlsx \u6587\u4ef6",
+          "passed": true,
+          "evidence": "\u519c\u623f\u6574\u6cbb\u5de5\u4f5c\u5377\u5b97\u6574\u6539\u8fdb\u5c55\u7edf\u8ba1\u8868_20261030.xlsx"
+        },
+        {
+          "text": "\u6a21\u677f\u6587\u4ef6\u672a\u88ab\u4fee\u6539\uff08\u5185\u5bb9\u4e0e\u8fd0\u884c\u524d\u4e00\u81f4\uff09",
+          "passed": true,
+          "evidence": "sha256 \u4e00\u81f4"
+        },
+        {
+          "text": "\u603b\u6279\u6b21 = 109",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 109"
+        },
+        {
+          "text": "\u603b\u56fe\u6591 = 2741",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2741"
+        },
+        {
+          "text": "\u5f53\u65e5\u6279\u6b21 = 2",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2"
+        },
+        {
+          "text": "\u7d2f\u8ba1\u6279\u6b21 = 45",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 45"
+        },
+        {
+          "text": "\u7d2f\u8ba1\u56fe\u6591 = 606",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 606"
+        },
+        {
+          "text": "\u5269\u4f59\u6279\u6b21 = 64",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 64"
+        },
+        {
+          "text": "\u5269\u4f59\u56fe\u6591 = 2135",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2135"
+        },
+        {
+          "text": "\u5df2\u7f34\u8d39 = 1050",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 1050"
+        },
+        {
+          "text": "\u672a\u7f34\u8d39 = 1085",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 1085"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u5f53\u65e5\u6279\u6b21 = 1",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 1"
+        },
+        {
+          "text": "\u78c1\u53bf \u5f53\u65e5\u6279\u6b21 = 1",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 1"
+        },
+        {
+          "text": "\u660e\u786e\u6307\u51fa\u6c38\u5e74\u533a\u6709\u65b0\u589e",
+          "passed": true,
+          "evidence": "| \u6c38\u5e74\u533a | 1 |"
+        },
+        {
+          "text": "\u660e\u786e\u6307\u51fa\u78c1\u53bf\u6709\u65b0\u589e",
+          "passed": true,
+          "evidence": "| \u78c1\u53bf | 1 |"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 308,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u8f93\u51fa\u76ee\u5f55\u51fa\u73b0\u4e00\u4e2a\u975e\u6a21\u677f\u7684 .xlsx \u6587\u4ef6",
+          "passed": true,
+          "evidence": "\u519c\u623f\u6574\u6cbb\u5de5\u4f5c\u5377\u5b97\u6574\u6539\u8fdb\u5c55\u7edf\u8ba1\u8868_20261029.xlsx"
+        },
+        {
+          "text": "\u6a21\u677f\u6587\u4ef6\u672a\u88ab\u4fee\u6539\uff08\u5185\u5bb9\u4e0e\u8fd0\u884c\u524d\u4e00\u81f4\uff09",
+          "passed": true,
+          "evidence": "sha256 \u4e00\u81f4"
+        },
+        {
+          "text": "\u603b\u6279\u6b21 = 109",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 109"
+        },
+        {
+          "text": "\u603b\u56fe\u6591 = 2741",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2741"
+        },
+        {
+          "text": "\u6b66\u5b89\u5e02 \u603b\u6279\u6b21\uff08\u5e94\u4e3a\u7a7a\uff09 = 0",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 None"
+        },
+        {
+          "text": "\u660e\u786e\u6307\u51fa\u6b66\u5b89\u5e02\u7f3a\u6570\u636e",
+          "passed": true,
+          "evidence": "\u6b66\u5b89\u5e02\"\uff0c\u6ca1\u6709"
+        },
+        {
+          "text": "\u6307\u51fa'\u6b66\u5b89\u5e02\u533a'\u8fd9\u4e2a\u6a21\u677f\u91cc\u6ca1\u6709\u7684\u53bf\u533a\u540d",
+          "passed": true,
+          "evidence": "\u56de\u7b54\u91cc\u51fa\u73b0\u4e86\u6b66\u5b89\u5e02\u533a"
+        },
+        {
+          "text": "\u6ca1\u6709\u9759\u9ed8\u4ea7\u51fa\u4e00\u4efd\u770b\u4f3c\u5b8c\u6574\u7684\u7ed3\u679c",
+          "passed": true,
+          "evidence": "\u5df2\u63d0\u793a\u6b66\u5b89\u7f3a\u5931\u5e76\u6307\u51fa\u9519\u5199\u7684\u53bf\u533a\u540d"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 16,
+        "failed": 4,
+        "total": 20,
+        "time_seconds": 629,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u8f93\u51fa\u76ee\u5f55\u51fa\u73b0\u4e00\u4e2a\u975e\u6a21\u677f\u7684 .xlsx \u6587\u4ef6",
+          "passed": true,
+          "evidence": "\u519c\u623f\u6574\u6cbb\u5de5\u4f5c\u5377\u5b97\u6574\u6539\u8fdb\u5c55\u7edf\u8ba1\u8868_\u5df2\u586b\u5199.xlsx"
+        },
+        {
+          "text": "\u6a21\u677f\u6587\u4ef6\u672a\u88ab\u4fee\u6539\uff08\u5185\u5bb9\u4e0e\u8fd0\u884c\u524d\u4e00\u81f4\uff09",
+          "passed": true,
+          "evidence": "sha256 \u4e00\u81f4"
+        },
+        {
+          "text": "\u603b\u6279\u6b21 = 109",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 109"
+        },
+        {
+          "text": "\u603b\u56fe\u6591 = 2741",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2741"
+        },
+        {
+          "text": "\u7d2f\u8ba1\u6279\u6b21 = 43",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 43"
+        },
+        {
+          "text": "\u7d2f\u8ba1\u56fe\u6591 = 571",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 571"
+        },
+        {
+          "text": "\u5269\u4f59\u6279\u6b21 = 66",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 66"
+        },
+        {
+          "text": "\u5269\u4f59\u56fe\u6591 = 2170",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2170"
+        },
+        {
+          "text": "\u5df2\u7f34\u8d39 = 1075",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 1646"
+        },
+        {
+          "text": "\u672a\u7f34\u8d39 = 1095",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 1101"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u603b\u6279\u6b21 = 17",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 17"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u603b\u56fe\u6591 = 509",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 509"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u7d2f\u8ba1\u6279\u6b21 = 1",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 1"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u7d2f\u8ba1\u56fe\u6591 = 30",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 30"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u5269\u4f59\u6279\u6b21 = 16",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 16"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u5269\u4f59\u56fe\u6591 = 479",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 479"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u5df2\u7f34\u8d39 = 316",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 346"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u672a\u7f34\u8d39 = 163",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 169"
+        },
+        {
+          "text": "\u8f93\u51fa\u8868\u4ecd\u542b 20 \u4e2a\u53bf\u533a\u884c",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 20 \u4e2a\uff1a\u6c38\u5e74\u533a\u3001\u5e7f\u5e73\u53bf\u3001\u6b66\u5b89\u5e02\u3001\u4e34\u6f33\u53bf\u3001\u5927\u540d\u53bf\u3001\u90af\u5c71\u533a\u3001\u80a5\u4e61\u533a\u3001\u6210\u5b89\u53bf\u3001\u9b4f\u53bf\u3001\u66f2\u5468\u53bf\u3001\u78c1\u53bf\u3001\u9e21\u6cfd\u53bf\u3001\u9986\u9676\u53bf\u3001\u5180\u5357\u65b0\u533a\u3001\u6d89\u53bf\u3001\u5cf0\u5cf0\u77ff\u533a\u3001\u90b1\u53bf\u3001\u7ecf\u5f00\u533a\u3001\u4e1b\u53f0\u533a\u3001\u590d\u5174\u533a"
+        },
+        {
+          "text": "\u8f93\u51fa\u8868\u4fdd\u7559\u4e86\u6a21\u677f\u7684\u5408\u5e76\u5355\u5143\u683c",
+          "passed": true,
+          "evidence": "\u5408\u5e76\u533a\u57df 9 \u4e2a"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 5,
+        "failed": 10,
+        "total": 15,
+        "time_seconds": 1006,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u8f93\u51fa\u76ee\u5f55\u51fa\u73b0\u4e00\u4e2a\u975e\u6a21\u677f\u7684 .xlsx \u6587\u4ef6",
+          "passed": true,
+          "evidence": "\u519c\u623f\u6574\u6cbb\u5377\u5b97\u6574\u6539\u8fdb\u5c55\u7edf\u8ba1\u8868(10\u670830\u65e5).xlsx"
+        },
+        {
+          "text": "\u6a21\u677f\u6587\u4ef6\u672a\u88ab\u4fee\u6539\uff08\u5185\u5bb9\u4e0e\u8fd0\u884c\u524d\u4e00\u81f4\uff09",
+          "passed": true,
+          "evidence": "sha256 \u4e00\u81f4"
+        },
+        {
+          "text": "\u603b\u6279\u6b21 = 109",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 109"
+        },
+        {
+          "text": "\u603b\u56fe\u6591 = 2741",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2741"
+        },
+        {
+          "text": "\u5f53\u65e5\u6279\u6b21 = 2",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 32"
+        },
+        {
+          "text": "\u7d2f\u8ba1\u6279\u6b21 = 45",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 75"
+        },
+        {
+          "text": "\u7d2f\u8ba1\u56fe\u6591 = 606",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 1914"
+        },
+        {
+          "text": "\u5269\u4f59\u6279\u6b21 = 64",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 34"
+        },
+        {
+          "text": "\u5269\u4f59\u56fe\u6591 = 2135",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 827"
+        },
+        {
+          "text": "\u5df2\u7f34\u8d39 = 1050",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 1147"
+        },
+        {
+          "text": "\u672a\u7f34\u8d39 = 1085",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 767"
+        },
+        {
+          "text": "\u6c38\u5e74\u533a \u5f53\u65e5\u6279\u6b21 = 1",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 None"
+        },
+        {
+          "text": "\u78c1\u53bf \u5f53\u65e5\u6279\u6b21 = 1",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 2"
+        },
+        {
+          "text": "\u660e\u786e\u6307\u51fa\u6c38\u5e74\u533a\u6709\u65b0\u589e",
+          "passed": false,
+          "evidence": "\u56de\u7b54\u91cc\u6ca1\u6709\u51fa\u73b0 \u6c38\u5e74"
+        },
+        {
+          "text": "\u660e\u786e\u6307\u51fa\u78c1\u53bf\u6709\u65b0\u589e",
+          "passed": true,
+          "evidence": "\u78c1\u53bf: \u65b0\u589e\u6279\u6b21 2 \u6279, \u65b0\u589e\u56fe\u6591 49 \u4e2a"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 4,
+        "failed": 4,
+        "total": 8,
+        "time_seconds": 0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u8f93\u51fa\u76ee\u5f55\u51fa\u73b0\u4e00\u4e2a\u975e\u6a21\u677f\u7684 .xlsx \u6587\u4ef6",
+          "passed": true,
+          "evidence": "\u519c\u623f\u6574\u6cbb\u8fdb\u5c55\u7edf\u8ba1\u7ed3\u679c.xlsx"
+        },
+        {
+          "text": "\u6a21\u677f\u6587\u4ef6\u672a\u88ab\u4fee\u6539\uff08\u5185\u5bb9\u4e0e\u8fd0\u884c\u524d\u4e00\u81f4\uff09",
+          "passed": true,
+          "evidence": "sha256 \u4e00\u81f4"
+        },
+        {
+          "text": "\u603b\u6279\u6b21 = 109",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 109"
+        },
+        {
+          "text": "\u603b\u56fe\u6591 = 2741",
+          "passed": true,
+          "evidence": "\u5b9e\u9645 2741"
+        },
+        {
+          "text": "\u6b66\u5b89\u5e02 \u603b\u6279\u6b21\uff08\u5e94\u4e3a\u7a7a\uff09 = 0",
+          "passed": false,
+          "evidence": "\u5b9e\u9645 15"
+        },
+        {
+          "text": "\u660e\u786e\u6307\u51fa\u6b66\u5b89\u5e02\u7f3a\u6570\u636e",
+          "passed": false,
+          "evidence": "\u56de\u7b54\u91cc\u6ca1\u6709\u628a\u6b66\u5b89\u548c'\u7f3a\u6570\u636e'\u8054\u7cfb\u8d77\u6765"
+        },
+        {
+          "text": "\u6307\u51fa'\u6b66\u5b89\u5e02\u533a'\u8fd9\u4e2a\u6a21\u677f\u91cc\u6ca1\u6709\u7684\u53bf\u533a\u540d",
+          "passed": false,
+          "evidence": "\u56de\u7b54\u6ca1\u6709\u63d0\u5230\u6b66\u5b89\u5e02\u533a"
+        },
+        {
+          "text": "\u6ca1\u6709\u9759\u9ed8\u4ea7\u51fa\u4e00\u4efd\u770b\u4f3c\u5b8c\u6574\u7684\u7ed3\u679c",
+          "passed": false,
+          "evidence": "\u5f02\u5e38\u672a\u88ab\u5b8c\u6574\u66b4\u9732"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 444.6667,
+        "stddev": 118.5636,
+        "min": 308,
+        "max": 520
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5444,
+        "stddev": 0.2365,
+        "min": 0.3333,
+        "max": 0.8
+      },
+      "time_seconds": {
+        "mean": 545.0,
+        "stddev": 508.2332,
+        "min": 0,
+        "max": 1006
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.46",
+      "time_seconds": "-100.3",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

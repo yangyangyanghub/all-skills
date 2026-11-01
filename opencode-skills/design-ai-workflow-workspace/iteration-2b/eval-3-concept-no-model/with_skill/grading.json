@@ -1,0 +1,26 @@
+{
+ "answer_exists": true,
+ "answer_chars": 363,
+ "expectations": [
+  {
+   "text": "概念阶段可以先不建模，用草图/体块直接出，允许结构变化",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "明确概念图不能当方案图、不能拿来对图纸",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "说清若要『能对图纸』才必须上白模或线稿",
+   "passed": true,
+   "evidence": "命中关键词族"
+  }
+ ],
+ "passed": 3,
+ "total": 3,
+ "run": "eval-3-concept-no-model/with_skill",
+ "eval_name": "concept-no-model",
+ "config": "with_skill"
+}

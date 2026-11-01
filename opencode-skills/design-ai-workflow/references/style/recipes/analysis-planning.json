@@ -1,0 +1,61 @@
+{
+ "id": "analysis-planning",
+ "title": "控规区位分析图",
+ "drawing": "analysis",
+ "delivery": "deliverable",
+ "source": {
+  "article": "烈日打灰《AI提示词快捷生成区域、建筑分析图》",
+  "url": "https://mp.weixin.qq.com/s/DwANMIiWyCeZxbCZm58wPQ"
+ },
+ "requires": {
+  "base": "satellite",
+  "refs": 0,
+  "view": "正交俯视"
+ },
+ "constraint_block": "完整保留原图的地理边界、道路走向与关键节点位置，不得移动或删减",
+ "vars": [
+  "palette",
+  "modules"
+ ],
+ "palette_map": {
+  "绿": "生态绿地",
+  "黄": "居住/一般建设用地",
+  "粉": "公共服务节点",
+  "橙": "商业活力区",
+  "蓝": "交通廊道"
+ },
+ "elements": [
+  "指北针",
+  "0-1000m 比例尺",
+  "慢行步道",
+  "核心活力圈",
+  "4-5 个中英对照分析模块",
+  "每个模块配图标与一句精简说明"
+ ],
+ "composition": [
+  "浅灰网格基底",
+  "低饱和马卡龙色系",
+  "深灰线条勾地块轮廓",
+  "无衬线字体",
+  "信息层级分明"
+ ],
+ "anchors": [
+  "色块边缘柔化以增强层次",
+  "网格基底让色块不飘"
+ ],
+ "avoid": [
+  "改变地理边界",
+  "高饱和撞色",
+  "任何水印与边框"
+ ],
+ "prompt_skeleton": "将输入卫星图转为建筑竞赛风场地分析图。{constraint_block}。整体简洁明快的矢量风格，浅灰网格基底，{palette} 区分功能分区并保持低饱和。添加{elements}。{composition}。强调专业分析性与视觉吸引力。",
+ "model_hint": "两步法：① 单参考 wan2.7 出结构稿 ② 双参考 [原底图 + 该结构稿] 出定稿。单步或 ref2 用其它场地均失败（实测）。qwen 纯文生图会丢结构。",
+ "validation": {
+  "status": "passed-two-stage",
+  "date": "2026-10-29",
+  "score": "4/5",
+  "known_limitation": "色块边缘柔化未达成",
+  "evidence": "viz/recipe-test/eval4.md"
+ },
+ "fusion_block": "参考图 1 是场地结构的唯一依据：地块边界、道路走向、关键节点与水系位置必须与参考图 1 完全一致，不得移动、增删或重新规划。\n参考图 2 是图面语言的唯一依据：严格参照其矢量风格、网格基底、图元样式与文字层级；参考图 2 必须来自同一底图的第一轮产物（结构一致），不得使用其它场地的矢量图，否则布局会被平均。\n\n"
+}

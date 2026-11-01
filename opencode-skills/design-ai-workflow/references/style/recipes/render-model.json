@@ -1,0 +1,39 @@
+{
+ "id": "render-model",
+ "title": "实体建筑模型感",
+ "drawing": "render",
+ "delivery": "deliverable",
+ "source": {
+  "article": "建筑学长《Banana Pro 最全建筑设计应用提示词指南》",
+  "url": "https://mp.weixin.qq.com/s/xesHXV6-afbN9QElqWEF-g"
+ },
+ "requires": {
+  "base": "model",
+  "refs": 1,
+  "view": "移轴 / 斜角 / 航拍"
+ },
+ "constraint_block": "模型比例必须与建筑一致，手绘白图作为叠加层而非替代",
+ "vars": [
+  "angles"
+ ],
+ "elements": [
+  "按比例缩放的模型",
+  "移轴/斜角/航拍三种拍摄角度",
+  "高对比度光照",
+  "叠加手绘白色概念图",
+  "中文注释"
+ ],
+ "composition": [
+  "微缩模型感",
+  "浅景深"
+ ],
+ "anchors": [
+  "移轴造成的浅景深是『模型感』的来源，不是材质"
+ ],
+ "avoid": [
+  "做成实景照片",
+  "手绘图盖住模型"
+ ],
+ "prompt_skeleton": "生成一个按比例缩放的建筑模型，分别采用{angles}拍摄，高对比度光照。将手绘白色概念图叠加到模型上并添加中文注释。{constraint_block}。",
+ "model_hint": "wan2.7-image-pro 单参考，实测约束块能锁住体块与户型。"
+}

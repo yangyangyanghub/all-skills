@@ -1,0 +1,26 @@
+{
+ "answer_exists": true,
+ "answer_chars": 551,
+ "expectations": [
+  {
+   "text": "把原因归为换视角导致重排布局，而不是模型不够强",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "给出体块模型鸟瞰 + 分区涂鸦的路线",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "提到出图后要数水体/栋数/对路网这类具体核对",
+   "passed": true,
+   "evidence": "命中关键词族"
+  }
+ ],
+ "passed": 3,
+ "total": 3,
+ "run": "eval-4-masterplan-root-cause/with_skill",
+ "eval_name": "masterplan-root-cause",
+ "config": "with_skill"
+}

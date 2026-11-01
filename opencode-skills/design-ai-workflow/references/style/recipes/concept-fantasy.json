@@ -1,0 +1,35 @@
+{
+ "id": "concept-fantasy",
+ "title": "幻想建筑（概念灵感）",
+ "drawing": "concept",
+ "delivery": "concept-only",
+ "source": {
+  "article": "RemakerAI《160+ Midjourney 建筑 prompt 提示词分享》",
+  "url": "https://mp.weixin.qq.com/s/Sz-kvmH2I1ZGmp0aq1OXjQ"
+ },
+ "requires": {
+  "base": "none",
+  "refs": 0,
+  "view": "任意"
+ },
+ "constraint_block": "无任何保真约束——本配方只用于找灵感，不进入交付流程",
+ "vars": [
+  "dimension",
+  "element",
+  "architect",
+  "style",
+  "detail",
+  "extra"
+ ],
+ "elements": [],
+ "composition": [],
+ "anchors": [
+  "变量公式比堆形容词稳定：Generate a [2D/3D] [element] inspired by [architect] with [style] [detail]"
+ ],
+ "avoid": [
+  "把幻想图当方案图",
+  "用幻想图回答『这个位置放什么』"
+ ],
+ "prompt_skeleton": "Generate a {dimension} {element} inspired by {architect} with {style}. {detail}. Incorporate {extra}.",
+ "model_hint": "qwen-image-3.0-pro 纯文生图即可，无保真要求。"
+}

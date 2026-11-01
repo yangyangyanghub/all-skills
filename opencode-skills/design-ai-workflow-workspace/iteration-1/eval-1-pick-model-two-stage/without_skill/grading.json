@@ -1,0 +1,31 @@
+{
+ "answer_exists": true,
+ "answer_chars": 915,
+ "expectations": [
+  {
+   "text": "给出两段式或双参考方案（先氛围/材质稿，再双参考融合）",
+   "passed": false,
+   "evidence": "未命中：[['两段', '两步', '双参考', '两张参考', '氛围稿', '两个阶段']]"
+  },
+  {
+   "text": "指出 qwen 系列不吃参考图（只能纯文生图）",
+   "passed": false,
+   "evidence": "未命中：[['qwen'], ['不吃', '不支持参考', '不能带参考', '纯文生图', '只吃文本', '无参考']]"
+  },
+  {
+   "text": "指出带参考图时有分辨率上限（2048/2K），拿不到 4K",
+   "passed": true,
+   "evidence": "命中关键词族"
+  },
+  {
+   "text": "提到出图后要实际看图核对结构，而不是只看接口成功",
+   "passed": false,
+   "evidence": "未命中：[['看图', '核对', '检查画面', '验收', '肉眼', '比对', '三查']]"
+  }
+ ],
+ "passed": 1,
+ "total": 4,
+ "run": "eval-1-pick-model-two-stage/without_skill",
+ "eval_name": "pick-model-two-stage",
+ "config": "without_skill"
+}

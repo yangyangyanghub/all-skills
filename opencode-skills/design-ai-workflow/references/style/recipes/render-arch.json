@@ -1,0 +1,42 @@
+{
+ "id": "render-arch",
+ "title": "建筑方案展示效果图（白模直出）",
+ "drawing": "render",
+ "delivery": "deliverable",
+ "source": {
+  "article": "风Su《2026是Agent元年，GPT-Image-2 建筑 实践拆解提示词的底层逻辑》",
+  "url": "https://mp.weixin.qq.com/s/wl-B6ymHm4x3l6NaCDVIkg"
+ },
+ "requires": {
+  "base": "white_model",
+  "refs": 0,
+  "view": "由底图决定"
+ },
+ "constraint_block": "严格保持原图建筑体块关系、建筑高度、整体形体不变；层数、主楼与裙房高度比例、塔楼宽高比必须与原图一致",
+ "vars": [
+  "style",
+  "keywords",
+  "materials",
+  "env",
+  "building_type"
+ ],
+ "elements": [
+  "立面特征迁移（比例、开窗节奏、材质语言、细部逻辑）",
+  "周边道路/行人/绿化/车辆/城市家具"
+ ],
+ "composition": [
+  "16:9 横版",
+  "建筑竞赛提案板式",
+  "自然或略带戏剧性光照"
+ ],
+ "anchors": [
+  "风格词必须落到材料与构件上（GRC 幕墙、带状玻璃），不能只写『流线型』"
+ ],
+ "avoid": [
+  "改变体量或高度",
+  "只换建筑师名字不换形容词",
+  "过度饱和"
+ ],
+ "prompt_skeleton": "将这张建筑白模/SketchUp 草图转为高质量建筑方案展示效果图。{constraint_block}。设计风格偏向 {style}，强调 {keywords}。建筑类型为 {building_type}，位于 {env}。立面特征：迁移参考图的立面比例、开窗节奏、材质语言与细部逻辑，但不得改变体块关系与高度。材质系统：{materials}。环境：补充城市道路、行人空间、绿化景观、少量车辆与城市家具。光照：自然或略带戏剧性，真实材质反射，细腻阴影，高端建筑摄影质感。风格：建筑竞赛提案板式。输出 16:9 横版，超清、写实。",
+ "model_hint": "wan2.7-image-pro 单参考，实测约束块能锁住体块与户型。"
+}

@@ -1,0 +1,17 @@
+{
+  "expectations": [
+    {
+      "text": "输出目录出现一个非模板的 .xlsx 文件",
+      "passed": false,
+      "evidence": "没有找到"
+    },
+    {
+      "text": "模板文件未被修改（内容与运行前一致）",
+      "passed": true,
+      "evidence": "sha256 一致"
+    }
+  ],
+  "passed": 1,
+  "total": 2,
+  "pass_rate": 0.5
+}

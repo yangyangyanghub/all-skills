@@ -1,0 +1,40 @@
+{
+ "id": "concept-blueprint",
+ "title": "蓝图生长成建筑",
+ "drawing": "concept",
+ "delivery": "concept-only",
+ "source": {
+  "article": "LiuSonnet《使用 AI 生成建筑蓝图风格图像》",
+  "url": "https://mp.weixin.qq.com/s/scS7e9bYjPlPhaNP2ajKjw"
+ },
+ "requires": {
+  "base": "none",
+  "refs": 0,
+  "view": "桌面上帝视角"
+ },
+ "constraint_block": "无底图约束",
+ "vars": [
+  "subject"
+ ],
+ "elements": [
+  "钉在绘图桌上的蓝图",
+  "墨线跃出变成立体构件",
+  "微缩工人/起重机/脚手架",
+  "漂浮的技术注释",
+  "建筑师的咖啡杯"
+ ],
+ "composition": [
+  "极致的比例对比",
+  "午后斜光",
+  "8K 照片级"
+ ],
+ "anchors": [
+  "咖啡杯在未建成部分投下阴影——用一个小道具同时交代尺度与进度"
+ ],
+ "avoid": [
+  "只画蓝图不生长",
+  "没有比例参照物"
+ ],
+ "prompt_skeleton": "史诗级 3D 场景：一张巨大的{subject}建筑蓝图钉在绘图桌上，墨线跃出纸面化为立体构件，平面图膨胀成布置好的房间，立面图向外延伸成带可开启窗户的外立面。施工阶段同时进行：一角在浇地基，另一角已有人居住。微小的工人、起重机与脚手架穿行其间。技术注释如立体标识漂浮空中。建筑师的咖啡杯放在边缘，在尚未建成的部分投下阴影。极致比例对比，扬尘在午后阳光中闪耀，8K，照片级真实。",
+ "model_hint": "qwen-image-3.0-pro 纯文生图即可，无保真要求。"
+}

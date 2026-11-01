@@ -1,0 +1,46 @@
+{
+ "id": "render-birdview",
+ "title": "平面 ↔ 鸟瞰互转",
+ "drawing": "masterplan",
+ "delivery": "intent-only",
+ "source": {
+  "article": "建筑学长《Banana Pro 最全建筑设计应用提示词指南》",
+  "url": "https://mp.weixin.qq.com/s/xesHXV6-afbN9QElqWEF-g"
+ },
+ "requires": {
+  "base": "plan_or_birdseye",
+  "refs": 0,
+  "view": "低空鸟瞰 / 写实平面"
+ },
+ "constraint_block": "换视角必然重排布局：只要求整体气质与用地意向相近，不得承诺布局、路网与栋数一致",
+ "vars": [
+  "direction",
+  "env"
+ ],
+ "elements": [
+  "建筑全貌",
+  "周边城市环境",
+  "真实质感"
+ ],
+ "composition": [
+  "低空鸟瞰",
+  "现代立面造型"
+ ],
+ "anchors": [
+  "换视角必然重排布局——这条只能出意向图，不可承诺布局一致"
+ ],
+ "avoid": [
+  "承诺『布局不变』",
+  "把鸟瞰图当可交付方案图"
+ ],
+ "prompt_skeleton": "根据输入{direction}。{constraint_block}。现代建筑，现代立面造型，周边为{env}，具有真实感质感。",
+ "model_hint": "换视角图只能出意向；高保真走体块模型 + 分区涂鸦。",
+ "inventory_note": "原措辞『不要改变用地形状』在实测中无法兑现，已改为如实声明",
+ "validation": {
+  "status": "failed-as-expected",
+  "date": "2026-10-29",
+  "score": "3/4",
+  "note": "再次证实换视角必重排；已降为 intent-only 并改措辞",
+  "evidence": "viz/recipe-test/eval-batch-F.json"
+ }
+}

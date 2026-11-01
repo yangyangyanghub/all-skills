@@ -88,6 +88,15 @@ def generate(src, out_dir=None, business_name=BUSINESS_NAME, today=None):
     df = pd.read_excel(src)
     print(f'源表行数: {len(df)}')
 
+    # 列兼容（v1.7）：新版导出（如国家下发 3337 个批次）缺失部分明细列，缺失建空列
+    # 业务口径不变，仅明细展示列兜底；旧版源表列齐全时不触发
+    OPTIONAL_COLS = ['监测类型', '分类', '图斑特征', '实地地类', '外业时间', '线索备注']
+    missing = [c for c in OPTIONAL_COLS if c not in df.columns]
+    for c in missing:
+        df[c] = ''
+    if missing:
+        print(f'列兼容: 源表缺失 {len(missing)} 列，已建空列 → {missing}')
+
     # 地类
     code_map = load_code_map()
     df['__dilei_text'] = df['实地地类'].apply(lambda v: code_to_name(v, code_map))

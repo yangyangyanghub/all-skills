@@ -1,0 +1,11 @@
+{
+ "eval_id": 6,
+ "eval_name": "renewal-keep-structure",
+ "config": "with_skill",
+ "prompt": "街景照片做改造效果图，必须保住原来那几栋楼，怎么办？",
+ "assertions": [
+  "指出整图重绘会画成重建",
+  "给出分区涂鸦/局部重绘 + 生成后合成的方案",
+  "强调保留区域的像素不能动（不是靠 prompt 写『保持不变』）"
+ ]
+}
