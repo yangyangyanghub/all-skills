@@ -72,6 +72,12 @@ class TextToImageGenerator:
             raise ValueError("缺少必要的 API 配置：api_key")
         if not self.is_gemini and not self.base_url:
             raise ValueError("非 Gemini API 需要配置 base_url")
+    def _endpoint(self, path: str) -> str:
+        base = self.base_url.rstrip("/")
+        if base.endswith(path):
+            return base
+        return base + path
+
     def _load_config(self) -> Dict[str, str]:
         """从配置文件或环境变量加载配置"""
         config = {}
@@ -221,7 +227,7 @@ class TextToImageGenerator:
         try:
             with httpx.Client(timeout=180.0) as client:
                 response = client.post(
-                    self.base_url,
+                    self._endpoint("/chat/completions"),
                     headers=headers,
                     json=payload
                 )
@@ -324,7 +330,7 @@ class TextToImageGenerator:
         try:
             with httpx.Client(timeout=180.0) as client:
                 response = client.post(
-                    self.base_url,
+                    self._endpoint("/chat/completions"),
                     headers=headers,
                     json=payload
                 )

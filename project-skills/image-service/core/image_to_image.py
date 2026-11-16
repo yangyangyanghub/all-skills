@@ -58,6 +58,12 @@ class ImageToImageEditor:
         if not self.api_key or not self.base_url:
             raise ValueError("缺少必要的 API 配置：api_key 和 base_url")
     
+    def _endpoint(self, path: str) -> str:
+        base = self.base_url.rstrip("/")
+        if base.endswith(path):
+            return base
+        return base + path
+
     def _load_config(self) -> Dict[str, str]:
         """从配置文件或环境变量加载配置"""
         config = {}
@@ -171,7 +177,7 @@ class ImageToImageEditor:
         try:
             with httpx.Client(timeout=180.0) as client:
                 response = client.post(
-                    f"{self.base_url}/images/edits",
+                    self._endpoint("/images/edits"),
                     headers=headers,
                     json=payload
                 )

@@ -45,6 +45,12 @@ class ImageToTextAnalyzer:
         if not self.api_key or not self.base_url:
             raise ValueError("缺少必要的 API 配置：api_key 和 base_url")
     
+    def _endpoint(self, path: str) -> str:
+        base = self.base_url.rstrip("/")
+        if base.endswith(path):
+            return base
+        return base + path
+
     def _load_config(self) -> Dict[str, str]:
         """从配置文件或环境变量加载配置"""
         config = {}
@@ -170,10 +176,12 @@ class ImageToTextAnalyzer:
             "Authorization": f"Bearer {self.api_key}"
         }
         
+        endpoint = self._endpoint("/chat/completions")
+
         try:
             with httpx.Client(timeout=120.0) as client:
                 response = client.post(
-                    f"{self.base_url}/chat/completions",
+                    endpoint,
                     headers=headers,
                     json=payload
                 )

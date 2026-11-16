@@ -1,13 +1,13 @@
 {
   "image_api": {
     "key": "sk-sp-H.DLPIML.CygX.MEUCIDAfmguM_jTNLWZGIkODzgxBXjinrFYHglB1tLy_5bFJAiEAgB9xiNWoIoMeiCTxtGGK0aJVklBeN_VlK2CiyoSvoaM",
-    "base_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "base_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
     "model": "wan2.7-image-pro"
   },
   "vision_api": {
-    "key": "sk-5404be6673584a9b9071cd64067d0fe0",
-    "base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
-    "model": "qwen3.5-plus"
+    "key": "sk-sp-H.DLPIML.CygX.MEUCIDAfmguM_jTNLWZGIkODzgxBXjinrFYHglB1tLy_5bFJAiEAgB9xiNWoIoMeiCTxtGGK0aJVklBeN_VlK2CiyoSvoaM",
+    "base_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+    "model": "qwen3.7-plus"
   },
   "defaults": {
     "text_to_image": {
